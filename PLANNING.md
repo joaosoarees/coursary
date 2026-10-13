@@ -1,0 +1,170 @@
+# Coursary: planejamento (sessão de grilling em andamento)
+
+Última atualização: 2026-10-12. Estado: **pausado na rodada 3, aguardando as skills de Cognito**.
+
+## Como retomar
+
+Abra o Claude Code e diga:
+
+> Leia `/home/joao/projects/coursary/PLANNING.md` e continue o grilling (`/mattpocock-skills:grill-me`) do ponto em que paramos.
+
+Ao retomar, o assistente deve:
+
+1. Verificar se já existem skills de Cognito instaladas e lê-las.
+2. Reabrir a Q20 (e revisar Q17 e Q18 à luz dessas skills).
+3. Seguir para a fronteira listada em "Próximas perguntas".
+
+Nada foi implementado ainda. Este arquivo é o único artefato do projeto.
+
+## O projeto em uma frase
+
+Uma API serverless de plataforma de cursos (Lambda + DynamoDB single-table), cujo critério de sucesso é: cada skill de DynamoDB instalada foi usada pelo menos uma vez em um caso real, e anotamos onde a skill errou ou faltou.
+
+## Decisões fechadas
+
+### Raiz
+
+| # | Decisão | Resposta |
+|---|---|---|
+| Q1 | Objetivo | Campo de prova das skills, com aprendizado prático de DynamoDB. Achados sobre as skills retroalimentam o repositório de skills. |
+| Q2 | Domínio | Plataforma de cursos. E-commerce descartado por ser o exemplo provável das próprias skills. |
+| Q3 | Superfície | Só backend (API HTTP em Lambda, Serverless Framework). Um frontend pode vir depois. |
+| Q4 | Onde roda | Deploy real na AWS, on-demand. Sem API rodando local. |
+| Q5 | Tamanho | Algumas semanas, em fases entregáveis sozinhas: tabela e CRUD → relações e índices → streams e Algolia → evolução de schema. |
+| Q6 | Autenticação | Sim, autenticação de verdade, com o foodiary como modelo. |
+
+### Domínio
+
+| # | Decisão | Resposta |
+|---|---|---|
+| Q7 | Atores | Aluno, instrutor e admin. |
+| Q8 | Hierarquia | Curso → Módulo → Aula (sort key hierárquica; curso inteiro em uma query). |
+| Q9 | Progresso | Um item por aula concluída + contador de aulas concluídas na matrícula. Create único com `attribute_not_exists`, `ADD` atômico, os dois em transação. |
+| Q10 | Ciclo de vida do curso | Rascunho → publicado → arquivado. Catálogo como índice esparso (só publicados têm a chave do GSI). O filtro do stream só indexa publicados e remove ao arquivar. |
+| Q11 | Extras | Só avaliações (nota e comentário, com média e contagem precomputadas no curso), na fase de desnormalização. Fora: certificado, pagamento, upload. |
+| Q12 | Busca | Só Algolia (plano gratuito), alimentado pelo stream da tabela. Sem fase de busca dentro do DynamoDB. |
+| Q21 | Papéis na prática | Todo mundo nasce aluno. O admin promove a instrutor, lista usuários e arquiva qualquer curso. O primeiro admin é criado por script. |
+| Q23 | Cancelar matrícula | Apaga a matrícula e o progresso e decrementa o contador de alunos, em transação. A avaliação fica. |
+| Q24 | Curso publicado | Pode acrescentar aulas, não pode remover. O curso guarda o total de aulas (contador); o percentual é calculado na leitura, nunca gravado. |
+
+### Padrões de acesso (Q22, confirmados)
+
+| # | Padrão | Quem |
+|---|---|---|
+| 1 | Buscar conta por id / por e-mail | sistema |
+| 2 | Listar usuários (paginado), filtrar por papel | admin |
+| 3 | Criar, editar, publicar, arquivar curso | instrutor |
+| 4 | Listar cursos de um instrutor (todos os estados) | instrutor |
+| 5 | Catálogo: cursos publicados, mais recentes primeiro (paginado) | público |
+| 6 | Curso completo: curso + módulos + aulas em uma leitura | público |
+| 7 | Criar, editar, reordenar módulos e aulas | instrutor |
+| 8 | Matricular-se / cancelar matrícula | aluno |
+| 9 | Minhas matrículas, com título do curso e progresso | aluno |
+| 10 | Alunos matriculados em um curso (paginado) | instrutor |
+| 11 | Marcar aula como concluída (uma vez só) | aluno |
+| 12 | Meu progresso em um curso: quais aulas concluí | aluno |
+| 13 | Avaliar curso (uma avaliação por matrícula), editar | aluno |
+| 14 | Avaliações de um curso, mais recentes primeiro (paginado) | público |
+| 15 | Buscar cursos por texto | público (Algolia) |
+
+Os padrões 5 e 6 são públicos (sem login) de propósito: rotas sem authorizer ao lado das privadas.
+
+Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProgress, Review, e o item de unicidade de e-mail.
+
+### Arquitetura
+
+| # | Decisão | Resposta |
+|---|---|---|
+| Q13 | Ponto de partida | Projeto novo, trazendo do foodiary só as peças reutilizáveis e corrigindo os defeitos na entrada (lista abaixo). |
+| Q14 | Container DI | Portas como **classes abstratas** (existem em runtime, aparecem em `design:paramtypes`). O container ganha `bind(Abstrata, Concreta)`. Use cases dependem da abstrata; testes passam fake em memória pelo construtor. `application` deixa de importar `infra`. |
+| Q15 | Lado de leitura | Mantém a separação escrita (repositórios) / leitura (classes de query que devolvem DTOs), mas as queries também ficam atrás de porta abstrata, com implementação Dynamo em `infra`. |
+| Q16/Q19 | Testes | Unitários de use cases e entidades com fakes em memória; unitários dos `*Item` (chaves e mapeamento ida e volta); integração de repositórios e queries contra **DynamoDB Local em Docker** (Vitest sobe a tabela, roda, derruba). Sem `serverless-offline`, sem autenticação simulada. Docker 29.9.0 já está instalado e rodando. |
+| Q17 | Escopo da auth | Tudo como no foodiary: sign-up, sign-in, refresh, recuperação de senha com SES e template React Email. *Revisar quando as skills de Cognito existirem.* |
+| Q18 | Unicidade de e-mail | Item `EMAIL#<email>` gravado na mesma transação do sign-up com `attribute_not_exists`; erro de duplicidade do Cognito mapeado para 409. |
+| Q25 | Infra AWS | Mesma conta e região do foodiary (`sa-east-1`), reaproveitando a identidade SES. Sem domínio customizado no início; trazer o `CustomDomain.yml` condicional para ligar depois. |
+| Q26 | Nome e local | `coursary`, em `/home/joao/projects/coursary/api` (espaço para um `web` ao lado). |
+
+## Decisão em aberto
+
+### Q20: onde vive o papel do usuário
+
+**Adiada pelo João**: ele vai transformar outros cursos em skills de Cognito antes de decidir, para que a decisão siga essas skills.
+
+Opções que estavam na mesa:
+
+- (a) Grupos do Cognito: o claim `cognito:groups` já vem no access token; promover é `AdminAddUserToGroup`.
+- (b) Atributo `role` no item `Account`, copiado para o token pelo trigger de pre token generation (que passaria a ler o Dynamo), com o access token encurtado de 12 h para 1 h.
+- (c) Atributo `role` no item `Account`, lido do Dynamo a cada requisição que exige papel.
+
+Recomendação dada na hora: (b). Motivo: o Dynamo fica como fonte da verdade (permite listar instrutores por índice), o controller recebe o papel sem leitura extra, e o papel desatualizado dura no máximo uma hora.
+
+Depende desta decisão: como o controller verifica papel, a duração do token, o desenho do padrão de acesso 2 (filtrar usuários por papel) e a rota de promoção do admin.
+
+## Próximas perguntas (fronteira ainda não percorrida)
+
+Em ordem aproximada de dependência:
+
+1. **Tabela de chaves**: PK/SK de cada entidade. Pontos a decidir: sort key hierárquica de módulo e aula e como reordenar sem reescrever chaves; onde fica a matrícula (coleção do aluno ou do curso) e a direção invertida no GSI; onde ficam LessonProgress e Review.
+2. **Índices**: um GSI1 sobrecarregado basta para os padrões 1, 2, 4, 5, 10 e 14, ou precisa de um GSI2? Qual é a chave do índice esparso do catálogo.
+3. **Desnormalização**: quais campos são copiados (título do curso na matrícula, nome do instrutor no curso, nome do aluno na matrícula e na avaliação) e como a mudança do original se propaga (stream ou nunca).
+4. **Contadores**: alunos do curso, total de aulas, aulas concluídas, soma e contagem de avaliações. Quais são mantidos em transação e quais pelo stream.
+5. **Unidade de trabalho**: desenho novo com `Put`, `Update`, `Delete` e `ConditionCheck`, sem estado entre invocações; destino do `Saga`.
+6. **Consistência de leitura**: onde `ConsistentRead` é necessário e quais fluxos leem logo depois de escrever passando por GSI.
+7. **Paginação**: formato do cursor opaco, tamanho de página padrão e máximo.
+8. **Stream e Algolia**: tipo de view do stream, filtros de evento, forma do registro no índice, tratamento de registros que falham, reindexação completa.
+9. **Rotas HTTP**: lista de rotas, quais são públicas, formato de erro (herdar o do foodiary).
+10. **Autorização**: como o controller declara o papel exigido e como se verifica a posse do recurso (o instrutor só edita o próprio curso).
+11. **Evolução de schema**: qual mudança real será feita na fase 4 para exercitar a skill (por exemplo, acrescentar um atributo com backfill de chave de índice).
+12. **Fases**: o que entra em cada uma e o critério de "pronta".
+13. **Registro de achados sobre as skills**: onde e em que formato anotar o que cada skill errou ou não cobriu.
+14. **Custo e capacidade**: on-demand confirmado; decidir PITR, proteção contra exclusão e alarmes.
+
+## O que a exploração do foodiary mostrou
+
+Projeto de referência: `/home/joao/projects/foodiary/api` (lido em 2026-10-12, commit `177be03`).
+
+### Trazer
+
+- `kernel/`: `Registry` (container escrito à mão, cerca de 45 linhas, `reflect-metadata`), `@Injectable`, `@Schema` (Zod por decorator de classe).
+- `application/contracts/Controller.ts`: `Controller<'public' | 'private', TBody>`, que tipa `accountId` como `string` ou `null`.
+- `main/adapters/lambdaHttpAdapter.ts`, `main/utils/` e o modelo de handler de seis linhas.
+- Hierarquia de erros e `ErrorCode`; corpo de erro `{ error: { code, message } }`.
+- Padrão `shared/config` (`env.ts` com Zod + `AppConfig` injetável).
+- Padrão `*Item`: `static type`, construtores de chave estáticos (`getPK`, `getSK`, `getGSI1PK`, `getGSI1SK`), `fromEntity` / `toEntity`, `id` como atributo próprio, ids KSUID.
+- Convenção de repositório: `getPutCommandInput(entity)` exposto para reuso em transação.
+- `AuthGateway` e os três triggers do Cognito; authorizer JWT do API Gateway; claim `internalId` (o KSUID próprio é a identidade, o `sub` do Cognito fica só como `externalId`).
+- `serverless.yml` enxuto + divisão em `sls/` (config, functions, resources), incluindo `UserPool.yml`, `MainTable.yml` e `CustomDomain.yml`.
+- `esbuild.config.mjs` (com `esbuild-plugin-tsc`, necessário para `design:paramtypes`), `tsconfig.json`, ESLint e Prettier.
+
+### Corrigir na entrada
+
+- `UnityOfWork.transactItems` e `Saga.compensations` nunca são limpos, e as instâncias vivem pelo container inteiro: em Lambda quente, uma segunda execução reenvia os itens da primeira.
+- A unidade de trabalho só aceita `Put`. Avaliar, e liberar conforme utilizamos.
+- Nenhuma condition expression em lugar nenhum; nenhuma paginação (`LastEvaluatedKey` nunca é lido).
+- Token do container é `impl.name` com `minify: true` e sem `keepNames`: frágil.
+- `application` importa classes concretas de `infra`; as queries falam direto com o `dynamoClient`.
+- Unicidade de e-mail é "consulta o GSI, depois grava"; o erro do Cognito vira 500.
+- Catches genéricos transformam qualquer erro do Cognito em 401 ou 400.
+- `COGNITO_CLIENT_SECRET` exposto a todas as funções; `env.ts` exige todas as variáveis em toda função.
+- Uma role IAM única para todas as funções.
+- Sem testes, sem scripts de `lint`, `build` ou `deploy`; versão do Serverless Framework não fixada.
+- Renomear a função do trigger de pre token generation quebra a ligação manual no `UserPool.yml`.
+- Os `CLAUDE.md` e o `README.md` do foodiary estão defasados em relação ao código; confiar no código.
+
+### Não trazer
+
+Entidades e regras do domínio (`Profile`, `Goal`, `Meal`, `GoalCalculator`), `MealsFileStorageGateway` e o bucket S3, o texto e as cores do template de e-mail, `org: jsoareez` e o sufixo `joaodevdude`.
+
+### O que o foodiary não cobre e este projeto precisa
+
+Streams, TTL, delete, batch, paginação, condições, índice esparso, relação N:N, contadores, papéis de usuário, Algolia e testes.
+
+## Skills que o projeto pretende exercitar
+
+- **DynamoDB**: single-table-design, key-design, tables-and-keys, one-to-one, one-to-many, many-to-many, index-overloading, secondary-indexes, denormalization, queries, query-pagination, read-consistency, item-operations, document-client, schema-evolution, capacity-and-pricing, streams, stream-lambda-triggers, stream-event-filters.
+- **Algolia**: algolia-indexing-from-dynamodb, algolia-search-api.
+- **Serverless**: framework-setup, yml-basics, yml-splitting, lambda-functions, http-api-events, resources-and-iam, environment-variables, stages-regions-variables, typescript-esbuild, packaging, deploy-and-logs, cloudformation-intrinsic-functions.
+- **Arquitetura e DI**: typescript-di-container, typescript-decorators-metadata, injecting-dependencies, inverting-dependencies, wiring-dependencies, structuring-use-cases, designing-testable-code.
+- **Testes**: vitest-setup, vitest-writing-tests, writing-unit-tests, using-test-doubles, choosing-test-types.
+- **Cognito**: a criar pelo João a partir de outros cursos.
+- **Typescript**: a criar pelo João a partir de outros cursos.
