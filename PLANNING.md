@@ -124,6 +124,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q65–Q68 | Padrões de acesso revisados | Lista em `docs/data-model.md`, seção 2. Catálogo no Dynamo só por mais recentes; outras ordens no Algolia. Admin busca usuário por e-mail exato e lista por papel e status. Padrões 8b e 16 marcados como críticos. |
 | Q69 | Entrega de arquivos | Avatar e capa (variantes webp) pelo CloudFront com OAC; nome da variante com hash do conteúdo, cache `immutable`, sem invalidação. Material e vídeo por URL pré-assinada do S3. CloudFront com URL assinada fica como evolução (skill que falta). Fase 4. |
 | Q70 | Buckets | Dois: `public-assets` (só o CloudFront lê, via OAC) e `private-files` (só URL pré-assinada). Originais no privado; só as variantes processadas vão para o público. |
+| Q78 | E-mail na Account (refina a Q18) | O e-mail é atributo da Account e tem padrão próprio de busca (login, admin): `GSI2PK = EMAIL#<email>` na Account, uma partição por e-mail, uma leitura. A unicidade continua garantida por um item de reserva cuja chave é o e-mail, mas ele não é entidade: só o `AccountRepository` o grava e move, na mesma transação da Account. Índice nunca é único (`dynamodb-index-overloading`). |
 
 #### Fases (Q27)
 
