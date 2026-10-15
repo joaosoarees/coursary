@@ -33,6 +33,7 @@ erDiagram
     string role
     string status
     string createdAt
+    map session
   }
   COURSE {
     string id
@@ -202,6 +203,8 @@ Tabela `MainTable` com `PK` e `SK`, e dois índices globais sobrecarregados, `GS
 - A posição de módulos e aulas é atributo; o padrão 6 ordena no código. Mover aula de módulo é delete + put em transação.
 - Criações usam `attribute_not_exists(PK)` (aula concluída uma vez, uma avaliação por par, unicidade do e-mail).
 - O e-mail é normalizado (trim, minúsculas) antes de entrar em qualquer chave.
+- A troca de status (desativar, reativar) exige o chamador admin `ACTIVE` por `ConditionCheck` na mesma transação (Q194); desativar remove a `session` na mesma escrita (Q212).
+- A `session` (`accessJti`, `refreshTokenHash` = SHA-256 do refresh token) é a sessão única da conta (Q210, Q211): o sign-in a substitui, o refresh a troca só com condição `session.refreshTokenHash = :anterior`, e o reset de senha e a desativação a removem. O adapter das rotas privadas exige a claim `jti` igual a `session.accessJti`. Só existe no item com alguém conectado.
 - O `externalId` (o `sub` do Cognito) nasce vazio e é gravado na Account depois do `SignUp` (1.4.f); o atributo só existe no item quando preenchido.
 
 ### Como cada padrão é servido

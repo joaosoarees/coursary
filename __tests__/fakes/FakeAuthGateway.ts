@@ -11,14 +11,12 @@ export class FakeAuthGateway implements AuthGateway {
   failOnSignUp: Error | undefined;
   failOnResend: Error | undefined;
   failOnTokens: Error | undefined;
-  failOnSignOut: Error | undefined;
   failOnReset: Error | undefined;
-  failOnStatus: Error | undefined;
-  readonly disabled = new Set<string>();
   readonly resetCodesSent: string[] = [];
   readonly passwordResets: AuthGateway.ResetPasswordParams[] = [];
-  readonly signedOut: string[] = [];
   readonly refreshTokensIssued: string[] = [];
+  readonly accountIds = new Map<string, string>();
+  readonly accountIdsByRefreshToken = new Map<string, string>();
 
   signUp(params: AuthGateway.SignUpParams): Promise<AuthGateway.SignUpResult> {
     this.signUps.push(params);
@@ -83,25 +81,35 @@ export class FakeAuthGateway implements AuthGateway {
     return Promise.resolve(this.users.get(email) === 'CONFIRMED');
   }
 
-  signIn({ email }: AuthGateway.SignInParams): Promise<AuthGateway.Tokens> {
-    return this.issueTokens(`refresh-${email}`);
+  signIn({ email }: AuthGateway.SignInParams): Promise<AuthGateway.Issued> {
+    return this.issueTokens(
+      `refresh-${email}-${String(this.refreshTokensIssued.length)}`,
+      this.accountIds.get(email) ?? 'unknown',
+    );
   }
 
-  refreshTokens(refreshToken: string): Promise<AuthGateway.Tokens> {
-    return this.issueTokens(`${refreshToken}+`);
+  refreshTokens(refreshToken: string): Promise<AuthGateway.Issued> {
+    return this.issueTokens(
+      `${refreshToken}+`,
+      this.accountIdsByRefreshToken.get(refreshToken) ?? 'unknown',
+    );
   }
 
-  private issueTokens(refreshToken: string): Promise<AuthGateway.Tokens> {
+  private issueTokens(
+    refreshToken: string,
+    accountId: string,
+  ): Promise<AuthGateway.Issued> {
     if (this.failOnTokens) {
       return Promise.reject(this.failOnTokens);
     }
 
     this.refreshTokensIssued.push(refreshToken);
+    this.accountIdsByRefreshToken.set(refreshToken, accountId);
 
     return Promise.resolve({
-      accessToken: 'access',
-      refreshToken,
-      expiresIn: 3600,
+      tokens: { accessToken: 'access', refreshToken, expiresIn: 3600 },
+      accountId,
+      accessJti: `jti-${String(this.refreshTokensIssued.length)}`,
     });
   }
 
@@ -117,36 +125,6 @@ export class FakeAuthGateway implements AuthGateway {
     }
 
     this.passwordResets.push(params);
-
-    return Promise.resolve();
-  }
-
-  signOutEverywhere(email: string): Promise<void> {
-    if (this.failOnSignOut) {
-      return Promise.reject(this.failOnSignOut);
-    }
-
-    this.signedOut.push(email);
-
-    return Promise.resolve();
-  }
-
-  disableUser(email: string): Promise<void> {
-    if (this.failOnStatus) {
-      return Promise.reject(this.failOnStatus);
-    }
-
-    this.disabled.add(email);
-
-    return Promise.resolve();
-  }
-
-  enableUser(email: string): Promise<void> {
-    if (this.failOnStatus) {
-      return Promise.reject(this.failOnStatus);
-    }
-
-    this.disabled.delete(email);
 
     return Promise.resolve();
   }

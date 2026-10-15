@@ -1,12 +1,30 @@
+import { Account } from '@application/entities/Account';
 import type { AuthGateway } from '@application/gateways/AuthGateway';
+import type { AccountRepository } from '@application/repositories/AccountRepository';
 
 export class RefreshTokensUseCase {
-  constructor(private readonly authGateway: AuthGateway) {}
+  constructor(
+    private readonly authGateway: AuthGateway,
+    private readonly accountsRepository: AccountRepository,
+  ) {}
 
-  execute({
+  async execute({
     refreshToken,
   }: RefreshTokensUseCase.Input): Promise<AuthGateway.Tokens> {
-    return this.authGateway.refreshTokens(refreshToken);
+    const { tokens, accountId, accessJti } =
+      await this.authGateway.refreshTokens(refreshToken);
+    const session = {
+      accessJti,
+      refreshTokenHash: Account.hashRefreshToken(tokens.refreshToken),
+    };
+
+    await this.accountsRepository.rotateSession(
+      accountId,
+      Account.hashRefreshToken(refreshToken),
+      session,
+    );
+
+    return tokens;
   }
 }
 

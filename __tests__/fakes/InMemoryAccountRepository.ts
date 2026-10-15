@@ -7,6 +7,7 @@ import type { RoleChange } from '@application/entities/RoleChange';
 import { AccountConflict } from '@application/errors/AccountConflict';
 import { EmailInUse } from '@application/errors/EmailInUse';
 import { Forbidden } from '@application/errors/Forbidden';
+import { InvalidSession } from '@application/errors/InvalidSession';
 import type { AccountRepository } from '@application/repositories/AccountRepository';
 
 export class InMemoryAccountRepository implements AccountRepository {
@@ -67,6 +68,7 @@ export class InMemoryAccountRepository implements AccountRepository {
             role: account.role,
             status: account.status,
             createdAt: account.createdAt,
+            session: account.session,
           })
         : null,
     );
@@ -114,6 +116,44 @@ export class InMemoryAccountRepository implements AccountRepository {
     return Promise.resolve();
   }
 
+  saveSession(accountId: string, session: Account.Session): Promise<void> {
+    const account = this.accounts.get(accountId);
+
+    if (!account) {
+      return Promise.reject(new Error(`Account ${accountId} does not exist.`));
+    }
+
+    account.session = session;
+
+    return Promise.resolve();
+  }
+
+  rotateSession(
+    accountId: string,
+    previousRefreshTokenHash: string,
+    session: Account.Session,
+  ): Promise<void> {
+    const account = this.accounts.get(accountId);
+
+    if (account?.session?.refreshTokenHash !== previousRefreshTokenHash) {
+      return Promise.reject(new InvalidSession());
+    }
+
+    account.session = session;
+
+    return Promise.resolve();
+  }
+
+  clearSession(accountId: string): Promise<void> {
+    const account = this.accounts.get(accountId);
+
+    if (account) {
+      account.session = undefined;
+    }
+
+    return Promise.resolve();
+  }
+
   changeStatus(
     { accountId, fromStatus, toStatus }: AccountRepository.StatusChange,
     adminCallerId: string,
@@ -133,6 +173,11 @@ export class InMemoryAccountRepository implements AccountRepository {
     }
 
     account.status = toStatus;
+
+    if (toStatus === accountStatuses.Disabled) {
+      account.session = undefined;
+    }
+
     this.statusChanges.push({ accountId, fromStatus, toStatus });
 
     return Promise.resolve();

@@ -6,6 +6,7 @@ import { BOOTSTRAP_ACTOR, RoleChange } from '@application/entities/RoleChange';
 import { AccountConflict } from '@application/errors/AccountConflict';
 import { EmailInUse } from '@application/errors/EmailInUse';
 import { Forbidden } from '@application/errors/Forbidden';
+import { InvalidSession } from '@application/errors/InvalidSession';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { DynamoAccountRepository } from '@infra/database/dynamo/repositories/DynamoAccountRepository';
 import { AppConfig } from '@shared/config/AppConfig';
@@ -445,14 +446,19 @@ describe('DynamoAccountRepository.changeStatus', () => {
       caller.id,
     );
 
-  test('disables and enables an account', async () => {
+  test('disables an account, ending its session, and enables it', async () => {
     const admin = await adminAccount();
     const target = await adminAccount();
+    await repository.saveSession(target.id, {
+      accessJti: 'jti-1',
+      refreshTokenHash: 'hash-1',
+    });
 
     await disable(target, admin);
     expect(await getItem(`ACCOUNT#${target.id}`)).toMatchObject({
       status: 'DISABLED',
     });
+    expect((await getItem(`ACCOUNT#${target.id}`))?.session).toBeUndefined();
 
     await repository.changeStatus(
       { accountId: target.id, fromStatus: 'DISABLED', toStatus: 'ACTIVE' },
@@ -500,5 +506,68 @@ describe('DynamoAccountRepository.changeStatus', () => {
       (await getItem(`ACCOUNT#${bia.id}`))?.status,
     ];
     expect(statuses.sort()).toEqual(['ACTIVE', 'DISABLED']);
+  });
+});
+
+describe('DynamoAccountRepository sessions', () => {
+  const signedIn = async () => {
+    const account = Account.create({ name: 'Ana', email: uniqueEmail() });
+    await repository.create(account);
+    const session = { accessJti: 'jti-1', refreshTokenHash: 'hash-1' };
+    await repository.saveSession(account.id, session);
+
+    return account;
+  };
+
+  test('saves the session on the account', async () => {
+    const account = await signedIn();
+
+    expect((await repository.findById(account.id))?.session).toEqual({
+      accessJti: 'jti-1',
+      refreshTokenHash: 'hash-1',
+    });
+  });
+
+  test('rotates the session only from the refresh token it holds', async () => {
+    const account = await signedIn();
+    const next = { accessJti: 'jti-2', refreshTokenHash: 'hash-2' };
+
+    await expect(
+      repository.rotateSession(account.id, 'hash-other', next),
+    ).rejects.toBeInstanceOf(InvalidSession);
+    await repository.rotateSession(account.id, 'hash-1', next);
+
+    expect((await repository.findById(account.id))?.session).toEqual(next);
+  });
+
+  test('lets only one of two refreshes with the same token win', async () => {
+    const account = await signedIn();
+
+    const results = await Promise.allSettled([
+      repository.rotateSession(account.id, 'hash-1', {
+        accessJti: 'jti-a',
+        refreshTokenHash: 'hash-a',
+      }),
+      repository.rotateSession(account.id, 'hash-1', {
+        accessJti: 'jti-b',
+        refreshTokenHash: 'hash-b',
+      }),
+    ]);
+
+    expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+  });
+
+  test('clears the session so no refresh token rotates it again', async () => {
+    const account = await signedIn();
+
+    await repository.clearSession(account.id);
+
+    expect((await repository.findById(account.id))?.session).toBeUndefined();
+    await expect(
+      repository.rotateSession(account.id, 'hash-1', {
+        accessJti: 'jti-2',
+        refreshTokenHash: 'hash-2',
+      }),
+    ).rejects.toBeInstanceOf(InvalidSession);
   });
 });

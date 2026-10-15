@@ -262,6 +262,13 @@ Cada achado:
 - **O que aconteceu**: com o usuário desativado também no Cognito (`AdminDisableUser`), o Cognito recusa o sign-in antes do trigger, com `NotAuthorizedException` "User is disabled.", que a Q147 mapeia para `401 INVALID_CREDENTIALS`, e não para o `403 ACCOUNT_UNAVAILABLE` da Q146. O refresh deu `401 INVALID_SESSION`. Em `dev`: desativar → `/me` com o token antigo 403 na hora, refresh 401, sign-in 401; reativar → o token antigo volta a passar (o Dynamo decide) e o sign-in 200.
 - **Sugestão**: dizer qual barreira responde primeiro quando o usuário está desativado no pool e qual exceção o cliente vê.
 
+### `cognito-sign-in-and-refresh-tokens`, `cognito-api-gateway-jwt-authorizer` (1.12)
+
+#### 2026-10-15 · 1.12 · lacuna
+- **A skill diz**: revogar um token é com `RevokeToken`/`GlobalSignOut`, e o authorizer continua aceitando o access token até expirar; a saída é perguntar à fonte em cada requisição.
+- **O que aconteceu**: o autor pediu sessão única (Q210): um sign-in derruba os anteriores, um refresh derruba os access tokens anteriores. A primeira proposta (o trigger de pre token gerando um `sessionId` a cada emissão) tinha um buraco: o dispositivo antigo, ao fazer refresh, retomava a sessão. A versão final guarda na conta o `jti` do access token atual e o SHA-256 do refresh token atual; o refresh só gira a sessão com condição sobre o hash do token recebido, e o adapter compara a claim `jti`. Com isso o Cognito deixou de ser barreira (saíram `AdminDisableUser`, `AdminEnableUser` e `AdminUserGlobalSignOut`), o que só vale porque o client tem secret e ninguém chama o Cognito por fora da API.
+- **Sugestão**: cobrir "uma sessão por usuário" como receita, com o `jti` e o hash do refresh token na base da aplicação, e o aviso de que gerar a sessão no trigger deixa o dispositivo antigo voltar.
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |

@@ -1,4 +1,7 @@
-import { TransactionCanceledException } from '@aws-sdk/client-dynamodb';
+import {
+  ConditionalCheckFailedException,
+  TransactionCanceledException,
+} from '@aws-sdk/client-dynamodb';
 import {
   GetCommand,
   TransactWriteCommand,
@@ -14,6 +17,7 @@ import type { RoleChange } from '@application/entities/RoleChange';
 import { AccountConflict } from '@application/errors/AccountConflict';
 import { EmailInUse } from '@application/errors/EmailInUse';
 import { Forbidden } from '@application/errors/Forbidden';
+import { InvalidSession } from '@application/errors/InvalidSession';
 import type { AccountRepository } from '@application/repositories/AccountRepository';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { AccountItem } from '@infra/database/dynamo/items/AccountItem';
@@ -238,6 +242,71 @@ export class DynamoAccountRepository implements AccountRepository {
     await DynamoAccountRepository.sendAdminChange(command, 2);
   }
 
+  async saveSession(
+    accountId: string,
+    session: Account.Session,
+  ): Promise<void> {
+    const command = new UpdateCommand({
+      TableName: this.config.mainTableName,
+      Key: {
+        PK: AccountItem.getPK(accountId),
+        SK: AccountItem.getSK(accountId),
+      },
+      UpdateExpression: 'SET #session = :session',
+      ConditionExpression: 'attribute_exists(PK)',
+      ExpressionAttributeNames: { '#session': 'session' },
+      ExpressionAttributeValues: { ':session': session },
+    });
+
+    await dynamoClient.send(command);
+  }
+
+  async rotateSession(
+    accountId: string,
+    previousRefreshTokenHash: string,
+    session: Account.Session,
+  ): Promise<void> {
+    const command = new UpdateCommand({
+      TableName: this.config.mainTableName,
+      Key: {
+        PK: AccountItem.getPK(accountId),
+        SK: AccountItem.getSK(accountId),
+      },
+      UpdateExpression: 'SET #session = :session',
+      ConditionExpression: '#session.refreshTokenHash = :previous',
+      ExpressionAttributeNames: { '#session': 'session' },
+      ExpressionAttributeValues: {
+        ':session': session,
+        ':previous': previousRefreshTokenHash,
+      },
+    });
+
+    try {
+      await dynamoClient.send(command);
+    } catch (error) {
+      if (error instanceof ConditionalCheckFailedException) {
+        throw new InvalidSession();
+      }
+
+      throw error;
+    }
+  }
+
+  async clearSession(accountId: string): Promise<void> {
+    const command = new UpdateCommand({
+      TableName: this.config.mainTableName,
+      Key: {
+        PK: AccountItem.getPK(accountId),
+        SK: AccountItem.getSK(accountId),
+      },
+      UpdateExpression: 'REMOVE #session',
+      ConditionExpression: 'attribute_exists(PK)',
+      ExpressionAttributeNames: { '#session': 'session' },
+    });
+
+    await dynamoClient.send(command);
+  }
+
   async changeStatus(
     { accountId, fromStatus, toStatus }: AccountRepository.StatusChange,
     adminCallerId: string,
@@ -251,9 +320,15 @@ export class DynamoAccountRepository implements AccountRepository {
               PK: AccountItem.getPK(accountId),
               SK: AccountItem.getSK(accountId),
             },
-            UpdateExpression: 'SET #status = :toStatus',
+            UpdateExpression:
+              toStatus === accountStatuses.Disabled
+                ? 'SET #status = :toStatus REMOVE #session'
+                : 'SET #status = :toStatus',
             ConditionExpression: '#status = :fromStatus',
-            ExpressionAttributeNames: { '#status': 'status' },
+            ExpressionAttributeNames:
+              toStatus === accountStatuses.Disabled
+                ? { '#status': 'status', '#session': 'session' }
+                : { '#status': 'status' },
             ExpressionAttributeValues: {
               ':toStatus': toStatus,
               ':fromStatus': fromStatus,

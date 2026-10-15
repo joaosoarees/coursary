@@ -45,4 +45,16 @@ describe('AccountItem', () => {
       AccountItem.toEntity(AccountItem.fromEntity(account).toItem()),
     ).toEqual(account);
   });
+
+  it('should keep the session of a signed-in account', () => {
+    const account = Account.create({ name: 'Ana', email: 'ana@example.com' });
+    account.session = { accessJti: 'jti-1', refreshTokenHash: 'hash-1' };
+
+    const item = AccountItem.fromEntity(account).toItem();
+
+    expect(AccountItem.toEntity(item).session).toEqual({
+      accessJti: 'jti-1',
+      refreshTokenHash: 'hash-1',
+    });
+  });
 });

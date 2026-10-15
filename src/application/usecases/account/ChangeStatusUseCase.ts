@@ -1,15 +1,11 @@
-import { type Account, accountStatuses } from '@application/entities/Account';
+import { accountStatuses } from '@application/entities/Account';
 import { AccountNotActive } from '@application/errors/AccountNotActive';
 import { AccountNotFound } from '@application/errors/AccountNotFound';
 import { CannotChangeOwnStatus } from '@application/errors/CannotChangeOwnStatus';
-import type { AuthGateway } from '@application/gateways/AuthGateway';
 import type { AccountRepository } from '@application/repositories/AccountRepository';
 
 export class ChangeStatusUseCase {
-  constructor(
-    private readonly accountsRepository: AccountRepository,
-    private readonly authGateway: AuthGateway,
-  ) {}
+  constructor(private readonly accountsRepository: AccountRepository) {}
 
   async execute({
     callerId,
@@ -47,33 +43,7 @@ export class ChangeStatusUseCase {
       );
     }
 
-    await this.syncAuthUser(account, status);
-
     return { id: account.id, status };
-  }
-
-  private async syncAuthUser(
-    account: Account,
-    status: ChangeStatusUseCase.Status,
-  ): Promise<void> {
-    try {
-      if (status === accountStatuses.Disabled) {
-        await this.authGateway.disableUser(account.email);
-      } else {
-        await this.authGateway.enableUser(account.email);
-      }
-    } catch (error) {
-      console.error(
-        JSON.stringify({
-          event: 'CognitoStatusNotSynced',
-          accountId: account.id,
-          status,
-          error: error instanceof Error ? error.message : String(error),
-        }),
-      );
-
-      throw error;
-    }
   }
 }
 

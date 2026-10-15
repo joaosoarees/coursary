@@ -30,6 +30,7 @@ export class AccountItem {
       role: account.role,
       status: account.status,
       createdAt: account.createdAt.toISOString(),
+      ...(account.session ? { session: account.session } : {}),
       ...(account.status === accountStatuses.Pending
         ? { expiresAt: expiresAtFromNow(PENDING_TTL_DAYS) }
         : {}),
@@ -45,6 +46,7 @@ export class AccountItem {
       role: item.role,
       status: item.status,
       createdAt: new Date(item.createdAt),
+      session: item.session,
     });
   }
 
@@ -92,6 +94,7 @@ export namespace AccountItem {
     status: Account.Status;
     createdAt: string;
     expiresAt?: number;
+    session?: Account.Session;
   }
 
   export type ItemType = Keys & Attributes & { type: 'Account' };

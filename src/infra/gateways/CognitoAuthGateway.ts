@@ -2,10 +2,7 @@ import { createHmac } from 'node:crypto';
 
 import {
   AdminDeleteUserCommand,
-  AdminDisableUserCommand,
-  AdminEnableUserCommand,
   AdminGetUserCommand,
-  AdminUserGlobalSignOutCommand,
   type AuthenticationResultType,
   CodeMismatchException,
   ConfirmForgotPasswordCommand,
@@ -87,7 +84,7 @@ export class CognitoAuthGateway implements AuthGateway {
   async signIn({
     email,
     password,
-  }: AuthGateway.SignInParams): Promise<AuthGateway.Tokens> {
+  }: AuthGateway.SignInParams): Promise<AuthGateway.Issued> {
     try {
       const command = new InitiateAuthCommand({
         ClientId: this.config.cognitoClientId,
@@ -102,7 +99,7 @@ export class CognitoAuthGateway implements AuthGateway {
       const { AuthenticationResult, ChallengeName } =
         await cognitoClient.send(command);
 
-      return CognitoAuthGateway.toTokens(AuthenticationResult, ChallengeName);
+      return CognitoAuthGateway.toIssued(AuthenticationResult, ChallengeName);
     } catch (error) {
       if (
         error instanceof NotAuthorizedException ||
@@ -122,7 +119,7 @@ export class CognitoAuthGateway implements AuthGateway {
     }
   }
 
-  async refreshTokens(refreshToken: string): Promise<AuthGateway.Tokens> {
+  async refreshTokens(refreshToken: string): Promise<AuthGateway.Issued> {
     try {
       const command = new GetTokensFromRefreshTokenCommand({
         ClientId: this.config.cognitoClientId,
@@ -132,7 +129,7 @@ export class CognitoAuthGateway implements AuthGateway {
 
       const { AuthenticationResult } = await cognitoClient.send(command);
 
-      return CognitoAuthGateway.toTokens(AuthenticationResult);
+      return CognitoAuthGateway.toIssued(AuthenticationResult);
     } catch (error) {
       if (
         error instanceof NotAuthorizedException ||
@@ -205,33 +202,6 @@ export class CognitoAuthGateway implements AuthGateway {
 
       throw CognitoAuthGateway.translateLimits(error);
     }
-  }
-
-  async signOutEverywhere(email: string): Promise<void> {
-    const command = new AdminUserGlobalSignOutCommand({
-      UserPoolId: this.config.cognitoPoolId,
-      Username: email,
-    });
-
-    await cognitoClient.send(command);
-  }
-
-  async disableUser(email: string): Promise<void> {
-    const command = new AdminDisableUserCommand({
-      UserPoolId: this.config.cognitoPoolId,
-      Username: email,
-    });
-
-    await cognitoClient.send(command);
-  }
-
-  async enableUser(email: string): Promise<void> {
-    const command = new AdminEnableUserCommand({
-      UserPoolId: this.config.cognitoPoolId,
-      Username: email,
-    });
-
-    await cognitoClient.send(command);
   }
 
   async confirmSignUp(email: string, code: string): Promise<void> {
@@ -356,21 +326,49 @@ export class CognitoAuthGateway implements AuthGateway {
     return error;
   }
 
-  private static toTokens(
+  private static toIssued(
     result: AuthenticationResultType | undefined,
     challenge?: string,
-  ): AuthGateway.Tokens {
+  ): AuthGateway.Issued {
     if (!result?.AccessToken || !result.RefreshToken || !result.ExpiresIn) {
       throw new Error(
         `Cognito issued no tokens${challenge ? ` (challenge ${challenge})` : ''}.`,
       );
     }
 
+    const { internalId, jti } = CognitoAuthGateway.readClaims(
+      result.AccessToken,
+    );
+
     return {
-      accessToken: result.AccessToken,
-      refreshToken: result.RefreshToken,
-      expiresIn: result.ExpiresIn,
+      tokens: {
+        accessToken: result.AccessToken,
+        refreshToken: result.RefreshToken,
+        expiresIn: result.ExpiresIn,
+      },
+      accountId: internalId,
+      accessJti: jti,
     };
+  }
+
+  // The token comes straight from Cognito, so its payload is read, not verified.
+  private static readClaims(accessToken: string): {
+    internalId: string;
+    jti: string;
+  } {
+    const payload = accessToken.split('.')[1] ?? '';
+    const claims = JSON.parse(
+      Buffer.from(payload, 'base64url').toString('utf8'),
+    ) as Record<string, unknown>;
+
+    if (
+      typeof claims.internalId !== 'string' ||
+      typeof claims.jti !== 'string'
+    ) {
+      throw new Error('The access token has no internalId or jti claim.');
+    }
+
+    return { internalId: claims.internalId, jti: claims.jti };
   }
 
   private static translateTokenRefusal(error: unknown): unknown {

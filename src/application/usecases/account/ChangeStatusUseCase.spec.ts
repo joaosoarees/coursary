@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { FakeAuthGateway } from '@tests/fakes/FakeAuthGateway';
 import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
 
 import { Account, accountRoles } from '@application/entities/Account';
@@ -10,7 +9,6 @@ import { CannotChangeOwnStatus } from '@application/errors/CannotChangeOwnStatus
 import { ChangeStatusUseCase } from '@application/usecases/account/ChangeStatusUseCase';
 
 let accounts: InMemoryAccountRepository;
-let auth: FakeAuthGateway;
 let changeStatus: ChangeStatusUseCase;
 let admin: Account;
 let target: Account;
@@ -20,37 +18,36 @@ const addAccount = async (name: string, role: Account.Role) => {
   await accounts.create(account);
   account.activate();
   account.role = role;
+  account.session = { accessJti: 'jti-1', refreshTokenHash: 'hash-1' };
 
   return account;
 };
 
 beforeEach(async () => {
   accounts = new InMemoryAccountRepository();
-  auth = new FakeAuthGateway();
-  changeStatus = new ChangeStatusUseCase(accounts, auth);
+  changeStatus = new ChangeStatusUseCase(accounts);
   admin = await addAccount('ana', accountRoles.Admin);
   target = await addAccount('bia', accountRoles.Student);
   vi.spyOn(console, 'info').mockImplementation(() => undefined);
-  vi.spyOn(console, 'error').mockImplementation(() => undefined);
 });
 
 const disable = (accountId = target.id) =>
   changeStatus.execute({ callerId: admin.id, accountId, status: 'DISABLED' });
 
 describe('ChangeStatusUseCase', () => {
-  it('should disable the account and then the user in Cognito', async () => {
+  it('should disable the account, end its session and log who did it', async () => {
     await expect(disable()).resolves.toEqual({
       id: target.id,
       status: 'DISABLED',
     });
     expect(target.status).toBe('DISABLED');
-    expect(auth.disabled.has('bia@example.com')).toBe(true);
+    expect(target.session).toBeUndefined();
     expect(console.info).toHaveBeenCalledWith(
-      expect.stringContaining('"changedBy":"' + admin.id + '"'),
+      expect.stringContaining(`"changedBy":"${admin.id}"`),
     );
   });
 
-  it('should enable a disabled account and the user in Cognito', async () => {
+  it('should enable a disabled account without bringing a session back', async () => {
     await disable();
 
     await changeStatus.execute({
@@ -60,30 +57,17 @@ describe('ChangeStatusUseCase', () => {
     });
 
     expect(target.status).toBe('ACTIVE');
-    expect(auth.disabled.has('bia@example.com')).toBe(false);
+    expect(target.session).toBeUndefined();
   });
 
-  it('should keep the account disabled and log when Cognito fails', async () => {
-    auth.failOnStatus = new Error('Cognito is down');
-
-    await expect(disable()).rejects.toThrow('Cognito is down');
-    expect(target.status).toBe('DISABLED');
-    expect(console.error).toHaveBeenCalledWith(
-      expect.stringContaining('CognitoStatusNotSynced'),
-    );
-  });
-
-  it('should repair Cognito on a new call without writing the account again', async () => {
-    auth.failOnStatus = new Error('Cognito is down');
-    await disable().catch(() => undefined);
-    auth.failOnStatus = undefined;
+  it('should write nothing when the account already has the status', async () => {
+    await disable();
 
     await expect(disable()).resolves.toEqual({
       id: target.id,
       status: 'DISABLED',
     });
     expect(accounts.statusChanges).toHaveLength(1);
-    expect(auth.disabled.has('bia@example.com')).toBe(true);
   });
 
   it('should refuse the caller own account', async () => {
@@ -101,6 +85,5 @@ describe('ChangeStatusUseCase', () => {
     await accounts.create(pending);
 
     await expect(disable(pending.id)).rejects.toBeInstanceOf(AccountNotActive);
-    expect(auth.disabled.size).toBe(0);
   });
 });

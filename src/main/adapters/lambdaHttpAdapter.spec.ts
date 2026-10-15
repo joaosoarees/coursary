@@ -115,9 +115,15 @@ const addAccount = async (role: Account.Role) => {
   await accounts.create(account);
   account.activate();
   account.role = role;
+  account.session = { accessJti: `jti-${account.id}`, refreshTokenHash: 'h' };
 
   return account;
 };
+
+const claimsOf = (account: Account) => ({
+  internalId: account.id,
+  jti: `jti-${account.id}`,
+});
 
 beforeEach(async () => {
   accounts = new InMemoryAccountRepository();
@@ -132,7 +138,7 @@ describe('lambdaHttpAdapter', () => {
     const response = await lambdaHttpAdapter(
       new WhoAmIController(),
       resolveCaller,
-    )(makePrivateEvent({ internalId: admin.id, role: 'student' }));
+    )(makePrivateEvent({ ...claimsOf(admin), role: 'student' }));
 
     expect(parseBody(response.body)).toMatchObject({
       accountId: admin.id,
@@ -145,13 +151,10 @@ describe('lambdaHttpAdapter', () => {
       new WhoAmIController(),
       resolveCaller,
     )(
-      makePrivateEvent(
-        { internalId: student.id },
-        {
-          pathParameters: { id: 'acc-2' },
-          queryStringParameters: { role: 'student' },
-        },
-      ),
+      makePrivateEvent(claimsOf(student), {
+        pathParameters: { id: 'acc-2' },
+        queryStringParameters: { role: 'student' },
+      }),
     );
 
     expect(parseBody(response.body)).toMatchObject({
@@ -164,7 +167,7 @@ describe('lambdaHttpAdapter', () => {
     const response = await lambdaHttpAdapter(
       new WhoAmIController(),
       resolveCaller,
-    )(makePrivateEvent({ internalId: 'deleted-account' }));
+    )(makePrivateEvent({ internalId: 'deleted-account', jti: 'jti' }));
 
     expect(response.statusCode).toBe(401);
     expect(parseBody(response.body)).toMatchObject({
@@ -178,7 +181,7 @@ describe('lambdaHttpAdapter', () => {
     const response = await lambdaHttpAdapter(
       new WhoAmIController(),
       resolveCaller,
-    )(makePrivateEvent({ internalId: student.id }));
+    )(makePrivateEvent(claimsOf(student)));
 
     expect(response.statusCode).toBe(403);
     expect(parseBody(response.body)).toMatchObject({
@@ -190,11 +193,23 @@ describe('lambdaHttpAdapter', () => {
     const response = await lambdaHttpAdapter(
       new AdminOnlyController(),
       resolveCaller,
-    )(makePrivateEvent({ internalId: student.id, role: 'admin' }));
+    )(makePrivateEvent({ ...claimsOf(student), role: 'admin' }));
 
     expect(response.statusCode).toBe(403);
     expect(parseBody(response.body)).toEqual({
       error: { code: 'FORBIDDEN', message: 'You are not allowed to do this.' },
+    });
+  });
+
+  it('should answer 401 INVALID_SESSION for a token of an earlier session', async () => {
+    const response = await lambdaHttpAdapter(
+      new WhoAmIController(),
+      resolveCaller,
+    )(makePrivateEvent({ internalId: student.id, jti: 'jti-earlier' }));
+
+    expect(response.statusCode).toBe(401);
+    expect(parseBody(response.body)).toMatchObject({
+      error: { code: 'INVALID_SESSION' },
     });
   });
 
