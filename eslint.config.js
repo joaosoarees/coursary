@@ -51,6 +51,7 @@ export default defineConfig([
             ['^\\u0000'],
             ['^node:'],
             ['^@?\\w'],
+            ['^@tests/'],
             ['^@(application|infra|kernel|main|shared)/'],
             ['^\\.'],
           ],

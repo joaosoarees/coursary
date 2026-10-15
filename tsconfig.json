@@ -23,7 +23,8 @@
       "@infra/*": ["./src/infra/*"],
       "@kernel/*": ["./src/kernel/*"],
       "@main/*": ["./src/main/*"],
-      "@shared/*": ["./src/shared/*"]
+      "@shared/*": ["./src/shared/*"],
+      "@tests/*": ["./__tests__/*"]
     }
   },
   "include": ["src/**/*.ts", "__tests__/**/*.ts", "vitest.config.ts"]

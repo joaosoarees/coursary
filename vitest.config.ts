@@ -13,6 +13,7 @@ export default defineConfig({
       '@kernel': src('kernel'),
       '@main': src('main'),
       '@shared': src('shared'),
+      '@tests': path.resolve(import.meta.dirname, '__tests__'),
     },
   },
   test: {
