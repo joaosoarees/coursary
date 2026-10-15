@@ -1,6 +1,5 @@
 import type { Account } from '@application/entities/Account';
-import type { Course } from '@application/entities/Course';
-import { CourseNotFound } from '@application/errors/CourseNotFound';
+import { Course } from '@application/entities/Course';
 import type { CourseRepository } from '@application/repositories/CourseRepository';
 import { CourseDetails } from '@application/usecases/course/CourseDetails';
 
@@ -13,12 +12,8 @@ export class UpdateCourseUseCase {
     courseId,
     changes,
   }: UpdateCourseUseCase.Input): Promise<CourseDetails> {
-    const course = await this.coursesRepository.findById(courseId);
-
-    if (!course) {
-      throw new CourseNotFound();
-    }
-
+    const found = await this.coursesRepository.findById(courseId);
+    const course = Course.requireFound(found);
     course.requireEditableBy(callerId, callerRole);
 
     const updated = await this.coursesRepository.update(courseId, changes);

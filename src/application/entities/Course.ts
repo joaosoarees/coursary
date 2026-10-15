@@ -4,6 +4,7 @@ import type { Account } from '@application/entities/Account';
 import { KSUID_PATTERN } from '@application/entities/ksuid';
 import { CourseArchived } from '@application/errors/CourseArchived';
 import { CourseNotFound } from '@application/errors/CourseNotFound';
+import { CoursePublished } from '@application/errors/CoursePublished';
 import { Forbidden } from '@application/errors/Forbidden';
 import { Permissions, permissions } from '@application/security/permissions';
 
@@ -59,6 +60,21 @@ export class Course {
 
     if (this.status === courseStatuses.Archived) {
       throw new CourseArchived();
+    }
+  }
+
+  static requireFound(course: Course | null): Course {
+    if (!course) {
+      throw new CourseNotFound();
+    }
+
+    return course;
+  }
+
+  // Only a draft loses modules and lessons (Q24, Q223).
+  requireDraft(): void {
+    if (this.status !== courseStatuses.Draft) {
+      throw new CoursePublished();
     }
   }
 

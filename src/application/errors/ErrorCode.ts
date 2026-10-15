@@ -20,6 +20,10 @@ export const ErrorCode = {
   CourseNotFound: 'COURSE_NOT_FOUND',
   ModuleNotFound: 'MODULE_NOT_FOUND',
   LessonNotFound: 'LESSON_NOT_FOUND',
+  CoursePublished: 'COURSE_PUBLISHED',
+  ModuleNotEmpty: 'MODULE_NOT_EMPTY',
+  OutlineMismatch: 'OUTLINE_MISMATCH',
+  OutlineTooLarge: 'OUTLINE_TOO_LARGE',
   TooManyRequests: 'TOO_MANY_REQUESTS',
 } as const;
 
