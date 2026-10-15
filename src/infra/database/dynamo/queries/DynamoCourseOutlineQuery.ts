@@ -15,9 +15,19 @@ export class DynamoCourseOutlineQuery implements CourseOutlineQuery {
 
   async execute(courseId: Course.Id): Promise<CourseOutlineQuery.Outline> {
     const items = await this.readPartition(courseId);
+
+    return DynamoCourseOutlineQuery.toOutline(items);
+  }
+
+  // Groups the items of a course partition into modules and lessons, in order.
+  static toOutline(items: { type: string }[]): CourseOutlineQuery.Outline {
+    const outlineItems = items.filter(
+      (item): item is OutlineItem =>
+        item.type === 'Module' || item.type === 'Lesson',
+    );
     const modules = new Map<string, CourseOutlineQuery.Module>();
 
-    for (const item of items) {
+    for (const item of outlineItems) {
       if (item.type === 'Module') {
         modules.set(item.id, {
           id: item.id,
@@ -28,7 +38,7 @@ export class DynamoCourseOutlineQuery implements CourseOutlineQuery {
       }
     }
 
-    for (const item of items) {
+    for (const item of outlineItems) {
       if (item.type === 'Lesson') {
         modules.get(item.moduleId)?.lessons.push({
           id: item.id,
