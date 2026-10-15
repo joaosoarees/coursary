@@ -82,7 +82,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q17 | Escopo da auth | Tudo como no foodiary: sign-up, sign-in, refresh, recuperação de senha com SES e template React Email. *Revisar quando as skills de Cognito existirem.* |
 | Q18 | Unicidade de e-mail | Item `EMAIL#<email>` gravado na mesma transação do sign-up com `attribute_not_exists`; erro de duplicidade do Cognito mapeado para 409. |
 | Q25 | Infra AWS | Mesma conta e região do foodiary (`sa-east-1`), reaproveitando a identidade SES. Sem domínio customizado no início; trazer o `CustomDomain.yml` condicional para ligar depois. |
-| Q26 | Nome e local | `coursary`, em `/home/joao/projects/coursary/api` (espaço para um `web` ao lado). |
+| Q26 | Nome e local | `coursary`. *O local mudou com a Q102 (repositórios separados).* |
 
 ### Sessão de 2026-10-14
 
@@ -155,6 +155,12 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q99 | Registro de achados | Anotado na sub-imp na hora e, no commit que fecha a tarefa, em `docs/skill-findings.md`, agrupado por skill: data, tarefa, tipo (`erro`, `lacuna`, `ambíguo`, `acerto`), o que a skill diz, o que aconteceu, sugestão. Seção final com as skills que faltam. |
 | Q100 | Critério de pronto | História: deploy em `dev`; testes unitários e de integração verdes; rota chamada com token real (feliz e um erro); skills usadas e achados preenchidos (mesmo "nenhum"); `docs/data-model.md` atualizado se chave ou item mudou; commits pequenos com push. Fase: todas as histórias prontas e cobertura das skills conferida pelas labels. |
 | Q101 | Evolução de schema (fase 7) | Dividir o catálogo em `CATALOG#0..n`, reescrevendo o `GSI2PK` dos cursos publicados com o sistema no ar. Reserva: `slug` único com item de reserva e preenchimento. |
+| Q102 | Repositórios | **Separados**: API e `web` em repositórios próprios, para o deploy de cada um não depender do outro. Onde fica o código da API: ver a rodada em aberto. |
+| Q103 | Versões fixadas | Node 24 (`.nvmrc`, `engines`, runtime `nodejs24.x` arm64); pnpm 12 (`packageManager`); Serverless Framework 4.43 (`frameworkVersion`); dependências com versão exata (`save-exact`). |
+| Q104 | TypeScript | Começa no 6 (cadeia do foodiary com `esbuild-plugin-tsc`). A primeira sub-imp da 1.0 testa o 7 com uma classe decorada lendo `design:paramtypes`; migra se funcionar, vira achado em `typescript-decorators-metadata` se não. |
+| Q105 | Lint e formatação | ESLint flat com `typescript-eslint` `strictTypeChecked` + `stylisticTypeChecked`; Prettier sozinho como formatador, `eslint-config-prettier` para desligar conflitos (sai o `eslint-plugin-prettier`); ordenação de imports; `no-restricted-imports` por camada (`application` não importa `infra`). |
+| Q106 | Fluxo de git | Branch por história (`feat/1.2-create-course`), PR para a `main`, merge sem squash. Commits de planejamento (`docs:`) podem ir direto na `main`. |
+| Q107 | Documentação | `CLAUDE.md` curto na raiz só com regras de trabalho e onde está cada documento; conhecimento em `docs/`; nenhum `CLAUDE.md` por pasta. |
 
 #### Fases (Q27)
 
