@@ -1,0 +1,19 @@
+{
+  "name": "coursary-api",
+  "version": "0.0.0",
+  "private": true,
+  "description": "API serverless de uma plataforma de cursos (Lambda + DynamoDB single-table).",
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "packageManager": "pnpm@12.11.2",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.11.2",
+      "onFail": "download"
+    }
+  },
+  "scripts": {}
+}

@@ -1,0 +1,7 @@
+node_modules/
+.env
+.env.*
+!.env.example
+
+# Rastros do Windows ao copiar arquivos pelo WSL
+*:Zone.Identifier
