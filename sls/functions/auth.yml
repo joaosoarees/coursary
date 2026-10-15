@@ -7,18 +7,7 @@ signUp:
     COGNITO_CLIENT_SECRET: !GetAtt UserPoolClient.ClientSecret
   iam:
     role:
-      statements:
-        - Effect: Allow
-          Action:
-            - dynamodb:PutItem
-            - dynamodb:UpdateItem
-            - dynamodb:DeleteItem
-          Resource: !GetAtt MainTable.Arn
-        - Effect: Allow
-          Action:
-            - cognito-idp:AdminGetUser
-            - cognito-idp:AdminDeleteUser
-          Resource: !GetAtt UserPool.Arn
+      statements: ${file(./sls/iam.yml):signUp}
   events:
     - httpApi:
         method: POST
@@ -33,16 +22,7 @@ confirmSignUp:
     COGNITO_CLIENT_SECRET: !GetAtt UserPoolClient.ClientSecret
   iam:
     role:
-      statements:
-        - Effect: Allow
-          Action:
-            - dynamodb:GetItem
-            - dynamodb:UpdateItem
-          Resource: !GetAtt MainTable.Arn
-        - Effect: Allow
-          Action:
-            - cognito-idp:AdminGetUser
-          Resource: !GetAtt UserPool.Arn
+      statements: ${file(./sls/iam.yml):confirmSignUp}
   events:
     - httpApi:
         method: POST
@@ -56,11 +36,7 @@ resendConfirmationCode:
     COGNITO_CLIENT_SECRET: !GetAtt UserPoolClient.ClientSecret
   iam:
     role:
-      statements:
-        - Effect: Allow
-          Action:
-            - dynamodb:GetItem
-          Resource: !GetAtt MainTable.Arn
+      statements: ${file(./sls/iam.yml):resendConfirmationCode}
   events:
     - httpApi:
         method: POST
@@ -73,11 +49,7 @@ preTokenGeneration:
     MAIN_TABLE_NAME: !Ref MainTable
   iam:
     role:
-      statements:
-        - Effect: Allow
-          Action:
-            - dynamodb:GetItem
-          Resource: !GetAtt MainTable.Arn
+      statements: ${file(./sls/iam.yml):preTokenGeneration}
 
 signIn:
   handler: src/main/functions/auth/signIn.handler
@@ -111,11 +83,7 @@ forgotPassword:
     COGNITO_CLIENT_SECRET: !GetAtt UserPoolClient.ClientSecret
   iam:
     role:
-      statements:
-        - Effect: Allow
-          Action:
-            - dynamodb:GetItem
-          Resource: !GetAtt MainTable.Arn
+      statements: ${file(./sls/iam.yml):forgotPassword}
   events:
     - httpApi:
         method: POST
@@ -129,11 +97,7 @@ resetPassword:
     COGNITO_CLIENT_SECRET: !GetAtt UserPoolClient.ClientSecret
   iam:
     role:
-      statements:
-        - Effect: Allow
-          Action:
-            - cognito-idp:AdminUserGlobalSignOut
-          Resource: !GetAtt UserPool.Arn
+      statements: ${file(./sls/iam.yml):resetPassword}
   events:
     - httpApi:
         method: POST
