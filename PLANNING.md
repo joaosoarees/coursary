@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-14. Estado: **Épico 0 fechado; quadro criado; próxima: história 1.0 (discutir as sub-imp antes de codar)**. As skills de Cognito e TypeScript já existem.
+Última atualização: 2026-10-15. Estado: **Épico 0 fechado; histórias 1.0 a 1.3 na `develop`; 1.4 (sign-up) no PR #6, aguardando merge e teste em `dev`; próxima: 1.5 (confirmação e reenvio de código)**.
 
 ## Como retomar
 
@@ -14,7 +14,7 @@ Ao retomar, o assistente deve:
 2. Ler as skills que essa história cita antes de perguntar.
 3. Não refazer perguntas já fechadas.
 
-Nada foi implementado ainda. Cada decisão fechada entra neste arquivo em um commit pequeno.
+Cada decisão fechada entra neste arquivo em um commit pequeno.
 
 ## O projeto em uma frase
 
