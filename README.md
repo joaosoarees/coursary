@@ -11,6 +11,10 @@ API serverless de uma plataforma de cursos: Lambda, API Gateway, Cognito e Dynam
 - [Achados sobre as skills](docs/skill-findings.md)
 - [Registro do processo de planejamento](docs/process-log.md)
 
+## Chamando a API
+
+`docs/api/coursary-api.postman_collection.json` tem todas as rotas. No Yaak, importe pelo formato Postman e preencha a variável `baseUrl` com o endpoint que o `pnpm deploy:dev` mostra no fim.
+
 ## Requisitos
 
 - Node.js 24 (`.nvmrc`)
@@ -40,10 +44,10 @@ O `aws/bootstrap.yml` cria o acesso do projeto:
 | `coursary-api-boundary` | Teto de toda role que o deploy cria: nenhuma Lambda passa disso |
 | `coursary-api-ci` | Role sem permissões que o GitHub Actions assume por OIDC, só para o `sls package` |
 
-Ele é aplicado por um usuário administrador da conta (aqui, `joao-master`). É o único uso desse usuário no projeto:
+Ele é aplicado por um usuário administrador da conta, com o perfil dele na AWS CLI. É o único uso desse usuário no projeto:
 
 ```bash
-AWS_PROFILE=joao-master aws cloudformation deploy --region sa-east-1 --stack-name coursary-api-bootstrap --template-file aws/bootstrap.yml --capabilities CAPABILITY_NAMED_IAM
+AWS_PROFILE=<perfil-admin> aws cloudformation deploy --region sa-east-1 --stack-name coursary-api-bootstrap --template-file aws/bootstrap.yml --capabilities CAPABILITY_NAMED_IAM --parameter-overrides OwnerUserName=<usuário-admin>
 ```
 
 Reaplique sempre que o `aws/bootstrap.yml` mudar, por exemplo quando um deploy falhar com `is not authorized to perform` numa ação que falta.
@@ -55,7 +59,7 @@ Acrescente ao `~/.aws/config`, com o ARN de `DeployerRoleArn` nas saídas da sta
 ```ini
 [profile coursary]
 role_arn = arn:aws:iam::<conta>:role/coursary-api-deployer
-source_profile = joao-master
+source_profile = <perfil-admin>
 region = sa-east-1
 ```
 
@@ -76,9 +80,9 @@ A resposta deve ser `assumed-role/coursary-api-deployer/...`.
 | `AWS_DEPLOY_ROLE_ARN` | `DeployerRoleArn` nas saídas da stack `coursary-api-bootstrap` |
 
 ```bash
-gh secret set SERVERLESS_ACCESS_KEY --repo joaosoarees/coursary-api
-gh secret set AWS_CI_ROLE_ARN --repo joaosoarees/coursary-api
-gh secret set AWS_DEPLOY_ROLE_ARN --repo joaosoarees/coursary-api
+gh secret set SERVERLESS_ACCESS_KEY
+gh secret set AWS_CI_ROLE_ARN
+gh secret set AWS_DEPLOY_ROLE_ARN
 ```
 
 A role do CI confia no assunto imutável do OIDC deste repositório (`repo:<dono>@<id>/<repo>@<id>:*`). Se o repositório for recriado, os ids mudam e o bootstrap precisa ser atualizado.

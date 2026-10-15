@@ -1,8 +1,10 @@
-export interface ControllerResponse<TBody> {
-  statusCode: number;
-  body?: TBody;
+export abstract class Controller<TBody = undefined> {
+  abstract handle(): Promise<Controller.Response<TBody>>;
 }
 
-export abstract class Controller<TBody = undefined> {
-  abstract handle(): Promise<ControllerResponse<TBody>>;
+export namespace Controller {
+  export interface Response<TBody> {
+    statusCode: number;
+    body?: TBody;
+  }
 }

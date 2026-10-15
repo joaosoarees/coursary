@@ -4,7 +4,7 @@ Description: Access for coursary-api. A deployer role assumed from the owner's u
 Parameters:
   OwnerUserName:
     Type: String
-    Default: joao-master
+    Description: IAM user allowed to assume the deployer role.
   DeploymentBucketName:
     Type: String
     Default: serverless-framework-deployments-sa-east-1-59910092-c003
