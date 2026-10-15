@@ -6,6 +6,9 @@ provider: ${file(./sls/provider.yml)}
 
 custom: ${file(./sls/custom.yml)}
 
+package:
+  individually: true
+
 build:
   esbuild:
     configFile: ./esbuild.config.js
