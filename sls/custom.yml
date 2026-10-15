@@ -1,3 +1,8 @@
+cognitoAuthorizer:
+  name: CognitoAuthorizer
+  scopes:
+    - aws.cognito.signin.user.admin
+
 deploymentBucket: serverless-framework-deployments-sa-east-1-59910092-c003
 
 stages:

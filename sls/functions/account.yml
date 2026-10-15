@@ -4,19 +4,12 @@ getMe:
     MAIN_TABLE_NAME: !Ref MainTable
   iam:
     role:
-      statements:
-        - Effect: Allow
-          Action:
-            - dynamodb:GetItem
-          Resource: !GetAtt MainTable.Arn
+      statements: ${file(./sls/iam.yml):getMe}
   events:
     - httpApi:
         method: GET
         path: /me
-        authorizer:
-          name: cognito
-          scopes:
-            - aws.cognito.signin.user.admin
+        authorizer: ${self:custom.cognitoAuthorizer}
 
 updateMe:
   handler: src/main/functions/account/updateMe.handler
@@ -24,17 +17,9 @@ updateMe:
     MAIN_TABLE_NAME: !Ref MainTable
   iam:
     role:
-      statements:
-        - Effect: Allow
-          Action:
-            - dynamodb:GetItem
-            - dynamodb:UpdateItem
-          Resource: !GetAtt MainTable.Arn
+      statements: ${file(./sls/iam.yml):updateMe}
   events:
     - httpApi:
         method: PATCH
         path: /me
-        authorizer:
-          name: cognito
-          scopes:
-            - aws.cognito.signin.user.admin
+        authorizer: ${self:custom.cognitoAuthorizer}
