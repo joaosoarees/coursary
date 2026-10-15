@@ -221,6 +221,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q165 | Token de conta indisponível | As rotas de `/me` já leem a conta: `DISABLED` ou inexistente → `403 ACCOUNT_UNAVAILABLE`, sem esperar o token expirar. |
 | Q166 | `GET /me` | `200 { id, name, email, role, createdAt }`, leitura eventual (Q88). `avatar` entra com o upload (Q85, Q112); `status` fica de fora. |
 | Q167 | `PATCH /me` | Só `name` (validação do sign-up), `200` com o perfil de `ReturnValues: 'ALL_NEW'` (Q88). Troca de e-mail fica como evolução; papel só pelo admin (Q44). A propagação do nome para as cópias entra com as cópias (1.11, fase 2). |
+| Q168 | Adapter das rotas privadas | Como no foodiary: um `lambdaHttpAdapter` só, que lê o `authorizer` do evento (`accountId` `null` nas públicas, `string` nas privadas); com `authorizer` e sem a claim `internalId`, `401 INVALID_SESSION`. `params` e `queryParams` entram com a primeira rota que os usar (Q112). Sub-imp da 1.8: authorizer e adapter; `updateName`; `GetMe` e `UpdateMe`; rotas, roles e Yaak; chamadas reais. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
