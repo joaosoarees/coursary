@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-14. Estado: **rodada 4 do grilling, história PLAN-2 (identidade e papéis)**. As skills de Cognito e TypeScript já existem.
+Última atualização: 2026-10-14. Estado: **PLAN-2 fechada; próxima história PLAN-3 (modelagem de dados)**. As skills de Cognito e TypeScript já existem.
 
 ## Como retomar
 
@@ -103,6 +103,11 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q20 | Onde vive o papel | `role` no Account (fonte da verdade), copiado para o access token pelo trigger de pre token, que lê o Dynamo. Papel desatualizado por no máximo 1 h. Rotas de admin que mudam papel leem o papel do Dynamo na hora. Grupos do Cognito descartados pela Q38. |
 | Q39 | Ordem do sign-up | (1) Transação no Dynamo: Account `PENDING` e `EMAIL#`, ambos com TTL de 3 dias. (2) `SignUp` no Cognito com `custom:internalId`; se falhar, apagar os dois itens. (3) A confirmação marca `ACTIVE` e remove o TTL. Leituras ignoram itens vencidos ainda não apagados. |
 | Q40 | Quem marca a confirmação | A rota de confirmação, depois do `ConfirmSignUp`. Sem trigger de post confirmation. |
+| Q41 | Usuário órfão no Cognito | As duas limpezas: o stream pega o `REMOVE` do TTL (`userIdentity` = `dynamodb.amazonaws.com`) e chama `AdminDeleteUser` (fase 3); e a rota de sign-up, ao receber `UsernameExistsException` sem `EMAIL#` nosso, apaga o usuário `UNCONFIRMED` e tenta de novo (fase 1). O Dynamo decide, o Cognito obedece. |
+| Q42 | O que o Cognito guarda | Só e-mail, senha e `custom:internalId` (imutável). Perfil no Account. `WriteAttributes` explícito em todo app client, sem `custom:internalId`, com teste no template. |
+| Q43 | Forma do papel | Um valor por usuário (`student`, `instructor`, `admin`). Um módulo de permissões mapeia papel → ações e os handlers perguntam pela ação. O admin herda as ações do instrutor. **Fica aberto para evoluir**: haverá um painel de administradores no mesmo front, então o mapa papel → ações deve poder sair do código para dados sem mudar os handlers. |
+| Q44 | Troca de papel | Só admin, `PUT /admin/users/{id}/role`. Ninguém muda o próprio papel; o último admin não pode ser rebaixado; conta `PENDING` é recusada; linha de auditoria (quem, quando, de/para). O primeiro admin vem do script da Q21, que grava `role = admin` no Account. |
+| Q45 | Instrutor rebaixado | Os cursos dele ficam como estão (publicados no catálogo, matrículas mantidas); ele perde a edição; o admin pode arquivar. Nada é apagado ou transferido. |
 
 #### Fases (Q27)
 
@@ -123,8 +128,8 @@ Histórias de decisão, antes de qualquer código. Ordem de dependência: PLAN-2
 | História | Conteúdo | Skills | Estado |
 |---|---|---|---|
 | PLAN-1 | Escopo e fases | | Feita (Q27) |
-| PLAN-2 | Identidade e papéis: Q20, revisão de Q17 e Q18, e-mails (Cognito ou Resend) | `cognito-*` | **Aberta** |
-| PLAN-3 | Modelagem de dados: ERD → lista de padrões de acesso → quadro de entidades (PK/SK) → GSIs → desnormalização e contadores → validação percorrendo a lista | `designing-data-models`, `modeling-entity-relationships`, `defining-access-patterns`, `dynamodb-*` | A fazer |
+| PLAN-2 | Identidade e papéis: Q20, revisão de Q17 e Q18, e-mails (Cognito ou Resend) | `cognito-*` | Feita (Q18, Q20, Q32 a Q45) |
+| PLAN-3 | Modelagem de dados: ERD → lista de padrões de acesso → quadro de entidades (PK/SK) → GSIs → desnormalização e contadores → validação percorrendo a lista | `designing-data-models`, `modeling-entity-relationships`, `defining-access-patterns`, `dynamodb-*` | **Aberta** |
 | PLAN-4 | Arquitetura de execução: unidade de trabalho, consistência, paginação, stream → SQS, rotas, autorização | `dynamodb-*`, `sqs-*`, `serverless-*`, DI | A fazer |
 | PLAN-5 | Registro de achados e critério de pronto das fases | | A fazer |
 | PLAN-6 | Padrões do projeto: gerenciador de pacotes, versões fixadas, monorepo ou não, tsconfig, ESLint e Prettier, commitlint e hooks, scripts, CI, documentação | `typescript-*`, `vitest-setup`, `serverless-typescript-esbuild` (nenhuma skill cobre lint ou commitlint: anotar como skill que falta) | A fazer |
