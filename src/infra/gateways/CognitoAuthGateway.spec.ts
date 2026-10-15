@@ -6,23 +6,33 @@ import {
   CodeMismatchException,
   ConfirmSignUpCommand,
   ExpiredCodeException,
+  GetTokensFromRefreshTokenCommand,
+  InitiateAuthCommand,
   InvalidParameterException,
   InvalidPasswordException,
   LimitExceededException,
   NotAuthorizedException,
+  PasswordResetRequiredException,
+  RefreshTokenReuseException,
   ResendConfirmationCodeCommand,
   SignUpCommand,
   TooManyFailedAttemptsException,
   TooManyRequestsException,
+  UserLambdaValidationException,
   UsernameExistsException,
+  UserNotConfirmedException,
   UserNotFoundException,
 } from '@aws-sdk/client-cognito-identity-provider';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { AccountUnavailable } from '@application/errors/AccountUnavailable';
 import { AuthUserExists } from '@application/errors/AuthUserExists';
 import { AuthUserNotPending } from '@application/errors/AuthUserNotPending';
+import { EmailNotConfirmed } from '@application/errors/EmailNotConfirmed';
 import { InvalidCode } from '@application/errors/InvalidCode';
+import { InvalidCredentials } from '@application/errors/InvalidCredentials';
 import { InvalidPassword } from '@application/errors/InvalidPassword';
+import { InvalidSession } from '@application/errors/InvalidSession';
 import { TooManyRequests } from '@application/errors/TooManyRequests';
 import { cognitoClient } from '@infra/clients/cognitoClient';
 import { CognitoAuthGateway } from '@infra/gateways/CognitoAuthGateway';
@@ -205,6 +215,119 @@ describe('CognitoAuthGateway.isUserConfirmed', () => {
 
     await expect(gateway.isUserConfirmed('ana@example.com')).resolves.toBe(
       false,
+    );
+  });
+});
+
+const authResult = {
+  AuthenticationResult: {
+    AccessToken: 'access',
+    IdToken: 'id',
+    RefreshToken: 'refresh',
+    ExpiresIn: 3600,
+  },
+};
+const accountUnavailable = new UserLambdaValidationException({
+  ...metadata,
+  message: 'PreTokenGeneration failed with error ACCOUNT_UNAVAILABLE.',
+});
+
+describe('CognitoAuthGateway.signIn', () => {
+  it('should sign in with the password flow and the secret hash, without the id token', async () => {
+    const spy = send().mockResolvedValue(authResult as never);
+
+    const tokens = await gateway.signIn({
+      email: 'ana@example.com',
+      password: 'secret123',
+    });
+
+    const command = spy.mock.calls[0]?.[0] as InitiateAuthCommand;
+    expect(command).toBeInstanceOf(InitiateAuthCommand);
+    expect(command.input).toEqual({
+      ClientId: 'client-id',
+      AuthFlow: 'USER_PASSWORD_AUTH',
+      AuthParameters: {
+        USERNAME: 'ana@example.com',
+        PASSWORD: 'secret123',
+        SECRET_HASH: secretHashOf('ana@example.com'),
+      },
+    });
+    expect(tokens).toEqual({
+      accessToken: 'access',
+      refreshToken: 'refresh',
+      expiresIn: 3600,
+    });
+  });
+
+  it.each([
+    [new NotAuthorizedException(metadata), InvalidCredentials],
+    [new PasswordResetRequiredException(metadata), InvalidCredentials],
+    [new UserNotFoundException(metadata), InvalidCredentials],
+    [new UserNotConfirmedException(metadata), EmailNotConfirmed],
+    [accountUnavailable, AccountUnavailable],
+    [new TooManyRequestsException(metadata), TooManyRequests],
+  ])('should translate %s', async (cognitoError, expected) => {
+    send().mockRejectedValue(cognitoError);
+
+    await expect(
+      gateway.signIn({ email: 'ana@example.com', password: 'secret123' }),
+    ).rejects.toBeInstanceOf(expected);
+  });
+
+  it('should not take a failure of another trigger for an unavailable account', async () => {
+    const other = new UserLambdaValidationException({
+      ...metadata,
+      message: 'PreTokenGeneration failed with error boom.',
+    });
+    send().mockRejectedValue(other);
+
+    await expect(
+      gateway.signIn({ email: 'ana@example.com', password: 'secret123' }),
+    ).rejects.toBe(other);
+  });
+
+  it('should fail on a challenge instead of returning no tokens', async () => {
+    send().mockResolvedValue({
+      ChallengeName: 'NEW_PASSWORD_REQUIRED',
+    } as never);
+
+    await expect(
+      gateway.signIn({ email: 'ana@example.com', password: 'secret123' }),
+    ).rejects.toThrow('NEW_PASSWORD_REQUIRED');
+  });
+});
+
+describe('CognitoAuthGateway.refreshTokens', () => {
+  it('should refresh with the client secret and return the rotated token', async () => {
+    const spy = send().mockResolvedValue(authResult as never);
+
+    const tokens = await gateway.refreshTokens('old-refresh');
+
+    const command = spy.mock.calls[0]?.[0] as GetTokensFromRefreshTokenCommand;
+    expect(command).toBeInstanceOf(GetTokensFromRefreshTokenCommand);
+    expect(command.input).toEqual({
+      ClientId: 'client-id',
+      ClientSecret: 'client-secret',
+      RefreshToken: 'old-refresh',
+    });
+    expect(tokens).toEqual({
+      accessToken: 'access',
+      refreshToken: 'refresh',
+      expiresIn: 3600,
+    });
+  });
+
+  it.each([
+    [new NotAuthorizedException(metadata), InvalidSession],
+    [new RefreshTokenReuseException(metadata), InvalidSession],
+    [new UserNotFoundException(metadata), InvalidSession],
+    [accountUnavailable, AccountUnavailable],
+    [new LimitExceededException(metadata), TooManyRequests],
+  ])('should translate %s', async (cognitoError, expected) => {
+    send().mockRejectedValue(cognitoError);
+
+    await expect(gateway.refreshTokens('old-refresh')).rejects.toBeInstanceOf(
+      expected,
     );
   });
 });

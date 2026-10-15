@@ -10,6 +10,8 @@ export class FakeAuthGateway extends AuthGateway {
   readonly resends: string[] = [];
   failOnSignUp: Error | undefined;
   failOnResend: Error | undefined;
+  failOnTokens: Error | undefined;
+  readonly refreshTokensIssued: string[] = [];
 
   signUp(params: AuthGateway.SignUpParams): Promise<AuthGateway.SignUpResult> {
     this.signUps.push(params);
@@ -72,5 +74,27 @@ export class FakeAuthGateway extends AuthGateway {
 
   isUserConfirmed(email: string): Promise<boolean> {
     return Promise.resolve(this.users.get(email) === 'CONFIRMED');
+  }
+
+  signIn({ email }: AuthGateway.SignInParams): Promise<AuthGateway.Tokens> {
+    return this.issueTokens(`refresh-${email}`);
+  }
+
+  refreshTokens(refreshToken: string): Promise<AuthGateway.Tokens> {
+    return this.issueTokens(`${refreshToken}+`);
+  }
+
+  private issueTokens(refreshToken: string): Promise<AuthGateway.Tokens> {
+    if (this.failOnTokens) {
+      return Promise.reject(this.failOnTokens);
+    }
+
+    this.refreshTokensIssued.push(refreshToken);
+
+    return Promise.resolve({
+      accessToken: 'access',
+      refreshToken,
+      expiresIn: 3600,
+    });
   }
 }
