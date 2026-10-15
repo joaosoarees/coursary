@@ -6,7 +6,7 @@
 
 Abra o Claude Code e diga:
 
-> Leia `/home/joao/projects/coursary/PLANNING.md` e continue o grilling (`/mattpocock-skills:grilling`) do ponto em que paramos.
+> Leia `PLANNING.md` e continue o grilling (`/mattpocock-skills:grilling`) do ponto em que paramos.
 
 Ao retomar, o assistente deve:
 
@@ -166,11 +166,11 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q110 | Commits e hooks | commitlint com `config-conventional`, mensagens em inglês, escopos opcionais e livres. lefthook: commitlint no `commit-msg`; Prettier e ESLint nos arquivos alterados no `pre-commit`. Typecheck e testes só no CI. |
 | Q111 | CI | GitHub Actions em PR e push na `main`: `pnpm install --frozen-lockfile`, `lint`, `typecheck`, `test` (DynamoDB Local como serviço), `sls package` de `dev`. Deploy manual da máquina local por enquanto. |
 | Q113 | Formato de módulo | ES modules (`"type": "module"`). O risco de dependência CommonJS embutida num bundle ESM fica coberto pela chamada real em `dev` (Q100). |
-| Q114 | Org do Serverless | `org: worldiary`, criada pelo João em 2026-10-15 (a sessão da `jsoareez` passou a responder `Forbidden`). |
+| Q114 | Org do Serverless | `org: worldiary`, criada em 2026-10-15 (a sessão da org anterior passou a responder `Forbidden`). |
 | Q115 | `sls package` no CI | Fica no CI. Ele exige credencial real da AWS (resolve a conta pelo STS) além da `SERVERLESS_ACCESS_KEY`. A AWS vem de uma role sem nenhuma permissão, assumida por OIDC só por workflows deste repositório (`aws/bootstrap.yml`, stack `coursary-api-bootstrap`); o ARN fica no segredo `AWS_CI_ROLE_ARN`. A mesma role ganha permissões se um dia o deploy for pelo CI. |
-| Q116 | Stage `prod` | Declarado no código (proteção e PITR), mas não deployado até a fase 6 ou decisão do João: com o `foodiary-api-dev`, seria a terceira instância do Serverless, e paga. |
-| Q117 | Quando deployar | Depois da revisão dos commits e com o ok do João, antes do push; o resultado entra no último commit. Perfil da AWS: `coursary` (Q118). |
-| Q118 | Perfil da AWS do projeto | Role `coursary-api-deployer` (em `aws/bootstrap.yml`), assumida a partir do `joao-master` pelo perfil `coursary` (`role_arn` + `source_profile`); `.env` com `AWS_PROFILE=coursary`. Permissões só em `coursary-api-*` (amplitude na Q122). O `joao-master` só aplica o bootstrap. Nenhuma skill cobre permissão mínima de deploy do Serverless: skill que falta. |
+| Q116 | Stage `prod` | Declarado no código (proteção e PITR), mas não deployado até a fase 6 ou decisão do o autor: com o `foodiary-api-dev`, seria a terceira instância do Serverless, e paga. |
+| Q117 | Quando deployar | Depois da revisão dos commits e com o ok do o autor, antes do push; o resultado entra no último commit. Perfil da AWS: `coursary` (Q118). |
+| Q118 | Perfil da AWS do projeto | Role `coursary-api-deployer` (em `aws/bootstrap.yml`), assumida a partir do usuário administrador da conta pelo perfil `coursary` (`role_arn` + `source_profile`); `.env` com `AWS_PROFILE=coursary`. Permissões só em `coursary-api-*` (amplitude na Q122). O usuário administrador só aplica o bootstrap. Nenhuma skill cobre permissão mínima de deploy do Serverless: skill que falta. |
 | Q119 | Resposta da health | `GET /health` pública, `200 { "status": "ok" }`, sem tocar na tabela. Checagem de dependências seria outra rota (`/health/deep`). |
 | Q120 | Role por função | A health fica com a role padrão do Serverless (só logs). A role por função (Q97) entra na 1.3, com a primeira função que precisa de permissão. |
 | Q121 | Roles criadas pelo deploy | **Permissions boundary** `coursary-api-boundary`: teto de toda role do projeto (logs e tabelas `coursary-api-*`, crescendo por história). A deployer só cria e altera roles `coursary-api-*` que tenham esse boundary, só passa roles para o Lambda, não pode remover boundary e não toca nas próprias roles (`deployer`, `ci`). Serverless: `provider.iam.role.permissionsBoundary`. |
@@ -183,6 +183,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q128 | Estilo dos tipos e dos itens | Tipos em namespaces só com tipos, como no foodiary (`Account.Role`, `AccountItem.ItemType`, `Controller.Response`); constantes `as const` no módulo; `no-namespace` desligada. `*Item` como classe no padrão do foodiary. Brands de id só quando houver dois tipos de id (1.11), já como `Account.Id`/`Course.Id`. |
 | Q129 | Secret do client nas funções | `!GetAtt UserPoolClient.ClientSecret` na variável da função que precisa (como no foodiary; confirmado numa conta real pela skill, mas fora da página de referência). Se a AWS mudar o atributo, trocar para Secrets Manager com referência dinâmica. |
 | Q130 | Usuário confirmado no Cognito e reserva livre | `409 EMAIL_IN_USE`, compensação apaga a reserva recém-criada, log de inconsistência. Nunca apagar automaticamente um usuário confirmado. |
+| Q131 | Branches e deploy | `develop` e `main` protegidas por ruleset do GitHub (PR obrigatório, check `check` verde, sem push direto, sem force-push, sem apagar, só merge commit); repositório público para ter rulesets no plano gratuito. Features abrem PR para `develop`; `develop` abre PR para `main`. O merge na `develop` deploya o stage `dev` pelo CI (a deployer confia no OIDC só de `refs/heads/develop`). Sem deploy de `prod` por CI ainda. Revê a Q106 (PR ia para a `main`) e a Q117 (o merge na `develop` é o ok do deploy). Hook local recusa commit em `main` e `develop`. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
@@ -255,7 +256,7 @@ Fora da fase 1 de propósito: abrir aula (fase 2, precisa de matrícula) e apaga
 
 ## O que a exploração do foodiary mostrou
 
-Projeto de referência: `/home/joao/projects/foodiary/api` (lido em 2026-10-12, commit `177be03`).
+Projeto de referência: o foodiary, uma API anterior do autor no mesmo estilo (lido em 2026-10-12, commit `177be03`).
 
 ### Trazer
 
@@ -287,7 +288,7 @@ Projeto de referência: `/home/joao/projects/foodiary/api` (lido em 2026-10-12, 
 
 ### Não trazer
 
-Entidades e regras do domínio (`Profile`, `Goal`, `Meal`, `GoalCalculator`), `MealsFileStorageGateway` e o bucket S3, o texto e as cores do template de e-mail, `org: jsoareez` e o sufixo `joaodevdude`.
+Entidades e regras do domínio (`Profile`, `Goal`, `Meal`, `GoalCalculator`), `MealsFileStorageGateway` e o bucket S3, o texto e as cores do template de e-mail, a org do Serverless e o sufixo de domínio pessoal do foodiary.
 
 ### O que o foodiary não cobre e este projeto precisa
 
