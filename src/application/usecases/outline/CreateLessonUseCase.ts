@@ -1,0 +1,59 @@
+import type { UnitOfWork } from '@application/contracts/UnitOfWork';
+import { Course } from '@application/entities/Course';
+import { Lesson } from '@application/entities/Lesson';
+import type { Module } from '@application/entities/Module';
+import { ModuleNotFound } from '@application/errors/ModuleNotFound';
+import type { CourseOutlineQuery } from '@application/queries/CourseOutlineQuery';
+import type { CourseRepository } from '@application/repositories/CourseRepository';
+import type { LessonRepository } from '@application/repositories/LessonRepository';
+import type { CourseEditor } from '@application/usecases/outline/CourseEditor';
+import { LessonDetails } from '@application/usecases/outline/LessonDetails';
+
+export class CreateLessonUseCase {
+  constructor(
+    private readonly coursesRepository: CourseRepository,
+    private readonly lessonsRepository: LessonRepository,
+    private readonly courseOutline: CourseOutlineQuery,
+    private readonly unitOfWork: UnitOfWork.Factory,
+  ) {}
+
+  async execute({
+    callerId,
+    callerRole,
+    courseId,
+    moduleId,
+    ...content
+  }: CreateLessonUseCase.Input): Promise<LessonDetails> {
+    const found = await this.coursesRepository.findById(courseId);
+    const course = Course.requireFound(found);
+    course.requireEditableBy(callerId, callerRole);
+    const { modules } = await this.courseOutline.execute(courseId);
+    const module = modules.find((m) => m.id === moduleId);
+
+    if (!module) {
+      throw new ModuleNotFound();
+    }
+
+    const position = Math.max(-1, ...module.lessons.map((l) => l.position)) + 1;
+    const lesson = Lesson.create({ courseId, moduleId, position, ...content });
+
+    const unit = this.unitOfWork();
+    unit.add(
+      ...this.lessonsRepository.createOperations(lesson),
+      this.coursesRepository.addLessonsOperation(course, 1),
+    );
+    await unit.commit();
+
+    return LessonDetails.fromLesson(lesson);
+  }
+}
+
+export namespace CreateLessonUseCase {
+  export interface Input extends CourseEditor {
+    courseId: Course.Id;
+    moduleId: Module.Id;
+    title: string;
+    body: string;
+    durationMinutes: number;
+  }
+}
