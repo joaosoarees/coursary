@@ -4,9 +4,9 @@ import {
   normalizeEmail,
 } from '@application/entities/Account';
 import { EmailInUse } from '@application/errors/EmailInUse';
-import { AccountRepository } from '@application/repositories/AccountRepository';
+import type { AccountRepository } from '@application/repositories/AccountRepository';
 
-export class InMemoryAccountRepository extends AccountRepository {
+export class InMemoryAccountRepository implements AccountRepository {
   readonly accounts = new Map<string, Account>();
   readonly claims = new Map<string, string>();
   failOnSaveExternalId: Error | undefined;

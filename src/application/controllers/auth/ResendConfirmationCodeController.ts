@@ -3,14 +3,12 @@ import { z } from 'zod';
 import { Controller } from '@application/contracts/Controller';
 import { emailSchema } from '@application/controllers/auth/emailSchema';
 import { ResendConfirmationCodeUseCase } from '@application/usecases/auth/ResendConfirmationCodeUseCase';
-import { Injectable } from '@kernel/decorators/Injectable';
-import { Schema } from '@kernel/decorators/Schema';
 
 export const resendConfirmationCodeSchema = z.object({ email: emailSchema });
 
-@Injectable()
-@Schema({ body: resendConfirmationCodeSchema })
 export class ResendConfirmationCodeController extends Controller<'public'> {
+  protected override readonly bodySchema = resendConfirmationCodeSchema;
+
   constructor(private readonly resendCode: ResendConfirmationCodeUseCase) {
     super();
   }

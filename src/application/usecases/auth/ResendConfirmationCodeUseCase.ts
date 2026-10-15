@@ -1,8 +1,6 @@
-import { AuthGateway } from '@application/gateways/AuthGateway';
-import { AccountRepository } from '@application/repositories/AccountRepository';
-import { Injectable } from '@kernel/decorators/Injectable';
+import type { AuthGateway } from '@application/gateways/AuthGateway';
+import type { AccountRepository } from '@application/repositories/AccountRepository';
 
-@Injectable()
 export class ResendConfirmationCodeUseCase {
   constructor(
     private readonly accountsRepository: AccountRepository,

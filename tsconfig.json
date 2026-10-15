@@ -12,16 +12,12 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
 
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
 
     "paths": {
       "@application/*": ["./src/application/*"],
       "@infra/*": ["./src/infra/*"],
-      "@kernel/*": ["./src/kernel/*"],
       "@main/*": ["./src/main/*"],
       "@shared/*": ["./src/shared/*"],
       "@tests/*": ["./__tests__/*"]

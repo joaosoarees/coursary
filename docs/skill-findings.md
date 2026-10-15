@@ -137,6 +137,30 @@ Cada achado:
 - **O que aconteceu**: a ativação remove o `expiresAt` da conta e da reserva numa transação condicionada a `PENDING`; a leitura pela reserva usa `getLive` com `ConsistentRead: true` (Q142). Um teste com a reserva vencida e a conta ainda viva confirmou o filtro (mutação: sem ele, o teste falha).
 - **Sugestão**: nenhuma.
 
+### `cognito-role-in-custom-attribute`, `cognito-sign-in-and-refresh-tokens` (1.6)
+
+#### 2026-10-15 · 1.6.b · acerto
+- **A skill diz**: o trigger de pre token versão 2 (Essentials) põe claims no access token; YAML com `UserPoolTier`, `LambdaConfig.PreTokenGenerationConfig` e a permissão.
+- **O que aconteceu**: funcionou no primeiro deploy; o access token trouxe `internalId` e `role`, também depois do refresh.
+- **Sugestão**: nenhuma.
+
+#### 2026-10-15 · 1.6.b · lacuna
+- **A skill diz**: "a throwing trigger fails the sign-in".
+- **O que aconteceu**: faltou como recusar tokens de propósito e reconhecer isso na rota. Em `dev`, o erro lançado pelo trigger chegou ao `InitiateAuth` e ao `GetTokensFromRefreshToken` como `UserLambdaValidationException` com a mensagem `PreTokenGeneration failed with error ACCOUNT_UNAVAILABLE.`: o texto do erro passa adiante, e a rota o usa para responder 403 em vez de 500 (Q146).
+- **Sugestão**: uma seção "recusar tokens no trigger" com esse formato de mensagem e o mapeamento na rota.
+
+#### 2026-10-15 · 1.6.c · acerto
+- **A skill diz**: com rotação, refresh por `GetTokensFromRefreshToken`, novo refresh token na resposta, reuso do antigo dá `RefreshTokenReuseException`; num client com secret, essa operação leva o secret em si.
+- **O que aconteceu**: tudo confirmado em `dev`, inclusive o 401 no reuso; sem precisar do `sub` no corpo.
+- **Sugestão**: nenhuma.
+
+### `typescript-di-container`, `wiring-dependencies`
+
+#### 2026-10-15 · Q152 · lacuna
+- **A skill diz**: um container com `bind` num ponto de composição único.
+- **O que aconteceu**: em Lambda, um arquivo único de bindings importado por todo handler faz cada função carregar todas as implementações (o `signIn` levava o repositório do DynamoDB, o trigger levava o gateway do Cognito), e o container exigiu metadados de decorator no build (`esbuild-plugin-tsc`, `keepNames`). Com os testes recebendo fakes pelo construtor, o container não pagava esse custo; o projeto trocou por fábricas à mão por função.
+- **Sugestão**: na `typescript-di-container`, dizer quando não usar um container (uma função por rota, bundles por função) e mostrar a composição por função da `wiring-dependencies` como alternativa.
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |

@@ -1,21 +1,17 @@
-export abstract class AuthGateway {
-  abstract signUp(
-    params: AuthGateway.SignUpParams,
-  ): Promise<AuthGateway.SignUpResult>;
+export interface AuthGateway {
+  signUp(params: AuthGateway.SignUpParams): Promise<AuthGateway.SignUpResult>;
 
-  abstract signIn(
-    params: AuthGateway.SignInParams,
-  ): Promise<AuthGateway.Tokens>;
+  signIn(params: AuthGateway.SignInParams): Promise<AuthGateway.Tokens>;
 
-  abstract refreshTokens(refreshToken: string): Promise<AuthGateway.Tokens>;
+  refreshTokens(refreshToken: string): Promise<AuthGateway.Tokens>;
 
-  abstract confirmSignUp(email: string, code: string): Promise<void>;
+  confirmSignUp(email: string, code: string): Promise<void>;
 
-  abstract resendConfirmationCode(email: string): Promise<void>;
+  resendConfirmationCode(email: string): Promise<void>;
 
-  abstract isUserConfirmed(email: string): Promise<boolean>;
+  isUserConfirmed(email: string): Promise<boolean>;
 
-  abstract deleteUnconfirmedUser(
+  deleteUnconfirmedUser(
     email: string,
   ): Promise<AuthGateway.DeleteUnconfirmedResult>;
 }

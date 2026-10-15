@@ -1,12 +1,10 @@
 import { Account } from '@application/entities/Account';
 import { AuthUserExists } from '@application/errors/AuthUserExists';
 import { EmailInUse } from '@application/errors/EmailInUse';
-import { AuthGateway } from '@application/gateways/AuthGateway';
-import { AccountRepository } from '@application/repositories/AccountRepository';
-import { Injectable } from '@kernel/decorators/Injectable';
+import type { AuthGateway } from '@application/gateways/AuthGateway';
+import type { AccountRepository } from '@application/repositories/AccountRepository';
 import { Saga } from '@shared/saga/Saga';
 
-@Injectable()
 export class SignUpUseCase {
   constructor(
     private readonly accountsRepository: AccountRepository,

@@ -35,7 +35,7 @@ jobs:
         with:
           role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
           aws-region: sa-east-1
-      - run: pnpm sls:package
+      - run: pnpm check:bundles
         env:
           SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
 

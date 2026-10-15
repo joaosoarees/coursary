@@ -1,9 +1,4 @@
-import '@main/bindings';
-
-import { RefreshTokensController } from '@application/controllers/auth/RefreshTokensController';
-import { Registry } from '@kernel/di/Registry';
 import { lambdaHttpAdapter } from '@main/adapters/lambdaHttpAdapter';
+import { makeRefreshTokensController } from '@main/factories/auth/makeRefreshTokensController';
 
-export const handler = lambdaHttpAdapter(
-  Registry.getInstance().resolve(RefreshTokensController),
-);
+export const handler = lambdaHttpAdapter(makeRefreshTokensController());

@@ -4,7 +4,6 @@ import { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
 import { EmailInUse } from '@application/errors/EmailInUse';
-import { Schema } from '@kernel/decorators/Schema';
 import { lambdaHttpAdapter } from '@main/adapters/lambdaHttpAdapter';
 
 const makeEvent = (body?: string, isBase64Encoded = false) =>
@@ -40,8 +39,11 @@ class EmailInUseController extends Controller<'public'> {
   }
 }
 
-@Schema({ body: z.object({ name: z.string().min(1) }) })
 class EchoController extends Controller<'public', { name: string }> {
+  protected override readonly bodySchema = z.object({
+    name: z.string().min(1),
+  });
+
   protected handle(request: Controller.Request<'public', { name: string }>) {
     return Promise.resolve({ statusCode: 200, body: request.body });
   }
