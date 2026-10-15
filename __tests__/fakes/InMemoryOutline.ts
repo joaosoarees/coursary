@@ -111,8 +111,15 @@ export class InMemoryLessonRepository implements LessonRepository {
     return this.changeOf(lesson, new Conflict());
   }
 
+  // Two operations, as the table needs: one for the old key, one for the new.
   moveOperations(lesson: Lesson): UnitOfWork.Operation[] {
-    return [this.changeOf(lesson, new Conflict())];
+    return [
+      InMemoryUnitOfWork.operation({
+        check: () => (this.lessons.has(lesson.id) ? undefined : new Conflict()),
+        apply: () => undefined,
+      }),
+      this.changeOf(lesson, new Conflict()),
+    ];
   }
 
   private changeOf(lesson: Lesson, missing: Error): UnitOfWork.Operation {
