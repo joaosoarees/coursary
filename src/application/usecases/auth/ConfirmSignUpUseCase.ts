@@ -1,6 +1,5 @@
 import { type Account, accountStatuses } from '@application/entities/Account';
-import { AuthUserNotPending } from '@application/errors/AuthUserNotPending';
-import { InvalidCode } from '@application/errors/InvalidCode';
+import { AuthUserNotPending, InvalidCode } from '@application/errors/auth';
 import type { AuthGateway } from '@application/gateways/AuthGateway';
 import type { AccountRepository } from '@application/repositories/AccountRepository';
 

@@ -1,6 +1,6 @@
 import type { Page } from '@application/contracts/Page';
 import type { Account } from '@application/entities/Account';
-import { AccountNotFound } from '@application/errors/AccountNotFound';
+import { AccountNotFound } from '@application/errors/account';
 import type { ListRoleChangesQuery } from '@application/queries/ListRoleChangesQuery';
 import type { RoleChangeSummary } from '@application/queries/RoleChangeSummary';
 import type { AccountRepository } from '@application/repositories/AccountRepository';

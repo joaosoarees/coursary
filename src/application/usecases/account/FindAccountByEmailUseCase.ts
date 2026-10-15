@@ -1,4 +1,4 @@
-import { AccountNotFound } from '@application/errors/AccountNotFound';
+import { AccountNotFound } from '@application/errors/account';
 import { AccountSummary } from '@application/queries/AccountSummary';
 import type { AccountRepository } from '@application/repositories/AccountRepository';
 

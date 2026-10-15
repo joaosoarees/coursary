@@ -3,9 +3,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FakeAuthGateway } from '@tests/fakes/FakeAuthGateway';
 import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
 
-import { AuthUserExists } from '@application/errors/AuthUserExists';
-import { EmailInUse } from '@application/errors/EmailInUse';
-import { InvalidPassword } from '@application/errors/InvalidPassword';
+import {
+  AuthUserExists,
+  EmailInUse,
+  InvalidPassword,
+} from '@application/errors/auth';
 import { SignUpUseCase } from '@application/usecases/auth/SignUpUseCase';
 
 const input = { name: 'Ana', email: 'Ana@Example.com', password: 'secret123' };

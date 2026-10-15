@@ -2,10 +2,12 @@ import KSUID from 'ksuid';
 
 import type { Account } from '@application/entities/Account';
 import { KSUID_PATTERN } from '@application/entities/ksuid';
-import { CourseArchived } from '@application/errors/CourseArchived';
-import { CourseNotFound } from '@application/errors/CourseNotFound';
-import { CoursePublished } from '@application/errors/CoursePublished';
-import { Forbidden } from '@application/errors/Forbidden';
+import { Forbidden } from '@application/errors/common';
+import {
+  CourseArchived,
+  CourseNotFound,
+  CoursePublished,
+} from '@application/errors/course';
 import { Permissions, permissions } from '@application/security/permissions';
 
 export const courseStatuses = {

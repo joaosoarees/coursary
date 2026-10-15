@@ -4,10 +4,8 @@ import { outlineWorld } from '@tests/outlineWorld';
 
 import { Lesson } from '@application/entities/Lesson';
 import { Module } from '@application/entities/Module';
-import { CourseNotFound } from '@application/errors/CourseNotFound';
-import { CoursePublished } from '@application/errors/CoursePublished';
-import { LessonNotFound } from '@application/errors/LessonNotFound';
-import { ModuleNotFound } from '@application/errors/ModuleNotFound';
+import { CourseNotFound, CoursePublished } from '@application/errors/course';
+import { LessonNotFound, ModuleNotFound } from '@application/errors/outline';
 import { CreateLessonUseCase } from '@application/usecases/outline/CreateLessonUseCase';
 import { DeleteLessonUseCase } from '@application/usecases/outline/DeleteLessonUseCase';
 import { UpdateLessonUseCase } from '@application/usecases/outline/UpdateLessonUseCase';

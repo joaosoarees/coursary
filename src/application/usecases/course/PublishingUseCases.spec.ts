@@ -2,11 +2,13 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { outlineWorld } from '@tests/outlineWorld';
 
-import { CourseArchived } from '@application/errors/CourseArchived';
-import { CourseEmpty } from '@application/errors/CourseEmpty';
-import { CourseNotFound } from '@application/errors/CourseNotFound';
-import { CourseNotPublished } from '@application/errors/CourseNotPublished';
-import { Forbidden } from '@application/errors/Forbidden';
+import { Forbidden } from '@application/errors/common';
+import {
+  CourseArchived,
+  CourseEmpty,
+  CourseNotFound,
+  CourseNotPublished,
+} from '@application/errors/course';
 import { ArchiveCourseUseCase } from '@application/usecases/course/ArchiveCourseUseCase';
 import { PublishCourseUseCase } from '@application/usecases/course/PublishCourseUseCase';
 

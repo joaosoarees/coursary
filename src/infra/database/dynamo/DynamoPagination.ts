@@ -2,7 +2,7 @@ import { QueryCommand, type QueryCommandInput } from '@aws-sdk/lib-dynamodb';
 import type { z } from 'zod';
 
 import type { Page } from '@application/contracts/Page';
-import { InvalidCursor } from '@application/errors/InvalidCursor';
+import { InvalidCursor } from '@application/errors/common';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 
 type Key = Record<string, unknown>;

@@ -5,7 +5,7 @@ import {
 } from '@aws-sdk/lib-dynamodb';
 
 import type { UnitOfWork } from '@application/contracts/UnitOfWork';
-import { Conflict } from '@application/errors/Conflict';
+import { Conflict } from '@application/errors/common';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 
 type TransactItem = NonNullable<

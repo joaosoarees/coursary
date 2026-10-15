@@ -5,7 +5,7 @@ import { InMemoryCourseRepository } from '@tests/fakes/InMemoryCourseRepository'
 import { anAccountId } from '@tests/ids';
 
 import { Account, accountStatuses } from '@application/entities/Account';
-import { AccountUnavailable } from '@application/errors/AccountUnavailable';
+import { AccountUnavailable } from '@application/errors/auth';
 import { GetMeUseCase } from '@application/usecases/account/GetMeUseCase';
 import { UpdateMeUseCase } from '@application/usecases/account/UpdateMeUseCase';
 

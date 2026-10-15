@@ -1,8 +1,7 @@
 import { type Account, accountStatuses } from '@application/entities/Account';
 import { RoleChange } from '@application/entities/RoleChange';
-import { AccountNotActive } from '@application/errors/AccountNotActive';
-import { AccountNotFound } from '@application/errors/AccountNotFound';
-import { CannotChangeOwnRole } from '@application/errors/CannotChangeOwnRole';
+import { AccountNotActive, AccountNotFound } from '@application/errors/account';
+import { CannotChangeOwnRole } from '@application/errors/admin';
 import type { AccountRepository } from '@application/repositories/AccountRepository';
 
 export class ChangeRoleUseCase {

@@ -7,9 +7,9 @@ import { ZodError } from 'zod';
 
 import type { Controller } from '@application/contracts/Controller';
 import type { Account } from '@application/entities/Account';
-import { ApplicationError } from '@application/errors/ApplicationError';
-import { ErrorCode } from '@application/errors/ErrorCode';
-import { InvalidSession } from '@application/errors/InvalidSession';
+import { InvalidSession } from '@application/errors/auth';
+import { ApplicationError } from '@application/errors/shared/ApplicationError';
+import { ErrorCode } from '@application/errors/shared/ErrorCode';
 import type { ResolveCallerUseCase } from '@application/usecases/account/ResolveCallerUseCase';
 import { lambdaBodyParser } from '@main/utils/lambdaBodyParser';
 import { lambdaErrorResponse } from '@main/utils/lambdaErrorResponse';

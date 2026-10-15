@@ -4,10 +4,9 @@ import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepositor
 import { anAccountId } from '@tests/ids';
 
 import { Account, accountRoles } from '@application/entities/Account';
-import { AccountNotActive } from '@application/errors/AccountNotActive';
-import { AccountNotFound } from '@application/errors/AccountNotFound';
-import { CannotChangeOwnRole } from '@application/errors/CannotChangeOwnRole';
-import { Forbidden } from '@application/errors/Forbidden';
+import { AccountNotActive, AccountNotFound } from '@application/errors/account';
+import { CannotChangeOwnRole } from '@application/errors/admin';
+import { Forbidden } from '@application/errors/common';
 import { ChangeRoleUseCase } from '@application/usecases/account/ChangeRoleUseCase';
 
 let accounts: InMemoryAccountRepository;

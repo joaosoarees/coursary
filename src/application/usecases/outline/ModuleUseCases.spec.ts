@@ -4,10 +4,12 @@ import { outlineWorld } from '@tests/outlineWorld';
 
 import { Lesson } from '@application/entities/Lesson';
 import { Module } from '@application/entities/Module';
-import { CourseArchived } from '@application/errors/CourseArchived';
-import { CourseNotFound } from '@application/errors/CourseNotFound';
-import { CoursePublished } from '@application/errors/CoursePublished';
-import { ModuleNotEmpty } from '@application/errors/ModuleNotEmpty';
+import {
+  CourseArchived,
+  CourseNotFound,
+  CoursePublished,
+} from '@application/errors/course';
+import { ModuleNotEmpty } from '@application/errors/outline';
 import { CreateModuleUseCase } from '@application/usecases/outline/CreateModuleUseCase';
 import { DeleteModuleUseCase } from '@application/usecases/outline/DeleteModuleUseCase';
 import { UpdateModuleUseCase } from '@application/usecases/outline/UpdateModuleUseCase';

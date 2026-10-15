@@ -4,7 +4,7 @@ import type { UnitOfWork } from '@application/contracts/UnitOfWork';
 import type { Course } from '@application/entities/Course';
 import { Lesson } from '@application/entities/Lesson';
 import type { Module } from '@application/entities/Module';
-import { LessonNotFound } from '@application/errors/LessonNotFound';
+import { LessonNotFound } from '@application/errors/outline';
 import type { LessonRepository } from '@application/repositories/LessonRepository';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { DynamoUnitOfWork } from '@infra/database/dynamo/DynamoUnitOfWork';

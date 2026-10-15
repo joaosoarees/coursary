@@ -1,5 +1,5 @@
 import { Account, accountStatuses } from '@application/entities/Account';
-import { AccountUnavailable } from '@application/errors/AccountUnavailable';
+import { AccountUnavailable } from '@application/errors/auth';
 import type { AccountRepository } from '@application/repositories/AccountRepository';
 
 export class IssueTokenClaimsUseCase {

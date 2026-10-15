@@ -9,7 +9,7 @@ import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepositor
 
 import { Controller } from '@application/contracts/Controller';
 import { Account, accountRoles } from '@application/entities/Account';
-import { EmailInUse } from '@application/errors/EmailInUse';
+import { EmailInUse } from '@application/errors/auth';
 import { permissions } from '@application/security/permissions';
 import { ResolveCallerUseCase } from '@application/usecases/account/ResolveCallerUseCase';
 import { lambdaHttpAdapter } from '@main/adapters/lambdaHttpAdapter';

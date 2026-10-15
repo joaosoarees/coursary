@@ -1,8 +1,7 @@
 import type { UnitOfWork } from '@application/contracts/UnitOfWork';
 import { Course } from '@application/entities/Course';
 import type { Module } from '@application/entities/Module';
-import { ModuleNotEmpty } from '@application/errors/ModuleNotEmpty';
-import { ModuleNotFound } from '@application/errors/ModuleNotFound';
+import { ModuleNotEmpty, ModuleNotFound } from '@application/errors/outline';
 import type { CourseOutlineQuery } from '@application/queries/CourseOutlineQuery';
 import type { CourseRepository } from '@application/repositories/CourseRepository';
 import type { ModuleRepository } from '@application/repositories/ModuleRepository';

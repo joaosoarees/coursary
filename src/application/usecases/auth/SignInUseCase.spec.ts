@@ -4,7 +4,7 @@ import { FakeAuthGateway } from '@tests/fakes/FakeAuthGateway';
 import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
 
 import { Account } from '@application/entities/Account';
-import { InvalidSession } from '@application/errors/InvalidSession';
+import { InvalidSession } from '@application/errors/auth';
 import { RefreshTokensUseCase } from '@application/usecases/auth/RefreshTokensUseCase';
 import { SignInUseCase } from '@application/usecases/auth/SignInUseCase';
 

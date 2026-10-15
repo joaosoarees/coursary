@@ -3,10 +3,12 @@ import { describe, expect, test } from 'vitest';
 
 import { Account } from '@application/entities/Account';
 import { Course } from '@application/entities/Course';
-import { CourseArchived } from '@application/errors/CourseArchived';
-import { CourseEmpty } from '@application/errors/CourseEmpty';
-import { CourseNotFound } from '@application/errors/CourseNotFound';
-import { CourseNotPublished } from '@application/errors/CourseNotPublished';
+import {
+  CourseArchived,
+  CourseEmpty,
+  CourseNotFound,
+  CourseNotPublished,
+} from '@application/errors/course';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { DynamoCourseRepository } from '@infra/database/dynamo/repositories/DynamoCourseRepository';
 import { AppConfig } from '@shared/config/AppConfig';

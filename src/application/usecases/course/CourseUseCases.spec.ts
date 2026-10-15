@@ -5,10 +5,9 @@ import { InMemoryCourseRepository } from '@tests/fakes/InMemoryCourseRepository'
 
 import { Account, accountRoles } from '@application/entities/Account';
 import { Course } from '@application/entities/Course';
-import { AccountUnavailable } from '@application/errors/AccountUnavailable';
-import { CourseArchived } from '@application/errors/CourseArchived';
-import { CourseNotFound } from '@application/errors/CourseNotFound';
-import { Forbidden } from '@application/errors/Forbidden';
+import { AccountUnavailable } from '@application/errors/auth';
+import { Forbidden } from '@application/errors/common';
+import { CourseArchived, CourseNotFound } from '@application/errors/course';
 import { UpdateMeUseCase } from '@application/usecases/account/UpdateMeUseCase';
 import { CreateCourseUseCase } from '@application/usecases/course/CreateCourseUseCase';
 import { UpdateCourseUseCase } from '@application/usecases/course/UpdateCourseUseCase';

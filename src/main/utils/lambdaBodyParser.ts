@@ -1,4 +1,4 @@
-import { MalformedBody } from '@application/errors/MalformedBody';
+import { MalformedBody } from '@application/errors/common';
 
 export function lambdaBodyParser(
   body: string | undefined,

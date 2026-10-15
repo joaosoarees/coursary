@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 
 import { Account } from '@application/entities/Account';
 import { Course } from '@application/entities/Course';
-import { InvalidCursor } from '@application/errors/InvalidCursor';
+import { InvalidCursor } from '@application/errors/common';
 import { DynamoListCoursesByInstructorQuery } from '@infra/database/dynamo/queries/DynamoListCoursesByInstructorQuery';
 import { DynamoCourseRepository } from '@infra/database/dynamo/repositories/DynamoCourseRepository';
 import { AppConfig } from '@shared/config/AppConfig';

@@ -6,7 +6,7 @@ import { anAccountId } from '@tests/ids';
 import type { Page } from '@application/contracts/Page';
 import { Account, accountRoles } from '@application/entities/Account';
 import { BOOTSTRAP_ACTOR, RoleChange } from '@application/entities/RoleChange';
-import { InvalidCursor } from '@application/errors/InvalidCursor';
+import { InvalidCursor } from '@application/errors/common';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { AccountItem } from '@infra/database/dynamo/items/AccountItem';
 import { RoleChangeItem } from '@infra/database/dynamo/items/RoleChangeItem';

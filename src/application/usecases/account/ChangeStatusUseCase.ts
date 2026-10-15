@@ -1,7 +1,6 @@
 import { type Account, accountStatuses } from '@application/entities/Account';
-import { AccountNotActive } from '@application/errors/AccountNotActive';
-import { AccountNotFound } from '@application/errors/AccountNotFound';
-import { CannotChangeOwnStatus } from '@application/errors/CannotChangeOwnStatus';
+import { AccountNotActive, AccountNotFound } from '@application/errors/account';
+import { CannotChangeOwnStatus } from '@application/errors/admin';
 import type { AccountRepository } from '@application/repositories/AccountRepository';
 
 export class ChangeStatusUseCase {

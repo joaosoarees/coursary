@@ -1,6 +1,6 @@
 import type { PreTokenGenerationV2TriggerEvent } from 'aws-lambda';
 
-import { AccountUnavailable } from '@application/errors/AccountUnavailable';
+import { AccountUnavailable } from '@application/errors/auth';
 import type { IssueTokenClaimsUseCase } from '@application/usecases/auth/IssueTokenClaimsUseCase';
 
 export function cognitoPreTokenAdapter(issueClaims: IssueTokenClaimsUseCase) {

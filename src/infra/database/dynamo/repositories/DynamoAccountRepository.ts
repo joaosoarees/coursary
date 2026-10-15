@@ -14,10 +14,9 @@ import {
   accountStatuses,
 } from '@application/entities/Account';
 import type { RoleChange } from '@application/entities/RoleChange';
-import { AccountConflict } from '@application/errors/AccountConflict';
-import { EmailInUse } from '@application/errors/EmailInUse';
-import { Forbidden } from '@application/errors/Forbidden';
-import { InvalidSession } from '@application/errors/InvalidSession';
+import { AccountConflict } from '@application/errors/account';
+import { EmailInUse, InvalidSession } from '@application/errors/auth';
+import { Forbidden } from '@application/errors/common';
 import type { AccountRepository } from '@application/repositories/AccountRepository';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { AccountItem } from '@infra/database/dynamo/items/AccountItem';

@@ -1,7 +1,7 @@
 import type { ZodType } from 'zod';
 
 import type { Account } from '@application/entities/Account';
-import { Forbidden } from '@application/errors/Forbidden';
+import { Forbidden } from '@application/errors/common';
 import {
   type Permission,
   Permissions,

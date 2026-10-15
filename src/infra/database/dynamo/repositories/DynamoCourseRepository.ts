@@ -10,11 +10,13 @@ import {
 import type { UnitOfWork } from '@application/contracts/UnitOfWork';
 import type { Account } from '@application/entities/Account';
 import { type Course, courseStatuses } from '@application/entities/Course';
-import { Conflict } from '@application/errors/Conflict';
-import { CourseArchived } from '@application/errors/CourseArchived';
-import { CourseEmpty } from '@application/errors/CourseEmpty';
-import { CourseNotFound } from '@application/errors/CourseNotFound';
-import { CourseNotPublished } from '@application/errors/CourseNotPublished';
+import { Conflict } from '@application/errors/common';
+import {
+  CourseArchived,
+  CourseEmpty,
+  CourseNotFound,
+  CourseNotPublished,
+} from '@application/errors/course';
 import type { CourseRepository } from '@application/repositories/CourseRepository';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { DynamoUnitOfWork } from '@infra/database/dynamo/DynamoUnitOfWork';

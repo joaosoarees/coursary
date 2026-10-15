@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
 
 import { Account, accountStatuses } from '@application/entities/Account';
-import { AccountUnavailable } from '@application/errors/AccountUnavailable';
+import { AccountUnavailable } from '@application/errors/auth';
 import { PromoteFirstAdminUseCase } from '@application/usecases/account/PromoteFirstAdminUseCase';
 
 let accounts: InMemoryAccountRepository;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { Account, accountStatuses } from '@application/entities/Account';
-import { AccountUnavailable } from '@application/errors/AccountUnavailable';
+import { AccountUnavailable } from '@application/errors/auth';
 
 describe('Account.create', () => {
   it('should start as a pending student', () => {

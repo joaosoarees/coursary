@@ -1,7 +1,9 @@
 import { Account } from '@application/entities/Account';
-import { AuthUserExists } from '@application/errors/AuthUserExists';
-import { AuthUserNotPending } from '@application/errors/AuthUserNotPending';
-import { InvalidCode } from '@application/errors/InvalidCode';
+import {
+  AuthUserExists,
+  AuthUserNotPending,
+  InvalidCode,
+} from '@application/errors/auth';
 import type { AuthGateway } from '@application/gateways/AuthGateway';
 
 export class FakeAuthGateway implements AuthGateway {

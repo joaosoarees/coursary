@@ -3,7 +3,7 @@ import { describe, expect, test } from 'vitest';
 import { z } from 'zod';
 
 import type { Page } from '@application/contracts/Page';
-import { InvalidCursor } from '@application/errors/InvalidCursor';
+import { InvalidCursor } from '@application/errors/common';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { DynamoPagination } from '@infra/database/dynamo/DynamoPagination';
 import { AppConfig } from '@shared/config/AppConfig';

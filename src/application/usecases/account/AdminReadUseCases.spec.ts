@@ -5,7 +5,7 @@ import { anAccountId } from '@tests/ids';
 
 import type { Page } from '@application/contracts/Page';
 import { Account, accountRoles } from '@application/entities/Account';
-import { AccountNotFound } from '@application/errors/AccountNotFound';
+import { AccountNotFound } from '@application/errors/account';
 import type { ListAccountsByRoleQuery } from '@application/queries/ListAccountsByRoleQuery';
 import type { ListRoleChangesQuery } from '@application/queries/ListRoleChangesQuery';
 import type { RoleChangeSummary } from '@application/queries/RoleChangeSummary';

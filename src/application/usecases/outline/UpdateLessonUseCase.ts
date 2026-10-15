@@ -2,7 +2,7 @@ import type { UnitOfWork } from '@application/contracts/UnitOfWork';
 import { Course } from '@application/entities/Course';
 import type { Lesson } from '@application/entities/Lesson';
 import type { Module } from '@application/entities/Module';
-import { LessonNotFound } from '@application/errors/LessonNotFound';
+import { LessonNotFound } from '@application/errors/outline';
 import type { CourseRepository } from '@application/repositories/CourseRepository';
 import type { LessonRepository } from '@application/repositories/LessonRepository';
 import type { CourseEditor } from '@application/usecases/outline/CourseEditor';

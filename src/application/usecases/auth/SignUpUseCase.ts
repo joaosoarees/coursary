@@ -1,6 +1,5 @@
 import { Account } from '@application/entities/Account';
-import { AuthUserExists } from '@application/errors/AuthUserExists';
-import { EmailInUse } from '@application/errors/EmailInUse';
+import { AuthUserExists, EmailInUse } from '@application/errors/auth';
 import type { AuthGateway } from '@application/gateways/AuthGateway';
 import type { AccountRepository } from '@application/repositories/AccountRepository';
 import { Saga } from '@shared/saga/Saga';

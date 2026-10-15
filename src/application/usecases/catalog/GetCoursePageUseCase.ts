@@ -1,5 +1,5 @@
 import type { Course } from '@application/entities/Course';
-import { CourseNotFound } from '@application/errors/CourseNotFound';
+import { CourseNotFound } from '@application/errors/course';
 import type { CoursePageQuery } from '@application/queries/CoursePageQuery';
 
 export class GetCoursePageUseCase {

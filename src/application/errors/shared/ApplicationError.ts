@@ -1,4 +1,4 @@
-import type { ErrorCode } from '@application/errors/ErrorCode';
+import type { ErrorCode } from '@application/errors/shared/ErrorCode';
 
 export abstract class ApplicationError extends Error {
   abstract readonly code: ErrorCode;

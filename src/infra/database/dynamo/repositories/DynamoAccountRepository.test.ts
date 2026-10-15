@@ -5,10 +5,9 @@ import { anAccountId } from '@tests/ids';
 
 import { Account, accountRoles } from '@application/entities/Account';
 import { BOOTSTRAP_ACTOR, RoleChange } from '@application/entities/RoleChange';
-import { AccountConflict } from '@application/errors/AccountConflict';
-import { EmailInUse } from '@application/errors/EmailInUse';
-import { Forbidden } from '@application/errors/Forbidden';
-import { InvalidSession } from '@application/errors/InvalidSession';
+import { AccountConflict } from '@application/errors/account';
+import { EmailInUse, InvalidSession } from '@application/errors/auth';
+import { Forbidden } from '@application/errors/common';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { DynamoAccountRepository } from '@infra/database/dynamo/repositories/DynamoAccountRepository';
 import { AppConfig } from '@shared/config/AppConfig';

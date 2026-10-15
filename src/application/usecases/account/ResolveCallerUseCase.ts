@@ -1,5 +1,5 @@
 import { Account } from '@application/entities/Account';
-import { InvalidSession } from '@application/errors/InvalidSession';
+import { InvalidSession } from '@application/errors/auth';
 import type { AccountRepository } from '@application/repositories/AccountRepository';
 
 export class ResolveCallerUseCase {

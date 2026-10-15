@@ -5,7 +5,7 @@ import { anAccountId } from '@tests/ids';
 
 import { Controller } from '@application/contracts/Controller';
 import { accountRoles } from '@application/entities/Account';
-import { Forbidden } from '@application/errors/Forbidden';
+import { Forbidden } from '@application/errors/common';
 import { permissions } from '@application/security/permissions';
 
 class ListUsersController extends Controller<'private', unknown> {

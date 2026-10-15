@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import KSUID from 'ksuid';
 
 import { KSUID_PATTERN } from '@application/entities/ksuid';
-import { AccountUnavailable } from '@application/errors/AccountUnavailable';
+import { AccountUnavailable } from '@application/errors/auth';
 
 export const accountRoles = {
   Student: 'student',

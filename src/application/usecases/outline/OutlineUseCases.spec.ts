@@ -4,9 +4,8 @@ import { outlineWorld } from '@tests/outlineWorld';
 
 import { Lesson } from '@application/entities/Lesson';
 import { Module } from '@application/entities/Module';
-import { CourseNotFound } from '@application/errors/CourseNotFound';
-import { OutlineMismatch } from '@application/errors/OutlineMismatch';
-import { OutlineTooLarge } from '@application/errors/OutlineTooLarge';
+import { CourseNotFound } from '@application/errors/course';
+import { OutlineMismatch, OutlineTooLarge } from '@application/errors/outline';
 import { GetCourseOutlineUseCase } from '@application/usecases/outline/GetCourseOutlineUseCase';
 import { ReorderOutlineUseCase } from '@application/usecases/outline/ReorderOutlineUseCase';
 

@@ -3,7 +3,7 @@ import { GetCommand } from '@aws-sdk/lib-dynamodb';
 import type { UnitOfWork } from '@application/contracts/UnitOfWork';
 import type { Course } from '@application/entities/Course';
 import type { Module } from '@application/entities/Module';
-import { ModuleNotFound } from '@application/errors/ModuleNotFound';
+import { ModuleNotFound } from '@application/errors/outline';
 import type { ModuleRepository } from '@application/repositories/ModuleRepository';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { DynamoUnitOfWork } from '@infra/database/dynamo/DynamoUnitOfWork';

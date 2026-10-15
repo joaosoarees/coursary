@@ -28,16 +28,18 @@ import {
 } from '@aws-sdk/client-cognito-identity-provider';
 
 import { Account } from '@application/entities/Account';
-import { AccountUnavailable } from '@application/errors/AccountUnavailable';
-import { AuthUserExists } from '@application/errors/AuthUserExists';
-import { AuthUserNotPending } from '@application/errors/AuthUserNotPending';
-import { EmailNotConfirmed } from '@application/errors/EmailNotConfirmed';
-import { ErrorCode } from '@application/errors/ErrorCode';
-import { InvalidCode } from '@application/errors/InvalidCode';
-import { InvalidCredentials } from '@application/errors/InvalidCredentials';
-import { InvalidPassword } from '@application/errors/InvalidPassword';
-import { InvalidSession } from '@application/errors/InvalidSession';
-import { TooManyRequests } from '@application/errors/TooManyRequests';
+import {
+  AccountUnavailable,
+  AuthUserExists,
+  AuthUserNotPending,
+  EmailNotConfirmed,
+  InvalidCode,
+  InvalidCredentials,
+  InvalidPassword,
+  InvalidSession,
+} from '@application/errors/auth';
+import { TooManyRequests } from '@application/errors/common';
+import { ErrorCode } from '@application/errors/shared/ErrorCode';
 import type { AuthGateway } from '@application/gateways/AuthGateway';
 import { cognitoClient } from '@infra/clients/cognitoClient';
 import { AppConfig } from '@shared/config/AppConfig';
