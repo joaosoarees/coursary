@@ -120,6 +120,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q53 | Arquivos (substitui `COURSE_COVER` na Q46) | Entidade `FILE` com `ownerType` (conta, curso, aula), `ownerId`, `purpose` (`avatar`, `cover`, `attachment`, `video`), `status` (`PENDING`, `UPLOADED`, `PROCESSED`, `FAILED`), `originalKey`, `variants`, `contentType`, `size`, `position`, `createdAt`. Avatar e capa: 1 atual, públicos, variantes webp com sharp, presigned POST. Attachment: vários com ordem, só matriculados, presigned POST. Vídeo: 1 por aula, só matriculados, multipart. Tipos e tamanhos por finalidade num mapa no código. Trocar avatar ou capa apaga os arquivos antigos. |
 | Q57 | Material da aula | Sai do opcional e entra na fase 4 (mesmo pipeline). Download por URL pré-assinada depois de verificar a matrícula. |
 | Q58 | Acesso a arquivos | Só matrícula `ACTIVE` baixa material e assiste vídeo. Em curso arquivado, os ativos continuam com acesso. Nenhum arquivo é apagado por cancelamento ou arquivamento. |
+| Q59 | Versões de curso | **Sem versionamento.** O curso é um só e todos os alunos, antigos e novos, veem o conteúdo atual. Reestruturar substitui o conteúdo para todos; a Q24 continua valendo (publicado pode ganhar aulas, não perder). Se um dia fizer falta guardar versões antigas, as chaves podem reservar esse nível (decidir no quadro de entidades). |
 
 #### Fases (Q27)
 
