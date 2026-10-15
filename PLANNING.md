@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-16. Estado: **fase 1 completa (1.0 a 1.15) e refatoração R.1 na `develop` e em `dev`, conferidas por `pnpm e2e:dev` (50 checagens); R.2 (fakes de conta fora, Q258) na `refactor/r2-account-fakes`, em PR; próxima: a 2.1 refeita a partir da `develop`**.
+Última atualização: 2026-10-16. Estado: **fase 1 completa (1.0 a 1.15), refatorações R.1 e R.2 na `develop` e em `dev`; fase 2 quebrada em 2.1 a 2.5 (Q238); 2.1 (matrícula) na `feat/2.1-enrollment-v2`**.
 
 ## Como retomar
 
@@ -291,6 +291,10 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q235 | Página pública do curso | `GET /courses/{id}`, público: curso, módulos e sumários das aulas (sem corpo) numa `Query` da partição `COURSE#c` (padrão 6); só publicado (rascunho e arquivado → 404; arquivado para matriculados entra com as matrículas). |
 | Q236 | Ordem dos deploys | PR só com o `GSI2` (projeção `ALL`) e `Query` em `…/index/GSI2`, mergeado, deployado e conferido `ACTIVE` antes do PR do código (Q192). As contas já gravam `GSI2PK = EMAIL#…` e entram no índice, sem efeito. |
 | Q237 | Sub-imp da 1.15 | a. `GSI2` e `Query` no índice, PR próprio deployado e conferido `ACTIVE`; b. chaves do `GSI2` só em publicado, `publish`/`archive` condicionados no repositório; c. `PublishCourse` e `ArchiveCourse` com `courses:publish`/`courses:archive`; d. queries públicas do catálogo e da página do curso; e. quatro rotas, Yaak e `e2e:dev`. |
+| Q238 | Histórias da fase 2 | 2.1 matrícula (matricular, cancelar, rematricular; `enrollmentCount`; `studentName`; índice esparso de alunos; propagação do nome); 2.2 listas (`GET /me/enrollments` com `BatchGet`, `GET /courses/{id}/students`); 2.3 abrir aula (`GET /courses/{id}/lessons/{lid}`, leitura forte da matrícula; página de arquivado para matriculados); 2.4 progresso (concluir uma vez, ler, posição no vídeo em item à parte); 2.5 avaliações (`PUT /courses/{id}/review`, `GET /courses/{id}/reviews` público, propagação do nome). Cada uma estende o `e2e:dev`. |
+| Q239 | Quem se matricula | Qualquer conta ativa, em curso publicado; o dono no próprio curso → `409 OWN_COURSE`; rascunho → `404`; arquivado recusa matrícula nova (`409 COURSE_ARCHIVED`) e mantém as que existem (Q52). |
+| Q240 | Quem abre o conteúdo da aula | Matrícula ativa em curso publicado ou arquivado, ou o dono/admin em qualquer status; os demais pela Q95 (`404` em rascunho, `403` em visível sem matrícula). |
+| Q241 | Permissões de aluno | `courses:enroll`, `courses:learn` (abrir aula, progresso) e `courses:review`; o mapa vira aluno ⊂ instrutor ⊂ admin. |
 | Q245 | Schemas por decorator | Não. O decorator padrão funcionaria sem `reflect-metadata`, mas não tira a duplicação de tipos; o controller fica como está (Q251). |
 | Q246 | Versões das Lambdas | `provider.versionFunctions: false` (nada usa versões); apagar as versões antigas de `dev` uma vez. |
 | Q247 | Uma Lambda por rota | Mantida (Q97); reavaliar se o template passar de 400 recursos (teto de 500 por stack). |
@@ -358,6 +362,18 @@ Quebra aprovada em 2026-10-14, seguindo a Q112. Em 2026-10-15 o sign-up foi divi
 | 1.15 | Publicar, arquivar, catálogo, curso completo | Índice esparso do catálogo (`GSI2` num deploy antes do código, Q192) |
 
 Fora da fase 1 de propósito: abrir aula (fase 2, precisa de matrícula) e apagar curso em rascunho (fase 3, usa o job com fila da Q86). As fases 2 a 7 ficam só com título até começarem.
+
+## Fase 2: histórias
+
+Quebra aprovada em 2026-10-15 (Q238), na ordem em que uma depende da outra.
+
+| História | Entrega visível | O que nasce nela |
+|---|---|---|
+| 2.1 | Matricular, cancelar, rematricular | `Enrollment`, `enrollmentCount` na transação, índice esparso de alunos no `GSI1`, cópia e propagação do `studentName` |
+| 2.2 | Minhas matrículas e alunos do curso | `BatchGet` dos cursos (Q80) |
+| 2.3 | Abrir aula | Leitura forte da matrícula (8b); página de curso arquivado para matriculados |
+| 2.4 | Progresso | `LessonProgress` com put condicional e `completedLessons` na transação; posição no vídeo em item à parte |
+| 2.5 | Avaliações | `Review`, `ratingSum`/`ratingCount` na transação, lista pública paginada |
 
 ## Próximas perguntas (lista original de 2026-10-12)
 
