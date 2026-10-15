@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.11 na `develop` e em `dev` (conferidas com chamadas reais); a conta de teste do autor é o admin de `dev` e há uma conta de aluno de teste (`student`, `ACTIVE`); 1.12 (sessão única) em grilling na `feat/1.12-single-session`, decisões Q210 a Q217, sub-imp 1.12.a a 1.12.e; curso passou para a 1.13 com Q204 a Q209 em aberto**.
+Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.11 na `develop` e em `dev` (conferidas com chamadas reais); a conta de teste do autor é o admin de `dev` e há uma conta de aluno de teste (`student`, `ACTIVE`); 1.12 (sessão única) com 1.12.a a 1.12.d prontas e em PR para a `develop`, faltam o merge e as chamadas reais em `dev`; curso passou para a 1.13 com Q204 a Q209 em aberto**.
 
 ## Como retomar
 
