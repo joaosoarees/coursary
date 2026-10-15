@@ -140,6 +140,52 @@
             "url": "{{baseUrl}}/auth/refresh",
             "description": "200 { accessToken, refreshToken, expiresIn }: guarde o refreshToken novo, o antigo deixa de valer (rotação). 401 INVALID_SESSION, 403 ACCOUNT_UNAVAILABLE."
           }
+        },
+        {
+          "name": "Forgot password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ana@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/auth/forgot-password",
+            "description": "204 sempre; o código só é enviado a uma conta ativa. 400 VALIDATION, 429 TOO_MANY_REQUESTS."
+          }
+        },
+        {
+          "name": "Reset password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ana@example.com\",\n  \"code\": \"123456\",\n  \"newPassword\": \"newsecret1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/auth/reset-password",
+            "description": "204, e todas as sessões anteriores são encerradas. 400 INVALID_CODE, 400 INVALID_PASSWORD, 400 VALIDATION, 429 TOO_MANY_REQUESTS."
+          }
         }
       ]
     }
