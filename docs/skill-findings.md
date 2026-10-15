@@ -49,3 +49,4 @@ Cada achado:
 | commitlint, hooks de git, lint-staged | PLAN-6 |
 | URL ou cookie assinado do CloudFront para arquivos privados | Q54, Q69 |
 | Vídeo em streaming adaptativo (HLS, MediaConvert) | Q54 |
+| Permissões mínimas para deployar com o Serverless (role de deploy por projeto) | Q118 |
