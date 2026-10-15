@@ -83,6 +83,11 @@ Cada achado:
 - **Sugestão**: acrescentar esse caso à tabela, com as duas condições.
 
 #### 2026-10-15 · 1.4.g · acerto
+- **A skill diz**: com `RefreshTokenRotation` o client não aceita `REFRESH_TOKEN_AUTH`; ele renova com `GetTokensFromRefreshToken` e tira `ALLOW_REFRESH_TOKEN_AUTH` da lista.
+- **O que aconteceu**: o template listou os dois, o `sls package` aceitou, e o deploy em `dev` falhou no `UserPoolClient` com `ALLOW_REFRESH_TOKEN_AUTH is not a permitted ExplicitAuthFlow when refresh token rotation is enabled` (rollback automático). Erro de implementação, não da skill.
+- **Sugestão**: citar a mensagem do deploy junto da regra e dizer que o `sls package` não a pega.
+
+#### 2026-10-15 · 1.4.g · acerto
 - **A skill diz**: `!GetAtt UserPoolClient.ClientSecret` funciona, embora não esteja na página de referência.
 - **O que aconteceu**: usado assim na variável só da função de sign-up (Q129).
 - **Sugestão**: nenhuma.
