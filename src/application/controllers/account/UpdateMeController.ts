@@ -16,12 +16,12 @@ export class UpdateMeController extends Controller<'private', AccountProfile> {
   }
 
   protected async handle({
-    accountId,
+    account,
     body,
   }: Controller.Request<'private', UpdateMeController.Body>): Promise<
     Controller.Response<AccountProfile>
   > {
-    const profile = await this.updateMe.execute({ accountId, name: body.name });
+    const profile = await this.updateMe.execute({ account, name: body.name });
 
     return { statusCode: 200, body: profile };
   }

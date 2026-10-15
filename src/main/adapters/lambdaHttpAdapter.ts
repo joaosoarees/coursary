@@ -88,15 +88,15 @@ export function lambdaHttpAdapter(
 }
 
 type Caller =
-  | { accountId: Account.Id; role: Account.Role }
-  | { accountId: null; role: null };
+  | { accountId: Account.Id; role: Account.Role; account: Account }
+  | { accountId: null; role: null; account: null };
 
 async function lambdaCaller(
   event: Event,
   resolveCaller: ResolveCallerUseCase | undefined,
 ): Promise<Caller> {
   if (!('authorizer' in event.requestContext)) {
-    return { accountId: null, role: null };
+    return { accountId: null, role: null, account: null };
   }
 
   if (!resolveCaller) {
@@ -113,5 +113,10 @@ async function lambdaCaller(
     throw new InvalidSession();
   }
 
-  return resolveCaller.execute({ accountId: internalId, accessJti: jti });
+  const account = await resolveCaller.execute({
+    accountId: internalId,
+    accessJti: jti,
+  });
+
+  return { accountId: account.id, role: account.role, account };
 }

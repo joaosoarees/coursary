@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
 import { InMemoryCourseRepository } from '@tests/fakes/InMemoryCourseRepository';
-import { anAccountId } from '@tests/ids';
 
 import { Account, accountStatuses } from '@application/entities/Account';
 import { AccountUnavailable } from '@application/errors/auth';
@@ -20,10 +19,8 @@ beforeEach(async () => {
 });
 
 describe('GetMeUseCase', () => {
-  it('should return the profile of an active account', async () => {
-    await expect(
-      new GetMeUseCase(accounts).execute({ accountId: account.id }),
-    ).resolves.toEqual({
+  it('should return the profile of an active account', () => {
+    expect(new GetMeUseCase().execute({ account })).toEqual({
       id: account.id,
       name: 'Ana',
       email: 'ana@example.com',
@@ -34,20 +31,14 @@ describe('GetMeUseCase', () => {
 
   it.each([accountStatuses.Disabled, accountStatuses.Pending])(
     'should refuse a %s account',
-    async (status) => {
+    (status) => {
       account.status = status;
 
-      await expect(
-        new GetMeUseCase(accounts).execute({ accountId: account.id }),
-      ).rejects.toBeInstanceOf(AccountUnavailable);
+      expect(() => new GetMeUseCase().execute({ account })).toThrow(
+        AccountUnavailable,
+      );
     },
   );
-
-  it('should refuse an account that no longer exists', async () => {
-    await expect(
-      new GetMeUseCase(accounts).execute({ accountId: anAccountId() }),
-    ).rejects.toBeInstanceOf(AccountUnavailable);
-  });
 });
 
 describe('UpdateMeUseCase', () => {
@@ -56,7 +47,7 @@ describe('UpdateMeUseCase', () => {
       accounts,
       new InMemoryCourseRepository(),
     ).execute({
-      accountId: account.id,
+      account,
       name: 'Ana Souza',
     });
 
@@ -69,7 +60,7 @@ describe('UpdateMeUseCase', () => {
 
     await expect(
       new UpdateMeUseCase(accounts, new InMemoryCourseRepository()).execute({
-        accountId: account.id,
+        account,
         name: 'Ana Souza',
       }),
     ).rejects.toBeInstanceOf(AccountUnavailable);

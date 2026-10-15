@@ -8,7 +8,7 @@ export class ResolveCallerUseCase {
   async execute({
     accountId,
     accessJti,
-  }: ResolveCallerUseCase.Input): Promise<ResolveCallerUseCase.Output> {
+  }: ResolveCallerUseCase.Input): Promise<Account> {
     const account = Account.isId(accountId)
       ? await this.accountsRepository.findById(accountId, { consistent: true })
       : null;
@@ -23,7 +23,7 @@ export class ResolveCallerUseCase {
       throw new InvalidSession();
     }
 
-    return { accountId: activeAccount.id, role: activeAccount.role };
+    return activeAccount;
   }
 }
 
@@ -31,10 +31,5 @@ export namespace ResolveCallerUseCase {
   export interface Input {
     accountId: string;
     accessJti: string;
-  }
-
-  export interface Output {
-    accountId: Account.Id;
-    role: Account.Role;
   }
 }

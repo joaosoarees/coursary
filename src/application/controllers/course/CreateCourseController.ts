@@ -19,13 +19,13 @@ export class CreateCourseController extends Controller<
   }
 
   protected async handle({
-    accountId,
+    account,
     body,
   }: Controller.Request<'private', CreateCourseController.Body>): Promise<
     Controller.Response<CourseDetails>
   > {
     const course = await this.createCourse.execute({
-      callerId: accountId,
+      instructor: account,
       ...body,
     });
 

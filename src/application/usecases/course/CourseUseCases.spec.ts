@@ -48,8 +48,8 @@ const update = (caller: Account, title = 'New') =>
 
 describe('CreateCourseUseCase', () => {
   it('should create a draft owned by the caller, with the caller name', async () => {
-    const created = await new CreateCourseUseCase(accounts, courses).execute({
-      callerId: owner.id,
+    const created = await new CreateCourseUseCase(courses).execute({
+      instructor: owner,
       title: ' DynamoDB ',
       description: 'Keys',
     });
@@ -69,8 +69,8 @@ describe('CreateCourseUseCase', () => {
     owner.status = 'DISABLED';
 
     await expect(
-      new CreateCourseUseCase(accounts, courses).execute({
-        callerId: owner.id,
+      new CreateCourseUseCase(courses).execute({
+        instructor: owner,
         title: 'T',
         description: '',
       }),
@@ -108,7 +108,7 @@ describe('UpdateCourseUseCase', () => {
 describe('UpdateMeUseCase and the courses', () => {
   it('should copy a new name into the courses of the instructor', async () => {
     await new UpdateMeUseCase(accounts, courses).execute({
-      accountId: owner.id,
+      account: owner,
       name: 'Ana Souza',
     });
 

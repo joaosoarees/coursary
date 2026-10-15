@@ -10,6 +10,7 @@ describe('HealthController', () => {
       queryParams: {},
       accountId: null,
       role: null,
+      account: null,
     });
 
     expect(response).toEqual({ statusCode: 200, body: { status: 'ok' } });
