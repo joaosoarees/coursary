@@ -33,10 +33,7 @@ export class DynamoAccountRepository extends AccountRepository {
             {
               Put: {
                 TableName,
-                Item: EmailClaimItem.forPendingAccount(
-                  account.email,
-                  account.id,
-                ).toItem(),
+                Item: EmailClaimItem.fromEntity(account).toItem(),
                 ConditionExpression: 'attribute_not_exists(PK)',
               },
             },
