@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.14 na `develop` e em `dev`, conferidas por `pnpm e2e:dev` (Q218, 38 checagens); 1.15 (publicar, arquivar, catálogo, curso completo) em grilling, decisões Q232 a Q236**.
+Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.14 na `develop` e em `dev`, conferidas por `pnpm e2e:dev` (Q218, 38 checagens); 1.15 (publicar, arquivar, catálogo, curso completo) em grilling, decisões Q232 a Q237, sub-imp 1.15.a a 1.15.e**.
 
 ## Como retomar
 
@@ -290,6 +290,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q234 | Catálogo | `GET /courses`, público: publicados, mais recentes primeiro, paginado (20/100), cursor preso a `CATALOG`; item `{ id, title, instructorName, lessonCount, enrollmentCount, publishedAt }`. Capa na fase 4, busca no Algolia (fase 3). |
 | Q235 | Página pública do curso | `GET /courses/{id}`, público: curso, módulos e sumários das aulas (sem corpo) numa `Query` da partição `COURSE#c` (padrão 6); só publicado (rascunho e arquivado → 404; arquivado para matriculados entra com as matrículas). |
 | Q236 | Ordem dos deploys | PR só com o `GSI2` (projeção `ALL`) e `Query` em `…/index/GSI2`, mergeado, deployado e conferido `ACTIVE` antes do PR do código (Q192). As contas já gravam `GSI2PK = EMAIL#…` e entram no índice, sem efeito. |
+| Q237 | Sub-imp da 1.15 | a. `GSI2` e `Query` no índice, PR próprio deployado e conferido `ACTIVE`; b. chaves do `GSI2` só em publicado, `publish`/`archive` condicionados no repositório; c. `PublishCourse` e `ArchiveCourse` com `courses:publish`/`courses:archive`; d. queries públicas do catálogo e da página do curso; e. quatro rotas, Yaak e `e2e:dev`. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
