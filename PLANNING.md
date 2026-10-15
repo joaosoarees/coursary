@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-15. Estado: **Épico 0 fechado; histórias 1.0 a 1.3 na `develop`; 1.4 (sign-up) no PR #6, aguardando merge e teste em `dev`; próxima: 1.5 (confirmação e reenvio de código)**.
+Última atualização: 2026-10-15. Estado: **Épico 0 fechado; histórias 1.0 a 1.4 na `develop` e em `dev` (sign-up conferido com chamadas reais); próxima: 1.5 (confirmação e reenvio de código), ainda sem sub-imp**.
 
 ## Como retomar
 
@@ -10,9 +10,10 @@ Abra o Claude Code e diga:
 
 Ao retomar, o assistente deve:
 
-1. Ler a seção "Épico 0" e ver qual história de planejamento está aberta.
-2. Ler as skills que essa história cita antes de perguntar.
-3. Não refazer perguntas já fechadas.
+1. Ver no estado acima e na tabela "Fase 1: histórias" qual história é a próxima.
+2. Para a 1.5: reler as decisões Q39, Q40, Q41, Q126, Q127, Q130 e Q134 e as skills `cognito-sign-up-and-confirmation`, `dynamodb-time-to-live`, `dynamodb-item-operations` e `structuring-use-cases` antes de propor as sub-imp.
+3. Seguir o "Começar tarefa X.X" do `CLAUDE.md`: branch a partir da `develop`, sub-imp propostas e discutidas antes de codar.
+4. Não refazer perguntas já fechadas.
 
 Cada decisão fechada entra neste arquivo em um commit pequeno.
 
@@ -188,6 +189,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q133 | Adiados da revisão da 1.4 | `isBase64Encoded` no parser do corpo, só se aparecer nas chamadas reais em `dev`; `getKey()` nos `*Item` quando surgir a terceira cópia da chave (1.5, Q112). |
 | Q134 | Renovação de tokens | O client gira o refresh token (1.4.c), então a 1.6 renova com `GetTokensFromRefreshToken` (com o secret em `ClientSecret`), não com `InitiateAuth` `REFRESH_TOKEN_AUTH`; o client lista só `ALLOW_USER_PASSWORD_AUTH`. |
 | Q135 | CommonJS no bundle ESM (revê a Q113) | O risco da Q113 se confirmou na primeira chamada real (`ksuid` → `Dynamic require of "crypto"`). O `esbuild.config.js` leva o banner com `createRequire`. Conferência de bundle: `sls package`, zip descompactado fora do projeto, handler importado de um `.mjs` num processo `node` separado (o Vitest esconde a falha). |
+| Q136 | Corpo em base64 (fecha a Q133 nesse ponto) | Em `dev`, um `POST` sem `content-type` respondeu `400 BAD_REQUEST`: o API Gateway entrega o corpo em base64. O `lambdaBodyParser` decodifica quando `isBase64Encoded`. O `getKey()` dos `*Item` segue na Q133. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
