@@ -18,6 +18,7 @@ functions:
   - ${file(./sls/functions/auth.yml)}
   - ${file(./sls/functions/account.yml)}
   - ${file(./sls/functions/admin.yml)}
+  - ${file(./sls/functions/course.yml)}
 
 resources:
   - ${file(./sls/resources/dynamodb/MainTable.yml)}

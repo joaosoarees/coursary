@@ -1,0 +1,23 @@
+createCourse:
+  handler: src/main/functions/course/createCourse.handler
+  events:
+    - httpApi:
+        method: POST
+        path: /courses
+        authorizer: CognitoAuthorizer
+
+updateCourse:
+  handler: src/main/functions/course/updateCourse.handler
+  events:
+    - httpApi:
+        method: PATCH
+        path: /courses/{id}
+        authorizer: CognitoAuthorizer
+
+listMyCourses:
+  handler: src/main/functions/course/listMyCourses.handler
+  events:
+    - httpApi:
+        method: GET
+        path: /instructor/courses
+        authorizer: CognitoAuthorizer
