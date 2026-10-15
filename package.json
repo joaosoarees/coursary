@@ -45,6 +45,8 @@
     "vitest": "5.0.4"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "3.1152.0",
+    "@aws-sdk/lib-dynamodb": "3.1152.0",
     "ksuid": "3.0.0",
     "reflect-metadata": "0.2.2"
   }
