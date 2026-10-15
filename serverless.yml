@@ -12,6 +12,7 @@ build:
 
 functions:
   - ${file(./sls/functions/health.yml)}
+  - ${file(./sls/functions/auth.yml)}
 
 resources:
   - ${file(./sls/resources/dynamodb/MainTable.yml)}

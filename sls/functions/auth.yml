@@ -1,0 +1,25 @@
+signUp:
+  handler: src/main/functions/auth/signUp.handler
+  environment:
+    MAIN_TABLE_NAME: !Ref MainTable
+    COGNITO_POOL_ID: !Ref UserPool
+    COGNITO_CLIENT_ID: !Ref UserPoolClient
+    COGNITO_CLIENT_SECRET: !GetAtt UserPoolClient.ClientSecret
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource: !GetAtt MainTable.Arn
+        - Effect: Allow
+          Action:
+            - cognito-idp:AdminGetUser
+            - cognito-idp:AdminDeleteUser
+          Resource: !GetAtt UserPool.Arn
+  events:
+    - httpApi:
+        method: POST
+        path: /auth/sign-up
