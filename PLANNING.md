@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.11 na `develop` e em `dev` (conferidas com chamadas reais); a conta de teste do autor é o admin de `dev` e há uma conta de aluno de teste (`student`, `ACTIVE`); próxima: 1.12 (curso: criar, editar, meus cursos), ainda sem sub-imp**.
+Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.11 na `develop` e em `dev` (conferidas com chamadas reais); a conta de teste do autor é o admin de `dev` e há uma conta de aluno de teste (`student`, `ACTIVE`); 1.12 (sessão única) em grilling na `feat/1.12-single-session`, decisões Q210 a Q214; curso passou para a 1.13 com Q204 a Q209 em aberto**.
 
 ## Como retomar
 
@@ -11,7 +11,7 @@ Abra o Claude Code e diga:
 Ao retomar, o assistente deve:
 
 1. Ver no estado acima e na tabela "Fase 1: histórias" qual história é a próxima.
-2. Para a 1.12: reler as decisões Q8, Q10, Q24, Q45, Q59, Q71, Q82, Q93, Q95, Q112, Q128, Q197 e o quadro de entidades de `docs/data-model.md` (Course, `GSI1` do instrutor), e as skills `dynamodb-queries`, `dynamodb-key-design`, `typescript-branded-types` e `typescript-template-literal-and-conditional-types` antes de propor as sub-imp.
+2. Para a 1.13 (curso): responder Q204 a Q209 e reler as decisões Q8, Q10, Q24, Q45, Q59, Q71, Q82, Q93, Q95, Q112, Q128, Q197 e o quadro de entidades de `docs/data-model.md` (Course, `GSI1` do instrutor), e as skills `dynamodb-queries`, `dynamodb-key-design`, `typescript-branded-types` e `typescript-template-literal-and-conditional-types` antes de propor as sub-imp.
 3. Seguir o "Começar tarefa X.X" do `CLAUDE.md`: branch a partir da `develop`, sub-imp propostas e discutidas antes de codar.
 4. Não refazer perguntas já fechadas.
 
@@ -181,7 +181,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q125 | Política de senha | Mínimo de 8, com minúscula e número, igual no pool e no schema do Zod. |
 | Q126 | E-mail de confirmação até a 1.7 | `COGNITO_DEFAULT`; o SES com o trigger de custom message entra na história de recuperação de senha (Q37). |
 | Q127 | App client com secret | Sim: sem secret, qualquer um chama o `SignUp` direto no Cognito, por fora da API, e cria órfãos (Q38). O secret fica só nas funções que falam com o Cognito (Q97). |
-| Q128 | Estilo dos tipos e dos itens | Tipos em namespaces só com tipos, como no foodiary (`Account.Role`, `AccountItem.ItemType`, `Controller.Response`); constantes `as const` no módulo; `no-namespace` desligada. `*Item` como classe no padrão do foodiary. Brands de id só quando houver dois tipos de id (1.12), já como `Account.Id`/`Course.Id`. |
+| Q128 | Estilo dos tipos e dos itens | Tipos em namespaces só com tipos, como no foodiary (`Account.Role`, `AccountItem.ItemType`, `Controller.Response`); constantes `as const` no módulo; `no-namespace` desligada. `*Item` como classe no padrão do foodiary. Brands de id só quando houver dois tipos de id (1.13), já como `Account.Id`/`Course.Id`. |
 | Q129 | Secret do client nas funções | `!GetAtt UserPoolClient.ClientSecret` na variável da função que precisa (como no foodiary; confirmado numa conta real pela skill, mas fora da página de referência). Se a AWS mudar o atributo, trocar para Secrets Manager com referência dinâmica. |
 | Q130 | Usuário confirmado no Cognito e reserva livre | `409 EMAIL_IN_USE`, compensação apaga a reserva recém-criada, log de inconsistência. Nunca apagar automaticamente um usuário confirmado. |
 | Q131 | Branches e deploy | `develop` e `main` protegidas por ruleset do GitHub (PR obrigatório, check `check` verde, sem push direto, sem force-push, sem apagar, só merge commit); repositório público para ter rulesets no plano gratuito. Features abrem PR para `develop`; `develop` abre PR para `main`. O merge na `develop` deploya o stage `dev` pelo CI (a deployer confia no OIDC só de `refs/heads/develop`). Sem deploy de `prod` por CI ainda. Revê a Q106 (PR ia para a `main`) e a Q117 (o merge na `develop` é o ok do deploy). Hook local recusa commit em `main` e `develop`. |
@@ -220,7 +220,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q164 | Quem chama | O adapter das rotas privadas lê `internalId` das claims (Q32) e entrega `accountId` ao `Controller<'private'>`, sem ler o banco; sem a claim, `401 INVALID_SESSION`. |
 | Q165 | Token de conta indisponível | As rotas de `/me` já leem a conta: `DISABLED` ou inexistente → `403 ACCOUNT_UNAVAILABLE`, sem esperar o token expirar. |
 | Q166 | `GET /me` | `200 { id, name, email, role, createdAt }`, leitura eventual (Q88). `avatar` entra com o upload (Q85, Q112); `status` fica de fora. |
-| Q167 | `PATCH /me` | Só `name` (validação do sign-up), `200` com o perfil de `ReturnValues: 'ALL_NEW'` (Q88). Troca de e-mail fica como evolução; papel só pelo admin (Q44). A propagação do nome para as cópias entra com as cópias (1.12, fase 2). |
+| Q167 | `PATCH /me` | Só `name` (validação do sign-up), `200` com o perfil de `ReturnValues: 'ALL_NEW'` (Q88). Troca de e-mail fica como evolução; papel só pelo admin (Q44). A propagação do nome para as cópias entra com as cópias (1.13, fase 2). |
 | Q168 | Adapter das rotas privadas | Como no foodiary: um `lambdaHttpAdapter` só, que lê o `authorizer` do evento (`accountId` `null` nas públicas, `string` nas privadas); com `authorizer` e sem a claim `internalId`, `401 INVALID_SESSION`. `params` e `queryParams` entram com a primeira rota que os usar (Q112). Sub-imp da 1.8: authorizer e adapter; `updateName`; `GetMe` e `UpdateMe`; rotas, roles e Yaak; chamadas reais. |
 | Q169 | Authorizer nas rotas (revê a Q163) | `CognitoAuthorizer` no provider e `authorizer: CognitoAuthorizer` na rota, sem escopo. O API Gateway aceita o id token, mas ele não tem a claim `internalId` (só o access token recebe, Q145), então o adapter o recusa com `401 INVALID_SESSION` (Q164). |
 | Q170 | Role compartilhada (revê a Q97) | Uma role no provider com as permissões de todas as rotas em `sls/config/role.yml` (tabela: `GetItem`, `PutItem`, `UpdateItem`, `DeleteItem`; pool: `AdminGetUser`, `AdminDeleteUser`, `AdminUserGlobalSignOut`), com o boundary. Os dois triggers do pool têm role própria (`preTokenGeneration` com `GetItem`, `customMessage` só com logs): na role compartilhada, que cita o pool, formariam ciclo pool → trigger → role → pool. |
@@ -256,6 +256,12 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q200 | Resolvedor do chamador | `ResolveCallerUseCase` em `application` (`findById` forte; `null` → `InvalidSession`; não `ACTIVE` → `Account.requireActive`). Handlers privados: `lambdaHttpAdapter(controller, makeResolveCallerUseCase())`; o tipo exige o resolvedor para controller `'private'` por sobrecarga, ou o adapter recusa em runtime (500) e o teste de auditoria cobre toda rota privada (implícito no acordo da Q202). |
 | Q201 | O que o controller recebe | `accountId` e `role` (do banco), não a entidade. `GetMe`/`UpdateMe` mantêm o `Account.requireActive` como defesa própria; a leitura dupla do `/me` fica até haver medida. |
 | Q202 | Sub-imp da 1.11 | a. `ResolveCallerUseCase`, adapter, permissão pelo papel do banco, handlers privados, auditoria de toda rota privada; b. `changeStatus` no repositório com `ConditionCheck` do chamador e teste da corrida; c. `AuthGateway.disableUser`/`enableUser` com `AdminDisableUser`/`AdminEnableUser` na role no mesmo commit (Q192); d. `ChangeStatusUseCase` com o reparo e `users:change-status`; e. controllers, funções, Yaak e chamadas reais em `dev` (aluno desativado: 403 no `/me` na hora, refresh falha, Cognito desativado; reativar; desativar a si mesmo 403). |
+| Q203 | Sign-in de conta desativada | Resolvida pela Q212: sem o Cognito desativando o usuário, o trigger recusa e a rota responde `403 ACCOUNT_UNAVAILABLE` (Q146). Antes, com `AdminDisableUser`, o Cognito recusava primeiro com `401 INVALID_CREDENTIALS`. |
+| Q210 | **Sessão única** | Uma sessão por conta: todo sign-in invalida tudo o que foi emitido antes, e todo refresh invalida os access tokens anteriores. Entrar num dispositivo derruba o outro, de propósito. |
+| Q211 | Mecanismo da sessão | A conta guarda `session: { accessJti, refreshTokenHash }` (SHA-256 do refresh token). Sign-in grava os dois depois do Cognito. Refresh: Cognito primeiro, depois `Update` condicionado a `refreshTokenHash = hash(token recebido)`; se falha, `401 INVALID_SESSION` e os tokens novos são descartados (o dispositivo antigo fica fora: o Cognito já girou o token dele). O adapter exige a claim `jti` igual a `session.accessJti`. Reset de senha, desativação e um sign-out futuro apagam a `session`. O trigger de pre token continua só lendo. Uma primeira versão (trigger gerando `sessionId`) foi descartada: o dispositivo antigo retomava a sessão no refresh. |
+| Q212 | O Cognito deixa de ser barreira (revê a Q56, a Q162 e a Q193) | Saem `AdminDisableUser`/`AdminEnableUser` da 1.11 (com a ordem, o reparo e o 500 da Q193) e o `AdminUserGlobalSignOut` do reset; no lugar, apagar a `session`. Ninguém chama o Cognito por fora da API (client com secret, Q127). |
+| Q213 | Onde entra | História própria, 1.12 "Sessão única"; curso, módulos e catálogo andam uma casa (1.13 a 1.15). As perguntas Q204 a Q209 do curso ficam para a 1.13. |
+| Q214 | Rota de sign-out | Continua esperando o front (Q150, Q112), agora reduzida a apagar a `session`. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
@@ -302,9 +308,10 @@ Quebra aprovada em 2026-10-14, seguindo a Q112. Em 2026-10-15 o sign-up foi divi
 | 1.9 | Script do primeiro admin | `RoleChange`, troca de papel numa transação (o módulo de permissões passou para a 1.10, Q171) |
 | 1.10 | Rotas de admin: papel, lista, busca por e-mail, histórico (Q178) | `GSI1` (papel), módulo de permissões (Q171), params e query no `Controller`, cursor de paginação |
 | 1.11 | Desativar e reativar conta | `AdminDisableUser`/`AdminEnableUser` |
-| 1.12 | Curso: criar, editar, meus cursos | |
-| 1.13 | Módulos e aulas: CRUD e reordenação | `UnitOfWork` (primeira transação entre repositórios: aula + contador do curso) |
-| 1.14 | Publicar, arquivar, catálogo, curso completo | Índice esparso do catálogo |
+| 1.12 | Sessão única (Q210) | `session` na conta, checagem do `jti` no adapter; saem a sincronização com o Cognito da 1.11 e o sign-out global do reset (Q212) |
+| 1.13 | Curso: criar, editar, meus cursos | |
+| 1.14 | Módulos e aulas: CRUD e reordenação | `UnitOfWork` (primeira transação entre repositórios: aula + contador do curso) |
+| 1.15 | Publicar, arquivar, catálogo, curso completo | Índice esparso do catálogo (`GSI2` num deploy antes do código, Q192) |
 
 Fora da fase 1 de propósito: abrir aula (fase 2, precisa de matrícula) e apagar curso em rascunho (fase 3, usa o job com fila da Q86). As fases 2 a 7 ficam só com título até começarem.
 
