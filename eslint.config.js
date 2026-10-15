@@ -57,6 +57,7 @@ export default defineConfig([
         },
       ],
       'simple-import-sort/exports': 'error',
+      '@typescript-eslint/no-namespace': 'off',
       eqeqeq: ['error', 'always'],
       curly: ['error', 'all'],
     },

@@ -1,14 +1,10 @@
-import {
-  Account,
-  type AccountRole,
-  type AccountStatus,
-} from '@application/entities/Account';
+import { Account } from '@application/entities/Account';
 import { expiresAtFromNow, PENDING_TTL_DAYS } from '@infra/database/dynamo/ttl';
 
 export interface AccountItemType {
   PK: `ACCOUNT#${string}`;
   SK: `ACCOUNT#${string}`;
-  GSI1PK: `ROLE#${AccountRole}`;
+  GSI1PK: `ROLE#${Account.Role}`;
   GSI1SK: `ACCOUNT#${string}`;
   GSI2PK: `EMAIL#${string}`;
   GSI2SK: `ACCOUNT#${string}`;
@@ -17,8 +13,8 @@ export interface AccountItemType {
   externalId?: string;
   email: string;
   name: string;
-  role: AccountRole;
-  status: AccountStatus;
+  role: Account.Role;
+  status: Account.Status;
   createdAt: string;
   expiresAt?: number;
 }

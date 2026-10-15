@@ -6,26 +6,11 @@ export const accountRoles = {
   Admin: 'admin',
 } as const;
 
-export type AccountRole = (typeof accountRoles)[keyof typeof accountRoles];
-
 export const accountStatuses = {
   Pending: 'PENDING',
   Active: 'ACTIVE',
   Disabled: 'DISABLED',
 } as const;
-
-export type AccountStatus =
-  (typeof accountStatuses)[keyof typeof accountStatuses];
-
-export interface AccountAttributes {
-  id: string;
-  externalId: string | undefined;
-  email: string;
-  name: string;
-  role: AccountRole;
-  status: AccountStatus;
-  createdAt: Date;
-}
 
 export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
@@ -36,11 +21,11 @@ export class Account {
   externalId: string | undefined;
   readonly email: string;
   name: string;
-  role: AccountRole;
-  status: AccountStatus;
+  role: Account.Role;
+  status: Account.Status;
   readonly createdAt: Date;
 
-  constructor(attributes: AccountAttributes) {
+  constructor(attributes: Account.Attributes) {
     this.id = attributes.id;
     this.externalId = attributes.externalId;
     this.email = normalizeEmail(attributes.email);
@@ -60,5 +45,21 @@ export class Account {
       status: accountStatuses.Pending,
       createdAt: new Date(),
     });
+  }
+}
+
+export namespace Account {
+  export type Role = (typeof accountRoles)[keyof typeof accountRoles];
+
+  export type Status = (typeof accountStatuses)[keyof typeof accountStatuses];
+
+  export interface Attributes {
+    id: string;
+    externalId: string | undefined;
+    email: string;
+    name: string;
+    role: Role;
+    status: Status;
+    createdAt: Date;
   }
 }
