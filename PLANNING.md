@@ -210,23 +210,23 @@ Histórias de decisão, antes de qualquer código. Ordem de dependência: PLAN-2
 
 ## Fase 1: histórias
 
-Quebra aprovada em 2026-10-14, seguindo a Q112. Em 2026-10-15 o sign-up foi dividido em 1.3 (persistência) e 1.4 (Cognito e rota), e as seguintes andaram uma casa. Cada história ganha as sub-imp quando começa, discutidas antes de codar.
+Quebra aprovada em 2026-10-14, seguindo a Q112. Em 2026-10-15 o sign-up foi dividido em 1.3 (persistência) e 1.4 (Cognito e rota), e as seguintes andaram uma casa. Cada história ganha as sub-imp quando começa, discutidas antes de codar. Durante a 1.3, a Q112 tirou dela a validação e o `esbuild-plugin-tsc` (vão para a 1.4, onde são usados) e a `UnitOfWork`: a conta e a reserva são do mesmo repositório, então a transação fica nele; a `UnitOfWork` nasce com a primeira transação entre repositórios.
 
 | História | Entrega visível | O que nasce nela |
 |---|---|---|
 | 1.0 | Commit fora do padrão é recusado; CI verde | Ferramental da PLAN-6, teste do TypeScript 7 (Q104) |
 | 1.1 | Deploy de `dev` com a tabela | `MainTable` só com `PK`/`SK` |
 | 1.2 | `GET /health` responde | `Controller`, adapter HTTP, erros, config por função |
-| 1.3 | Conta e reserva de e-mail numa transação, testadas no DynamoDB Local; e-mail repetido recusado | Container com `bind`, validação com Zod, entidade `Account`, `AccountItem`, `UnitOfWork` (`Put` condicional), TTL, DynamoDB Local nos testes e no CI |
-| 1.4 | Sign-up (`POST /auth/sign-up`) | User pool e client com secret, `AuthGateway`, `Saga`, `Delete` na `UnitOfWork` (compensação), primeira role por função |
-| 1.5 | Confirmação e reenvio de código | `Update` na `UnitOfWork` |
+| 1.3 | Conta e reserva de e-mail numa transação, testadas no DynamoDB Local; e-mail repetido recusado | Container com `bind`, entidade `Account`, `AccountItem`, transação no próprio `AccountRepository`, TTL, DynamoDB Local nos testes e no CI |
+| 1.4 | Sign-up (`POST /auth/sign-up`) | Validação com Zod, `ApplicationError` → HTTP no adapter, `esbuild-plugin-tsc`, user pool e client com secret, `AuthGateway`, `Saga`, primeira role por função |
+| 1.5 | Confirmação e reenvio de código | |
 | 1.6 | Sign-in e refresh | `GSI2` (e-mail), trigger de pre token |
 | 1.7 | Recuperação de senha | SES e trigger de custom message |
 | 1.8 | `GET` e `PATCH /me` | |
 | 1.9 | Script do primeiro admin | Módulo de permissões |
 | 1.10 | Rotas de admin | `GSI1` (papel), `RoleChange` |
 | 1.11 | Curso: criar, editar, meus cursos | |
-| 1.12 | Módulos e aulas: CRUD e reordenação | |
+| 1.12 | Módulos e aulas: CRUD e reordenação | `UnitOfWork` (primeira transação entre repositórios: aula + contador do curso) |
 | 1.13 | Publicar, arquivar, catálogo, curso completo | Índice esparso do catálogo |
 
 Fora da fase 1 de propósito: abrir aula (fase 2, precisa de matrícula) e apagar curso em rascunho (fase 3, usa o job com fila da Q86). As fases 2 a 7 ficam só com título até começarem.

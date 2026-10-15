@@ -58,6 +58,18 @@ Cada achado:
 - **O que aconteceu**: a sessão passou a responder `Forbidden` em todo comando, inclusive no `sls login`, que tenta usar a sessão guardada antes de logar de novo. Resolveu com outra org e login novo.
 - **Sugestão**: acrescentar `sls logout` seguido de `sls login` como saída para um `Forbidden` no passo "Authenticating".
 
+### `typescript-decorators-metadata`, `typescript-di-container`
+
+#### 2026-10-15 · 1.3.a · acerto
+- **A skill diz**: o Vitest 5 sem plugin emite `design:paramtypes`.
+- **O que aconteceu**: confirmado no projeto (Vitest 5.0.4): um teste lê `[Clock]` dos metadados de uma classe decorada, sem SWC.
+- **Sugestão**: nenhuma. Nota: num teste, duas classes que se referem uma à outra pelo construtor quebram com `Cannot access 'Second' before initialization` (a classe ainda não existe quando os metadados são gravados); o ciclo foi testado gravando os metadados à mão.
+
+#### 2026-10-15 · 1.3.a · ambíguo
+- **A skill diz**: por padrão, `resolve` cria uma instância nova a cada chamada; `singleton` é opção.
+- **O que aconteceu**: o projeto inverteu o padrão (tudo compartilhado), porque use cases, repositórios e gateways não guardam estado e o que guarda estado vem por fábrica (Q87).
+- **Sugestão**: dizer quando inverter o padrão faz sentido.
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |
