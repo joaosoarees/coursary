@@ -2,5 +2,7 @@ import { GetMeController } from '@application/controllers/account/GetMeControlle
 import { makeGetMeUseCase } from '@main/factories/account/makeGetMeUseCase';
 
 export function makeGetMeController(): GetMeController {
-  return new GetMeController(makeGetMeUseCase());
+  const getMeUseCase = makeGetMeUseCase();
+
+  return new GetMeController(getMeUseCase);
 }

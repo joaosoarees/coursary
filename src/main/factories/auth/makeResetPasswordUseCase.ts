@@ -2,5 +2,7 @@ import { ResetPasswordUseCase } from '@application/usecases/auth/ResetPasswordUs
 import { makeAuthGateway } from '@main/factories/makeAuthGateway';
 
 export function makeResetPasswordUseCase(): ResetPasswordUseCase {
-  return new ResetPasswordUseCase(makeAuthGateway());
+  const authGateway = makeAuthGateway();
+
+  return new ResetPasswordUseCase(authGateway);
 }

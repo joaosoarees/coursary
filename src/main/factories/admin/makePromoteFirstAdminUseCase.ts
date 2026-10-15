@@ -2,5 +2,7 @@ import { PromoteFirstAdminUseCase } from '@application/usecases/account/PromoteF
 import { makeAccountRepository } from '@main/factories/makeAccountRepository';
 
 export function makePromoteFirstAdminUseCase(): PromoteFirstAdminUseCase {
-  return new PromoteFirstAdminUseCase(makeAccountRepository());
+  const accountsRepository = makeAccountRepository();
+
+  return new PromoteFirstAdminUseCase(accountsRepository);
 }

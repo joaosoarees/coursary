@@ -2,5 +2,7 @@ import { ConfirmSignUpController } from '@application/controllers/auth/ConfirmSi
 import { makeConfirmSignUpUseCase } from '@main/factories/auth/makeConfirmSignUpUseCase';
 
 export function makeConfirmSignUpController(): ConfirmSignUpController {
-  return new ConfirmSignUpController(makeConfirmSignUpUseCase());
+  const confirmSignUpUseCase = makeConfirmSignUpUseCase();
+
+  return new ConfirmSignUpController(confirmSignUpUseCase);
 }

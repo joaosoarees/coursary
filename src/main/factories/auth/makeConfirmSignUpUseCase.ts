@@ -3,5 +3,8 @@ import { makeAccountRepository } from '@main/factories/makeAccountRepository';
 import { makeAuthGateway } from '@main/factories/makeAuthGateway';
 
 export function makeConfirmSignUpUseCase(): ConfirmSignUpUseCase {
-  return new ConfirmSignUpUseCase(makeAccountRepository(), makeAuthGateway());
+  const accountsRepository = makeAccountRepository();
+  const authGateway = makeAuthGateway();
+
+  return new ConfirmSignUpUseCase(accountsRepository, authGateway);
 }

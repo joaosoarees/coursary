@@ -3,8 +3,8 @@ import { makeAccountRepository } from '@main/factories/makeAccountRepository';
 import { makeAuthGateway } from '@main/factories/makeAuthGateway';
 
 export function makeResendConfirmationCodeUseCase(): ResendConfirmationCodeUseCase {
-  return new ResendConfirmationCodeUseCase(
-    makeAccountRepository(),
-    makeAuthGateway(),
-  );
+  const accountsRepository = makeAccountRepository();
+  const authGateway = makeAuthGateway();
+
+  return new ResendConfirmationCodeUseCase(accountsRepository, authGateway);
 }
