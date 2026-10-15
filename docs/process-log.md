@@ -100,9 +100,20 @@ Atualizado ao fim de cada história do Épico 0.
   - **O dono pode rejeitar uma decisão de modelagem que a skill recomenda** (o item de unicidade do e-mail como entidade). Separar o que o dono quer (o e-mail pertence à conta, busca por e-mail) do que o banco exige (um índice nunca é único) e achar o desenho que atende os dois: o item de reserva virou detalhe do repositório.
   - O limite de 100 ações por transação aparece cedo; decidir o padrão "marcar e terminar num job" na modelagem, não na implementação.
 
+## Etapa 9: arquitetura de execução
+
+- **Objetivo**: decidir como o código executa o modelo: transações, leituras, listas, eventos, rotas e autorização.
+- **Pré-requisitos**: etapa 8 (o modelo pronto); a validação da modelagem já aponta necessidades desta etapa (no Coursary, o stream com imagem antiga).
+- **Perguntas**: como a unidade de trabalho evita estado entre invocações? Onde a leitura precisa ser forte? Qual é o formato do cursor e o tamanho das páginas? Quantos consumidores o stream tem, e o que vai para fila? O que entra no índice de busca? Quais stages existem e o que é protegido em produção? Qual é a lista de rotas? Como a rota declara a permissão, e onde se verifica a posse? 404 ou 403? Formato de erro? Uma função e uma role por rota?
+  - *Coursary*: Q87 a Q98, em duas rodadas mais um detalhe de TypeScript.
+- **Skills**: `dynamodb-read-consistency`, `dynamodb-query-pagination`, `dynamodb-streams`, `dynamodb-stream-lambda-triggers`, `dynamodb-stream-event-filters`, `algolia-indexing-from-dynamodb`, `sqs-queue-settings`, `structuring-use-cases`, `cognito-role-based-route-protection`, `typescript-enums-and-alternatives`.
+- **Lições**:
+  - **Um limite de serviço pode desfazer uma decisão de escopo**: "stream → SQS → Algolia" (fase 3) mudou porque o stream aguenta dois consumidores por fragmento; a fila foi para os jobs.
+  - **O dono traz preferências de implementação** (enums, manter o `Saga`). Comparar com a skill e mostrar o código das duas formas; a preferência de fundo (constantes nomeadas) cabe no desenho que a skill recomenda.
+  - **O ritmo de implementação é decisão do dono**: no Coursary, tarefas pequenas, uma de cada vez, com operações e permissões liberadas conforme o uso. Perguntar isso antes de criar as tarefas.
+
 ## Etapas seguintes (ainda não percorridas)
 
-9. Arquitetura de execução.
 10. Registro de achados e critério de pronto.
 11. Padrões do projeto.
 12. Criar as tarefas.
