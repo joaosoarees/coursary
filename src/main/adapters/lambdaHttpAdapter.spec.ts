@@ -7,9 +7,10 @@ import { EmailInUse } from '@application/errors/EmailInUse';
 import { Schema } from '@kernel/decorators/Schema';
 import { lambdaHttpAdapter } from '@main/adapters/lambdaHttpAdapter';
 
-const makeEvent = (body?: string) =>
+const makeEvent = (body?: string, isBase64Encoded = false) =>
   ({
     body,
+    isBase64Encoded,
     requestContext: { requestId: 'request-1' },
   }) as APIGatewayProxyEventV2;
 
@@ -69,6 +70,14 @@ describe('lambdaHttpAdapter', () => {
   it('should pass the parsed and validated body to the controller', async () => {
     const response = await lambdaHttpAdapter(new EchoController())(
       makeEvent('{"name":"Ana","extra":true}'),
+    );
+
+    expect(parseBody(response.body)).toEqual({ name: 'Ana' });
+  });
+
+  it('should decode a body the API delivers in base64', async () => {
+    const response = await lambdaHttpAdapter(new EchoController())(
+      makeEvent(Buffer.from('{"name":"Ana"}').toString('base64'), true),
     );
 
     expect(parseBody(response.body)).toEqual({ name: 'Ana' });
