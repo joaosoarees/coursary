@@ -125,6 +125,13 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q69 | Entrega de arquivos | Avatar e capa (variantes webp) pelo CloudFront com OAC; nome da variante com hash do conteúdo, cache `immutable`, sem invalidação. Material e vídeo por URL pré-assinada do S3. CloudFront com URL assinada fica como evolução (skill que falta). Fase 4. |
 | Q70 | Buckets | Dois: `public-assets` (só o CloudFront lê, via OAC) e `private-files` (só URL pré-assinada). Originais no privado; só as variantes processadas vão para o público. |
 | Q78 | E-mail na Account (refina a Q18) | O e-mail é atributo da Account e tem padrão próprio de busca (login, admin): `GSI2PK = EMAIL#<email>` na Account, uma partição por e-mail, uma leitura. A unicidade continua garantida por um item de reserva cuja chave é o e-mail, mas ele não é entidade: só o `AccountRepository` o grava e move, na mesma transação da Account. Índice nunca é único (`dynamodb-index-overloading`). |
+| Q71 | Reordenar e escritas compostas | Posição em atributo, não na chave; SK hierárquica `MODULE#m#LESSON#l`. **Toda escrita que toca mais de um item é uma transação**: mover aula de módulo (delete + put), reordenar vários itens, contadores. |
+| Q72 | Sumário e conteúdo da aula | Sumário (título, duração, posição) na partição do curso; conteúdo em `LESSON#l` / `CONTENT`, com vídeo e materiais na mesma partição. Novo padrão 22: abrir aula. |
+| Q73 | Matrícula e avaliação | Na coleção do aluno (`ACCOUNT#a`), com chaves invertidas no `GSI1` para o lado do curso (`dynamodb-many-to-many-relationships`). |
+| Q74 | Minhas matrículas (ajusta a Q49) | Query na coleção do aluno com filtro de ativas; índice esparso só para alunos do curso. |
+| Q75 | Catálogo | Uma partição `CATALOG` no `GSI2`. Dividir em `CATALOG#0..n` fica como evolução (candidata da fase 7). |
+| Q76 | Lista de usuários | Sempre por papel (abas); status por `FilterExpression`. |
+| Q77 | Chave no S3 | `<ownerType>/<ownerId>/<purpose>/<fileId>/original`, montada só pelo servidor; o trigger deriva a PK/SK do `FILE` dela. |
 
 #### Fases (Q27)
 
