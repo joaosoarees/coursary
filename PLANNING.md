@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.11 na `develop` e em `dev` (conferidas com chamadas reais); a conta de teste do autor é o admin de `dev` e há uma conta de aluno de teste (`student`, `ACTIVE`); 1.12 (sessão única) em grilling na `feat/1.12-single-session`, decisões Q210 a Q214; curso passou para a 1.13 com Q204 a Q209 em aberto**.
+Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.11 na `develop` e em `dev` (conferidas com chamadas reais); a conta de teste do autor é o admin de `dev` e há uma conta de aluno de teste (`student`, `ACTIVE`); 1.12 (sessão única) em grilling na `feat/1.12-single-session`, decisões Q210 a Q217, sub-imp 1.12.a a 1.12.e; curso passou para a 1.13 com Q204 a Q209 em aberto**.
 
 ## Como retomar
 
@@ -262,6 +262,9 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q212 | O Cognito deixa de ser barreira (revê a Q56, a Q162 e a Q193) | Saem `AdminDisableUser`/`AdminEnableUser` da 1.11 (com a ordem, o reparo e o 500 da Q193) e o `AdminUserGlobalSignOut` do reset; no lugar, apagar a `session`. Ninguém chama o Cognito por fora da API (client com secret, Q127). |
 | Q213 | Onde entra | História própria, 1.12 "Sessão única"; curso, módulos e catálogo andam uma casa (1.13 a 1.15). As perguntas Q204 a Q209 do curso ficam para a 1.13. |
 | Q214 | Rota de sign-out | Continua esperando o front (Q150, Q112), agora reduzida a apagar a `session`. |
+| Q215 | Quem lê os tokens novos | O `CognitoAuthGateway` decodifica o payload do access token recém-emitido (veio do Cognito por TLS) e o `AuthGateway.Tokens` traz `accountId` e `accessJti`; a aplicação não conhece JWT. O hash do refresh token é `Account.hashRefreshToken` (SHA-256, `node:crypto`). |
+| Q216 | Sessões existentes | Sem migração: depois do deploy, todo token atual dá 401 e todos entram de novo (só as contas de teste em `dev`; `prod` não existe). |
+| Q217 | Sub-imp da 1.12 | a. `session` na conta e `saveSession`/`rotateSession`/`clearSession`, com a corrida de dois refresh; b. `Tokens` com `accountId` e `accessJti`, sign-in grava e refresh gira a sessão; c. adapter exige `jti` = `session.accessJti`, auditoria com token de sessão anterior; d. simplificações da Q212 (desativar apaga a sessão na transação, sai o Cognito do `ChangeStatusUseCase`, reset apaga a sessão, saem três métodos do gateway e três ações IAM); e. Yaak e chamadas reais em `dev`. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
