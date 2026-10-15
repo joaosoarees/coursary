@@ -1,3 +1,4 @@
+import type { Account } from '@application/entities/Account';
 import { type Course, courseStatuses } from '@application/entities/Course';
 import { CourseArchived } from '@application/errors/CourseArchived';
 import { CourseNotFound } from '@application/errors/CourseNotFound';
@@ -31,5 +32,15 @@ export class InMemoryCourseRepository implements CourseRepository {
     course.description = changes.description ?? course.description;
 
     return Promise.resolve(course);
+  }
+
+  updateInstructorName(instructorId: Account.Id, name: string): Promise<void> {
+    for (const course of this.courses.values()) {
+      if (course.isOwnedBy(instructorId)) {
+        course.instructorName = name;
+      }
+    }
+
+    return Promise.resolve();
   }
 }

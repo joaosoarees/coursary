@@ -9,6 +9,7 @@ import { AccountUnavailable } from '@application/errors/AccountUnavailable';
 import { CourseArchived } from '@application/errors/CourseArchived';
 import { CourseNotFound } from '@application/errors/CourseNotFound';
 import { Forbidden } from '@application/errors/Forbidden';
+import { UpdateMeUseCase } from '@application/usecases/account/UpdateMeUseCase';
 import { CreateCourseUseCase } from '@application/usecases/course/CreateCourseUseCase';
 import { UpdateCourseUseCase } from '@application/usecases/course/UpdateCourseUseCase';
 
@@ -102,5 +103,16 @@ describe('UpdateCourseUseCase', () => {
 
     await expect(update(owner)).rejects.toBeInstanceOf(CourseArchived);
     await expect(update(admin)).rejects.toBeInstanceOf(CourseArchived);
+  });
+});
+
+describe('UpdateMeUseCase and the courses', () => {
+  it('should copy a new name into the courses of the instructor', async () => {
+    await new UpdateMeUseCase(accounts, courses).execute({
+      accountId: owner.id,
+      name: 'Ana Souza',
+    });
+
+    expect(course.instructorName).toBe('Ana Souza');
   });
 });

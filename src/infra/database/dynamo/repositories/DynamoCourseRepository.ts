@@ -1,6 +1,13 @@
 import { ConditionalCheckFailedException } from '@aws-sdk/client-dynamodb';
-import { GetCommand, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import {
+  GetCommand,
+  PutCommand,
+  QueryCommand,
+  TransactWriteCommand,
+  UpdateCommand,
+} from '@aws-sdk/lib-dynamodb';
 
+import type { Account } from '@application/entities/Account';
 import { type Course, courseStatuses } from '@application/entities/Course';
 import { CourseArchived } from '@application/errors/CourseArchived';
 import { CourseNotFound } from '@application/errors/CourseNotFound';
@@ -67,5 +74,59 @@ export class DynamoCourseRepository implements CourseRepository {
 
       throw error;
     }
+  }
+
+  // Copies the name into every course of the instructor, at most 100 per
+  // transaction; calling it again with the same name finishes what a failure left.
+  async updateInstructorName(
+    instructorId: Account.Id,
+    name: string,
+  ): Promise<void> {
+    const TableName = this.config.mainTableName;
+    const keys = await this.courseKeysOf(instructorId);
+
+    for (let start = 0; start < keys.length; start += 100) {
+      const command = new TransactWriteCommand({
+        TransactItems: keys.slice(start, start + 100).map((Key) => ({
+          Update: {
+            TableName,
+            Key,
+            UpdateExpression: 'SET instructorName = :name',
+            ConditionExpression: 'instructorId = :instructorId',
+            ExpressionAttributeValues: {
+              ':name': name,
+              ':instructorId': instructorId,
+            },
+          },
+        })),
+      });
+
+      await dynamoClient.send(command);
+    }
+  }
+
+  private async courseKeysOf(
+    instructorId: Account.Id,
+  ): Promise<Record<string, unknown>[]> {
+    const keys: Record<string, unknown>[] = [];
+    let ExclusiveStartKey: Record<string, unknown> | undefined;
+
+    do {
+      const command = new QueryCommand({
+        TableName: this.config.mainTableName,
+        IndexName: 'GSI1',
+        KeyConditionExpression: 'GSI1PK = :pk',
+        ExpressionAttributeValues: {
+          ':pk': CourseItem.getGSI1PK(instructorId),
+        },
+        ProjectionExpression: 'PK, SK',
+        ExclusiveStartKey,
+      });
+      const page = await dynamoClient.send(command);
+      keys.push(...(page.Items ?? []));
+      ExclusiveStartKey = page.LastEvaluatedKey;
+    } while (ExclusiveStartKey);
+
+    return keys;
   }
 }

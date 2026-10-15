@@ -67,4 +67,32 @@ describe('DynamoCourseRepository', () => {
       repository.update(missing.id, { title: 'X' }),
     ).rejects.toBeInstanceOf(CourseNotFound);
   });
+
+  test('copies a new instructor name into every course of the instructor only', async () => {
+    const ana = Account.create({ name: 'Ana', email: 'a@example.com' });
+    const bia = Account.create({ name: 'Bia', email: 'b@example.com' });
+    const anaCourses = [
+      Course.create({ instructor: ana, title: 'A1', description: '' }),
+      Course.create({ instructor: ana, title: 'A2', description: '' }),
+    ];
+    const biaCourse = Course.create({
+      instructor: bia,
+      title: 'B1',
+      description: '',
+    });
+    for (const course of [...anaCourses, biaCourse]) {
+      await repository.create(course);
+    }
+
+    await repository.updateInstructorName(ana.id, 'Ana Souza');
+
+    for (const course of anaCourses) {
+      expect((await repository.findById(course.id))?.instructorName).toBe(
+        'Ana Souza',
+      );
+    }
+    expect((await repository.findById(biaCourse.id))?.instructorName).toBe(
+      'Bia',
+    );
+  });
 });
