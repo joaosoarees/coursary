@@ -290,6 +290,18 @@ Cada achado:
 - **O que aconteceu**: o `instructorName` do curso é mantido pelo `PATCH /me`, que acha os cursos pelo `GSI1` (`INSTRUCTOR#<id>`, só `PK` e `SK` projetados) e grava em transações de até 100 `Update` condicionados ao `instructorId`. Repetir o mesmo nome completa o que uma falha deixou.
 - **Sugestão**: nenhuma.
 
+### `dynamodb-item-operations`, `dynamodb-one-to-many-relationships` (1.14)
+
+#### 2026-10-15 · 1.14.a · lacuna
+- **A skill diz**: transações aparecem como ferramenta (itens que existem juntos), sem um padrão para juntar escritas de repositórios diferentes.
+- **O que aconteceu**: nasceu a `UnitOfWork` (Q87, Q224): cada repositório devolve operações opacas para a aplicação, cada uma com o erro de domínio da sua condição; a unidade envia tudo numa `TransactWriteItems`, repete `TransactionConflict` até 3 vezes e traduz `ConditionalCheckFailed` pelo índice do `CancellationReasons`. Criar uma aula grava sumário, conteúdo e `ADD lessonCount` no curso na mesma transação.
+- **Sugestão**: uma skill de unidade de trabalho em DynamoDB (operações por repositório, limite de 100, retry de conflito, tradução por índice).
+
+#### 2026-10-15 · 1.14.e · acerto
+- **A skill diz**: a ordem de uma coleção que o usuário reordena é um atributo, não a chave; mover entre pais com chave hierárquica é delete + put.
+- **O que aconteceu**: o `PUT /outline` grava só o que mudou de lugar (reposicionar = 1 operação, trocar de módulo = 2) e recusa mais de 100. Um fake em memória que devolvia uma operação por movimentação escondeu o limite: um fake que conta operações precisa devolver as mesmas que o repositório real.
+- **Sugestão**: nenhuma.
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |
@@ -305,3 +317,4 @@ Cada achado:
 | React Email em Lambda (templates, Tailwind, render no trigger, tamanho do bundle) | Q161 |
 | Manter a tabela do DynamoDB Local igual à IaC (`MainTable.yml`) nos testes de integração | Q189, 1.10.a |
 | Testes de ponta a ponta contra um stage deployado com contas descartáveis (sem caixa de e-mail, limpeza no fim) | Q218 |
+| Unidade de trabalho em DynamoDB entre repositórios (operações, limite de 100, retry de `TransactionConflict`, tradução de `CancellationReasons`) | 1.14 |

@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.13 na `develop` e em `dev`, conferidas por `pnpm e2e:dev` (Q218, 26 checagens); 1.14 (módulos e aulas) em grilling na `feat/1.14-modules-and-lessons`, decisões Q222 a Q231, sub-imp 1.14.a a 1.14.f**.
+Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.13 na `develop` e em `dev`, conferidas por `pnpm e2e:dev` (Q218, 26 checagens); 1.14 (módulos e aulas) com 1.14.a a 1.14.f prontas e em PR para a `develop`; falta o `e2e:dev` depois do deploy**.
 
 ## Como retomar
 
