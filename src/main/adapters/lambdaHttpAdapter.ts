@@ -17,7 +17,10 @@ export function lambdaHttpAdapter(
     event: APIGatewayProxyEventV2,
   ): Promise<APIGatewayProxyStructuredResultV2> => {
     try {
-      const body = lambdaBodyParser(event.body) as Record<string, unknown>;
+      const body = lambdaBodyParser(
+        event.body,
+        event.isBase64Encoded,
+      ) as Record<string, unknown>;
       const { statusCode, body: responseBody } = await controller.execute({
         body,
       });

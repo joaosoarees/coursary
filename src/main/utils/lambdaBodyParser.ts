@@ -1,12 +1,19 @@
 import { MalformedBody } from '@application/errors/MalformedBody';
 
-export function lambdaBodyParser(body: string | undefined): unknown {
+export function lambdaBodyParser(
+  body: string | undefined,
+  isBase64Encoded = false,
+): unknown {
   if (!body) {
     return {};
   }
 
+  const text = isBase64Encoded
+    ? Buffer.from(body, 'base64').toString('utf8')
+    : body;
+
   try {
-    return JSON.parse(body) as unknown;
+    return JSON.parse(text) as unknown;
   } catch {
     throw new MalformedBody();
   }
