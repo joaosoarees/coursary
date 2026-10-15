@@ -1,0 +1,83 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Access for coursary-api. A deployer role assumed from the owner's user, and a CI role assumed by GitHub Actions through OIDC.
+
+Parameters:
+  OwnerUserName:
+    Type: String
+    Default: joao-master
+  DeploymentBucketName:
+    Type: String
+    Default: serverless-framework-deployments-sa-east-1-59910092-c003
+
+Resources:
+  GitHubOidcProvider:
+    Type: AWS::IAM::OIDCProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList:
+        - sts.amazonaws.com
+
+  CiRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: coursary-api-ci
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref GitHubOidcProvider
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+              StringLike:
+                token.actions.githubusercontent.com:sub: repo:joaosoarees@59843125/coursary-api@1416276221:*
+
+  DeployerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: coursary-api-deployer
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:user/${OwnerUserName}
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: deploy-1-1
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: cloudformation:*
+                Resource: !Sub arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/coursary-api-*/*
+              - Effect: Allow
+                Action: cloudformation:ValidateTemplate
+                Resource: '*'
+              - Effect: Allow
+                Action: dynamodb:*
+                Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/coursary-api-*
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                  - s3:GetBucketLocation
+                Resource: !Sub arn:aws:s3:::${DeploymentBucketName}
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                Resource: !Sub arn:aws:s3:::${DeploymentBucketName}/serverless/coursary-api/*
+              - Effect: Allow
+                Action: ssm:GetParameter
+                Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/serverless-framework/*
+
+Outputs:
+  CiRoleArn:
+    Value: !GetAtt CiRole.Arn
+  DeployerRoleArn:
+    Value: !GetAtt DeployerRole.Arn

@@ -1,3 +1,4 @@
 allowBuilds:
   lefthook: false
+  serverless: false
 saveExact: true
