@@ -10,11 +10,13 @@ import {
   accountStatuses,
   normalizeEmail,
 } from '@application/entities/Account';
+import type { RoleChange } from '@application/entities/RoleChange';
 import { EmailInUse } from '@application/errors/EmailInUse';
 import type { AccountRepository } from '@application/repositories/AccountRepository';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { AccountItem } from '@infra/database/dynamo/items/AccountItem';
 import { EmailClaimItem } from '@infra/database/dynamo/items/EmailClaimItem';
+import { RoleChangeItem } from '@infra/database/dynamo/items/RoleChangeItem';
 import { AppConfig } from '@shared/config/AppConfig';
 
 export class DynamoAccountRepository implements AccountRepository {
@@ -182,6 +184,45 @@ export class DynamoAccountRepository implements AccountRepository {
     );
 
     return AccountItem.toEntity(Attributes as AccountItem.ItemType);
+  }
+
+  async changeRole(roleChange: RoleChange): Promise<void> {
+    const TableName = this.config.mainTableName;
+
+    await dynamoClient.send(
+      new TransactWriteCommand({
+        TransactItems: [
+          {
+            Update: {
+              TableName,
+              Key: {
+                PK: AccountItem.getPK(roleChange.accountId),
+                SK: AccountItem.getSK(roleChange.accountId),
+              },
+              UpdateExpression: 'SET #role = :toRole, GSI1PK = :gsi1pk',
+              ConditionExpression: '#status = :active AND #role = :fromRole',
+              ExpressionAttributeNames: {
+                '#role': 'role',
+                '#status': 'status',
+              },
+              ExpressionAttributeValues: {
+                ':toRole': roleChange.toRole,
+                ':fromRole': roleChange.fromRole,
+                ':gsi1pk': AccountItem.getGSI1PK(roleChange.toRole),
+                ':active': accountStatuses.Active,
+              },
+            },
+          },
+          {
+            Put: {
+              TableName,
+              Item: RoleChangeItem.fromEntity(roleChange).toItem(),
+              ConditionExpression: 'attribute_not_exists(PK)',
+            },
+          },
+        ],
+      }),
+    );
   }
 
   private async getLive<TItem extends { expiresAt?: number }>(
