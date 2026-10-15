@@ -1,0 +1,13 @@
+listCatalog:
+  handler: src/main/functions/catalog/listCatalog.handler
+  events:
+    - httpApi:
+        method: GET
+        path: /courses
+
+getCoursePage:
+  handler: src/main/functions/catalog/getCoursePage.handler
+  events:
+    - httpApi:
+        method: GET
+        path: /courses/{id}

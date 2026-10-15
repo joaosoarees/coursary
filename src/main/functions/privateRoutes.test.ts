@@ -101,6 +101,30 @@ beforeAll(async () => {
   disabled = await putAccount('DISABLED');
 });
 
+// Every route without the authorizer is on purpose; a new one must be added here.
+const publicRoutes = [
+  'GET /health',
+  'POST /auth/sign-up',
+  'POST /auth/confirm',
+  'POST /auth/resend-code',
+  'POST /auth/sign-in',
+  'POST /auth/refresh',
+  'POST /auth/forgot-password',
+  'POST /auth/reset-password',
+  'GET /courses',
+  'GET /courses/{id}',
+];
+
+describe('public routes', () => {
+  it('should be only the ones meant to be public', () => {
+    const open = httpRoutes
+      .filter((route) => !route.authorizer)
+      .map((route) => `${route.method} ${route.path}`);
+
+    expect(open.sort()).toEqual([...publicRoutes].sort());
+  });
+});
+
 describe('private routes', () => {
   it('should include every admin route', () => {
     expect(adminRoutes.length).toBeGreaterThan(0);

@@ -428,6 +428,34 @@
             "url": "{{baseUrl}}/instructor/courses?limit=20",
             "description": "200 { items: [{ id, title, status, lessonCount, enrollmentCount, publishedAt, createdAt }], nextCursor }, mais recentes primeiro, todos os status. 400 INVALID_CURSOR, 401, 403 FORBIDDEN (aluno)."
           }
+        },
+        {
+          "name": "Publish course",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/courses/{{courseId}}/publish",
+            "description": "200 com o curso PUBLISHED (entra no catálogo). Já publicado: 200 sem gravar. Sem aulas: 409 COURSE_EMPTY. Arquivado: 409 COURSE_ARCHIVED. Dono ou admin; alheio em rascunho 404, visível 403; 401."
+          }
+        },
+        {
+          "name": "Archive course",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/courses/{{courseId}}/archive",
+            "description": "200 com o curso ARCHIVED (sai do catálogo e da página pública). Rascunho: 409 COURSE_NOT_PUBLISHED. Já arquivado: 409 COURSE_ARCHIVED. Dono ou admin; 401."
+          }
         }
       ]
     },
@@ -609,6 +637,27 @@
             ],
             "url": "{{baseUrl}}/courses/{{courseId}}/modules/{{moduleId}}/lessons/{{lessonId}}",
             "description": "204; tira 1 do lessonCount. Só em rascunho (409 COURSE_PUBLISHED). 404 LESSON_NOT_FOUND. Dono ou admin; curso alheio em rascunho 404 COURSE_NOT_FOUND, visível 403; arquivado 409 COURSE_ARCHIVED; 400 VALIDATION; 401."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Catalog (public)",
+      "item": [
+        {
+          "name": "Catalog",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/courses?limit=20",
+            "description": "Público, sem token. 200 { items: [{ id, title, instructorName, lessonCount, enrollmentCount, publishedAt }], nextCursor }, publicados, mais recentes primeiro. 400 INVALID_CURSOR."
+          }
+        },
+        {
+          "name": "Course page",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/courses/{{courseId}}",
+            "description": "Público, sem token. 200 { id, title, description, instructorName, lessonCount, enrollmentCount, publishedAt, modules: [{ id, title, position, lessons: [{ id, title, durationMinutes, position }] }] }, sem o corpo das aulas. Rascunho, arquivado ou inexistente: 404 COURSE_NOT_FOUND. Id malformado: 400 VALIDATION."
           }
         }
       ]
