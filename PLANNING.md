@@ -108,6 +108,10 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q43 | Forma do papel | Um valor por usuário (`student`, `instructor`, `admin`). Um módulo de permissões mapeia papel → ações e os handlers perguntam pela ação. O admin herda as ações do instrutor. **Fica aberto para evoluir**: haverá um painel de administradores no mesmo front, então o mapa papel → ações deve poder sair do código para dados sem mudar os handlers. |
 | Q44 | Troca de papel | Só admin, `PUT /admin/users/{id}/role`. Ninguém muda o próprio papel; o último admin não pode ser rebaixado; conta `PENDING` é recusada; linha de auditoria (quem, quando, de/para). O primeiro admin vem do script da Q21, que grava `role = admin` no Account. |
 | Q45 | Instrutor rebaixado | Os cursos dele ficam como estão (publicados no catálogo, matrículas mantidas); ele perde a edição; o admin pode arquivar. Nada é apagado ou transferido. |
+| Q46 | Entidades do ERD | Account, Course, Module, Lesson, Enrollment, LessonProgress, Review, RoleChange (auditoria da Q44), CourseCover (fase 4), StudentExport (CSV da fase 4). `EMAIL#` e itens de idempotência são físicos, fora do ERD. |
+| Q48 | O que é uma aula | Título, corpo em Markdown com limite (por exemplo 32 KB), duração em minutos e posição. Vídeo: ver a rodada em aberto. |
+| Q50 | Capa do curso | Uma capa atual (0..1). Trocar substitui a anterior e apaga do S3 o original e as variantes da capa antiga. |
+| Q52 | Curso arquivado | Não aceita matrículas novas; quem já está matriculado continua assistindo, marcando progresso e pode avaliar. Some do catálogo e da busca (Q10). |
 
 #### Fases (Q27)
 
