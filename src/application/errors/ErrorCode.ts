@@ -18,6 +18,8 @@ export const ErrorCode = {
   Conflict: 'CONFLICT',
   CourseArchived: 'COURSE_ARCHIVED',
   CourseNotFound: 'COURSE_NOT_FOUND',
+  ModuleNotFound: 'MODULE_NOT_FOUND',
+  LessonNotFound: 'LESSON_NOT_FOUND',
   TooManyRequests: 'TOO_MANY_REQUESTS',
 } as const;
 

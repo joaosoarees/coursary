@@ -7,12 +7,14 @@ import {
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 
+import type { UnitOfWork } from '@application/contracts/UnitOfWork';
 import type { Account } from '@application/entities/Account';
 import { type Course, courseStatuses } from '@application/entities/Course';
 import { CourseArchived } from '@application/errors/CourseArchived';
 import { CourseNotFound } from '@application/errors/CourseNotFound';
 import type { CourseRepository } from '@application/repositories/CourseRepository';
 import { dynamoClient } from '@infra/clients/dynamoClient';
+import { DynamoUnitOfWork } from '@infra/database/dynamo/DynamoUnitOfWork';
 import { CourseItem } from '@infra/database/dynamo/items/CourseItem';
 import type { AppConfig } from '@shared/config/AppConfig';
 
@@ -103,6 +105,38 @@ export class DynamoCourseRepository implements CourseRepository {
 
       await dynamoClient.send(command);
     }
+  }
+
+  statusUnchangedOperation(course: Course): UnitOfWork.Operation {
+    return DynamoUnitOfWork.operation({
+      ConditionCheck: {
+        TableName: this.config.mainTableName,
+        Key: this.keyOf(course),
+        ConditionExpression: '#status = :status',
+        ExpressionAttributeNames: { '#status': 'status' },
+        ExpressionAttributeValues: { ':status': course.status },
+      },
+    });
+  }
+
+  addLessonsOperation(course: Course, delta: number): UnitOfWork.Operation {
+    return DynamoUnitOfWork.operation({
+      Update: {
+        TableName: this.config.mainTableName,
+        Key: this.keyOf(course),
+        UpdateExpression: 'ADD lessonCount :delta',
+        ConditionExpression: '#status = :status',
+        ExpressionAttributeNames: { '#status': 'status' },
+        ExpressionAttributeValues: {
+          ':delta': delta,
+          ':status': course.status,
+        },
+      },
+    });
+  }
+
+  private keyOf(course: Course) {
+    return { PK: CourseItem.getPK(course.id), SK: CourseItem.getSK(course.id) };
   }
 
   private async courseKeysOf(

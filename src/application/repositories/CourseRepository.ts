@@ -1,3 +1,4 @@
+import type { UnitOfWork } from '@application/contracts/UnitOfWork';
 import type { Account } from '@application/entities/Account';
 import type { Course } from '@application/entities/Course';
 
@@ -9,4 +10,9 @@ export interface CourseRepository {
   update(id: Course.Id, changes: Course.Changes): Promise<Course>;
 
   updateInstructorName(instructorId: Account.Id, name: string): Promise<void>;
+
+  // Holds the transaction to the status the caller checked.
+  statusUnchangedOperation(course: Course): UnitOfWork.Operation;
+
+  addLessonsOperation(course: Course, delta: number): UnitOfWork.Operation;
 }

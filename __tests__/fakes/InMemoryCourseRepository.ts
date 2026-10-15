@@ -1,5 +1,9 @@
+import { InMemoryUnitOfWork } from '@tests/fakes/InMemoryUnitOfWork';
+
+import type { UnitOfWork } from '@application/contracts/UnitOfWork';
 import type { Account } from '@application/entities/Account';
 import { type Course, courseStatuses } from '@application/entities/Course';
+import { Conflict } from '@application/errors/Conflict';
 import { CourseArchived } from '@application/errors/CourseArchived';
 import { CourseNotFound } from '@application/errors/CourseNotFound';
 import type { CourseRepository } from '@application/repositories/CourseRepository';
@@ -42,5 +46,35 @@ export class InMemoryCourseRepository implements CourseRepository {
     }
 
     return Promise.resolve();
+  }
+
+  statusUnchangedOperation(course: Course): UnitOfWork.Operation {
+    const status = course.status;
+
+    return InMemoryUnitOfWork.operation({
+      check: () =>
+        this.courses.get(course.id)?.status === status
+          ? undefined
+          : new Conflict(),
+      apply: () => undefined,
+    });
+  }
+
+  addLessonsOperation(course: Course, delta: number): UnitOfWork.Operation {
+    const status = course.status;
+
+    return InMemoryUnitOfWork.operation({
+      check: () =>
+        this.courses.get(course.id)?.status === status
+          ? undefined
+          : new Conflict(),
+      apply: () => {
+        const stored = this.courses.get(course.id);
+
+        if (stored) {
+          stored.lessonCount += delta;
+        }
+      },
+    });
   }
 }
