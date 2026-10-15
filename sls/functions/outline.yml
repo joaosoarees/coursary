@@ -1,0 +1,63 @@
+createModule:
+  handler: src/main/functions/outline/createModule.handler
+  events:
+    - httpApi:
+        method: POST
+        path: /courses/{id}/modules
+        authorizer: CognitoAuthorizer
+
+updateModule:
+  handler: src/main/functions/outline/updateModule.handler
+  events:
+    - httpApi:
+        method: PATCH
+        path: /courses/{id}/modules/{mid}
+        authorizer: CognitoAuthorizer
+
+deleteModule:
+  handler: src/main/functions/outline/deleteModule.handler
+  events:
+    - httpApi:
+        method: DELETE
+        path: /courses/{id}/modules/{mid}
+        authorizer: CognitoAuthorizer
+
+createLesson:
+  handler: src/main/functions/outline/createLesson.handler
+  events:
+    - httpApi:
+        method: POST
+        path: /courses/{id}/modules/{mid}/lessons
+        authorizer: CognitoAuthorizer
+
+updateLesson:
+  handler: src/main/functions/outline/updateLesson.handler
+  events:
+    - httpApi:
+        method: PATCH
+        path: /courses/{id}/modules/{mid}/lessons/{lid}
+        authorizer: CognitoAuthorizer
+
+deleteLesson:
+  handler: src/main/functions/outline/deleteLesson.handler
+  events:
+    - httpApi:
+        method: DELETE
+        path: /courses/{id}/modules/{mid}/lessons/{lid}
+        authorizer: CognitoAuthorizer
+
+getOutline:
+  handler: src/main/functions/outline/getOutline.handler
+  events:
+    - httpApi:
+        method: GET
+        path: /courses/{id}/outline
+        authorizer: CognitoAuthorizer
+
+reorderOutline:
+  handler: src/main/functions/outline/reorderOutline.handler
+  events:
+    - httpApi:
+        method: PUT
+        path: /courses/{id}/outline
+        authorizer: CognitoAuthorizer

@@ -20,6 +20,14 @@
     {
       "key": "courseId",
       "value": "<id do curso>"
+    },
+    {
+      "key": "moduleId",
+      "value": "<id do módulo>"
+    },
+    {
+      "key": "lessonId",
+      "value": "<id da aula>"
     }
   ],
   "item": [
@@ -419,6 +427,188 @@
             ],
             "url": "{{baseUrl}}/instructor/courses?limit=20",
             "description": "200 { items: [{ id, title, status, lessonCount, enrollmentCount, publishedAt, createdAt }], nextCursor }, mais recentes primeiro, todos os status. 400 INVALID_CURSOR, 401, 403 FORBIDDEN (aluno)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Outline",
+      "item": [
+        {
+          "name": "Get outline",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/courses/{{courseId}}/outline",
+            "description": "200 { modules: [{ id, title, position, lessons: [{ id, title, durationMinutes, position }] }] }, em ordem. Dono ou admin; curso alheio em rascunho 404 COURSE_NOT_FOUND, visível 403; arquivado 409 COURSE_ARCHIVED; 400 VALIDATION; 401."
+          }
+        },
+        {
+          "name": "Reorder outline",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/courses/{{courseId}}/outline",
+            "description": "200 com o outline novo. Lista todos os módulos e aulas, cada um uma vez (aulas podem trocar de módulo); senão 400 OUTLINE_MISMATCH. Mais de 100 operações: 400 OUTLINE_TOO_LARGE. Mudança no meio: 409 CONFLICT. Dono ou admin; curso alheio em rascunho 404 COURSE_NOT_FOUND, visível 403; arquivado 409 COURSE_ARCHIVED; 400 VALIDATION; 401.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"modules\": [\n    { \"id\": \"{{moduleId}}\", \"lessonIds\": [\"{{lessonId}}\"] }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Create module",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/courses/{{courseId}}/modules",
+            "description": "201 { id, title, position } (vai para o fim). Dono ou admin; curso alheio em rascunho 404 COURSE_NOT_FOUND, visível 403; arquivado 409 COURSE_ARCHIVED; 400 VALIDATION; 401.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Introdução\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Rename module",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/courses/{{courseId}}/modules/{{moduleId}}",
+            "description": "200 { id, title, position }. 404 MODULE_NOT_FOUND. Dono ou admin; curso alheio em rascunho 404 COURSE_NOT_FOUND, visível 403; arquivado 409 COURSE_ARCHIVED; 400 VALIDATION; 401.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Fundamentos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete module",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/courses/{{courseId}}/modules/{{moduleId}}",
+            "description": "204. Só em rascunho (409 COURSE_PUBLISHED) e sem aulas (409 MODULE_NOT_EMPTY). 404 MODULE_NOT_FOUND. Dono ou admin; curso alheio em rascunho 404 COURSE_NOT_FOUND, visível 403; arquivado 409 COURSE_ARCHIVED; 400 VALIDATION; 401."
+          }
+        },
+        {
+          "name": "Create lesson",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/courses/{{courseId}}/modules/{{moduleId}}/lessons",
+            "description": "201 { id, moduleId, title, body, durationMinutes, position } (vai para o fim do módulo); soma 1 ao lessonCount do curso. Título 3 a 120, body Markdown até 32 KiB, durationMinutes 1 a 600. 404 MODULE_NOT_FOUND. Dono ou admin; curso alheio em rascunho 404 COURSE_NOT_FOUND, visível 403; arquivado 409 COURSE_ARCHIVED; 400 VALIDATION; 401.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Chaves\",\n  \"body\": \"# Chaves\\n\\nPK e SK.\",\n  \"durationMinutes\": 12\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Update lesson",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/courses/{{courseId}}/modules/{{moduleId}}/lessons/{{lessonId}}",
+            "description": "200 com a aula. Pelo menos um campo. 404 LESSON_NOT_FOUND. Dono ou admin; curso alheio em rascunho 404 COURSE_NOT_FOUND, visível 403; arquivado 409 COURSE_ARCHIVED; 400 VALIDATION; 401.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"durationMinutes\": 15\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete lesson",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/courses/{{courseId}}/modules/{{moduleId}}/lessons/{{lessonId}}",
+            "description": "204; tira 1 do lessonCount. Só em rascunho (409 COURSE_PUBLISHED). 404 LESSON_NOT_FOUND. Dono ou admin; curso alheio em rascunho 404 COURSE_NOT_FOUND, visível 403; arquivado 409 COURSE_ARCHIVED; 400 VALIDATION; 401."
           }
         }
       ]

@@ -2,6 +2,11 @@ import KSUID from 'ksuid';
 
 import type { Account } from '@application/entities/Account';
 import { KSUID_PATTERN } from '@application/entities/ksuid';
+import { CourseArchived } from '@application/errors/CourseArchived';
+import { CourseNotFound } from '@application/errors/CourseNotFound';
+import { CoursePublished } from '@application/errors/CoursePublished';
+import { Forbidden } from '@application/errors/Forbidden';
+import { Permissions, permissions } from '@application/security/permissions';
 
 export const courseStatuses = {
   Draft: 'DRAFT',
@@ -40,6 +45,37 @@ export class Course {
 
   isVisibleToEveryone(): boolean {
     return this.status !== courseStatuses.Draft;
+  }
+
+  // The owner or an admin may change a course; anyone else learns only what
+  // they could see (Q95), and an archived course takes no change (Q206).
+  requireEditableBy(callerId: Account.Id, callerRole: Account.Role): void {
+    const mayEdit =
+      this.isOwnedBy(callerId) ||
+      Permissions.allows(callerRole, permissions.CoursesUpdateAny);
+
+    if (!mayEdit) {
+      throw this.isVisibleToEveryone() ? new Forbidden() : new CourseNotFound();
+    }
+
+    if (this.status === courseStatuses.Archived) {
+      throw new CourseArchived();
+    }
+  }
+
+  static requireFound(course: Course | null): Course {
+    if (!course) {
+      throw new CourseNotFound();
+    }
+
+    return course;
+  }
+
+  // Only a draft loses modules and lessons (Q24, Q223).
+  requireDraft(): void {
+    if (this.status !== courseStatuses.Draft) {
+      throw new CoursePublished();
+    }
   }
 
   static isId(value: unknown): value is Course.Id {

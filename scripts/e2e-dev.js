@@ -169,9 +169,34 @@ async function cleanUp() {
       '--projection-expression',
       'PK, SK',
     );
+    const coursePartitions = courses.flatMap((course) => {
+      const { Items: inside = [] } = aws(
+        'dynamodb',
+        'query',
+        '--table-name',
+        table,
+        '--key-condition-expression',
+        'PK = :pk',
+        '--expression-attribute-values',
+        JSON.stringify({ ':pk': course.PK }),
+        '--projection-expression',
+        'PK, SK, #type, id',
+        '--expression-attribute-names',
+        JSON.stringify({ '#type': 'type' }),
+      );
+
+      return inside.flatMap((item) =>
+        item.type?.S === 'Lesson'
+          ? [
+              { PK: item.PK, SK: item.SK },
+              { PK: { S: `LESSON#${item.id.S}` }, SK: { S: 'CONTENT' } },
+            ]
+          : [{ PK: item.PK, SK: item.SK }],
+      );
+    });
     const keys = [
       ...Items,
-      ...courses,
+      ...coursePartitions,
       { PK: { S: `EMAIL_CLAIM#${email}` }, SK: { S: `EMAIL_CLAIM#${email}` } },
     ];
 
@@ -363,6 +388,155 @@ try {
       body: afterRename.body,
     },
     200,
+  );
+
+  console.log('\n# Modules, lessons and outline (1.14)');
+  const outlinePath = `/courses/${courseId}/outline`;
+  const addModule = async (title) =>
+    (
+      await call('POST', `/courses/${courseId}/modules`, {
+        token: instructorToken,
+        body: { title },
+      })
+    ).body;
+  const addLesson = async (moduleId, title) =>
+    call('POST', `/courses/${courseId}/modules/${moduleId}/lessons`, {
+      token: instructorToken,
+      body: { title, body: `# ${title}`, durationMinutes: 10 },
+    });
+  const moduleA = await addModule('Module A');
+  const moduleB = await addModule('Module B');
+  const firstLesson = await addLesson(moduleA.id, 'Lesson 1');
+  check('the instructor adds a lesson', firstLesson, 201);
+  const l1 = firstLesson.body.id;
+  const l2 = (await addLesson(moduleA.id, 'Lesson 2')).body.id;
+  const l3 = (await addLesson(moduleB.id, 'Lesson 3')).body.id;
+  const shape = (outline) =>
+    JSON.stringify(
+      outline?.modules?.map((m) => [m.id, m.lessons.map((l) => l.id)]),
+    );
+  const before = await call('GET', outlinePath, { token: instructorToken });
+  check(
+    'the outline lists modules and lessons in order',
+    {
+      status:
+        shape(before.body) ===
+        JSON.stringify([
+          [moduleA.id, [l1, l2]],
+          [moduleB.id, [l3]],
+        ])
+          ? 200
+          : 500,
+      body: before.body,
+    },
+    200,
+  );
+  const newOrder = [
+    { id: moduleB.id, lessonIds: [l3, l1] },
+    { id: moduleA.id, lessonIds: [l2] },
+  ];
+  check(
+    'the instructor reorders, moving a lesson to another module',
+    await call('PUT', outlinePath, {
+      token: instructorToken,
+      body: { modules: newOrder },
+    }),
+    200,
+  );
+  const after = await call('GET', outlinePath, { token: instructorToken });
+  check(
+    'the outline keeps the new order',
+    {
+      status:
+        shape(after.body) ===
+        JSON.stringify([
+          [moduleB.id, [l3, l1]],
+          [moduleA.id, [l2]],
+        ])
+          ? 200
+          : 500,
+      body: after.body,
+    },
+    200,
+  );
+  check(
+    'an outline that leaves a lesson out is refused',
+    await call('PUT', outlinePath, {
+      token: instructorToken,
+      body: {
+        modules: [
+          { id: moduleB.id, lessonIds: [l3] },
+          { id: moduleA.id, lessonIds: [l2] },
+        ],
+      },
+    }),
+    400,
+    'OUTLINE_MISMATCH',
+  );
+  check(
+    'another instructor does not see the outline of the draft',
+    await call('GET', outlinePath, { token: otherToken }),
+    404,
+    'COURSE_NOT_FOUND',
+  );
+  check(
+    'a student cannot add a module',
+    await call('POST', `/courses/${courseId}/modules`, {
+      token: learnerToken,
+      body: { title: 'Nope' },
+    }),
+    403,
+    'FORBIDDEN',
+  );
+  check(
+    'a lesson body over 32 KiB is refused',
+    await call('POST', `/courses/${courseId}/modules/${moduleA.id}/lessons`, {
+      token: instructorToken,
+      body: {
+        title: 'Too long',
+        body: 'a'.repeat(33 * 1024),
+        durationMinutes: 5,
+      },
+    }),
+    400,
+    'VALIDATION',
+  );
+  check(
+    'a module with lessons cannot be deleted',
+    await call('DELETE', `/courses/${courseId}/modules/${moduleA.id}`, {
+      token: instructorToken,
+    }),
+    409,
+    'MODULE_NOT_EMPTY',
+  );
+  check(
+    'the instructor deletes a lesson of the draft',
+    await call(
+      'DELETE',
+      `/courses/${courseId}/modules/${moduleA.id}/lessons/${l2}`,
+      {
+        token: instructorToken,
+      },
+    ),
+    204,
+  );
+  const listed = await call('GET', '/instructor/courses', {
+    token: instructorToken,
+  });
+  const count = listed.body?.items?.find(
+    (item) => item.id === courseId,
+  )?.lessonCount;
+  check(
+    'the course counts the lessons left',
+    { status: count === 2 ? 200 : 500, body: listed.body },
+    200,
+  );
+  check(
+    'an empty module of the draft can be deleted',
+    await call('DELETE', `/courses/${courseId}/modules/${moduleA.id}`, {
+      token: instructorToken,
+    }),
+    204,
   );
 
   console.log('\n# Disable and enable (Q193, Q212)');

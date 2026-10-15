@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.13 na `develop` e em `dev`, conferidas por `pnpm e2e:dev` (Q218, 26 checagens); próxima: 1.14 (módulos e aulas: CRUD e reordenação), ainda sem sub-imp**.
+Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.13 na `develop` e em `dev`, conferidas por `pnpm e2e:dev` (Q218, 26 checagens); 1.14 (módulos e aulas) com 1.14.a a 1.14.f prontas e em PR para a `develop`; falta o `e2e:dev` depois do deploy**.
 
 ## Como retomar
 
@@ -275,6 +275,16 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q219 | Admin edita qualquer curso | `courses:update` (instrutor, só os seus; posse no use case) e `courses:update-any` (só admin). O use case libera dono ou `update-any`; senão, a Q95. Arquivado: `409` também para o admin. |
 | Q220 | Forma dos ids | `Account.Id`/`Course.Id` = `string & { readonly __brand }` no namespace da entidade; `Account.toId`/`Course.toId` (estáticos) validam o formato KSUID (27 caracteres base62) e lançam se não servir. Ids de rota passam pelo Zod com a mesma regra: malformado → `400 VALIDATION`; bem-formado inexistente → `404`. Ids do banco e do token recebem o brand no `*Item` e no `ResolveCallerUseCase`. |
 | Q221 | Sub-imp da 1.13 | a. brands e migração do `Account.Id`; b. `Course`, `CourseItem`, `CourseRepository`; c. `CreateCourse`, `UpdateCourse`, `ListCoursesByInstructorQuery`; d. propagação do nome no `PATCH /me`; e. controllers, rotas, permissões, Yaak e `e2e:dev` estendido. Sem ação IAM nova. |
+| Q222 | Rotas de módulos e aulas | `POST /courses/{id}/modules`, `PATCH`/`DELETE /courses/{id}/modules/{mid}`, `POST /courses/{id}/modules/{mid}/lessons`, `PATCH`/`DELETE /courses/{id}/modules/{mid}/lessons/{lid}`, `PUT /courses/{id}/outline` (`{ modules: [{ id, lessonIds }] }`, aulas podem trocar de módulo) e `GET /courses/{id}/outline` (dono ou admin, qualquer status; a 1.15 reaproveita a query). O módulo vai na rota da aula porque está na chave. |
+| Q223 | O que pode ser apagado | Rascunho: apaga módulo e aula. Publicado: `409 COURSE_PUBLISHED` ao apagar (Q24); criar, editar e reordenar liberados. Arquivado: `409 COURSE_ARCHIVED` em toda escrita (Q206). Módulo com aulas: `409 MODULE_NOT_EMPTY`. |
+| Q224 | Forma da `UnitOfWork` | Os repositórios montam as operações (`createOperations(lesson)`, `addLessonsOperation(courseId, n)`), cada uma com o erro de domínio da sua condição; a `UnitOfWork` (nova por execução, Q87) junta, envia, repete em conflito e traduz o `CancellationReasons` pelo índice. |
+| Q225 | Posições | Inteiros; novo vai para o fim (maior + 1, lendo a partição do curso); o `PUT /outline` regrava 0..n; empate de criações simultâneas desempata pelo id. |
+| Q226 | Campos e limites | Módulo: título 3 a 120. Aula: título 3 a 120, `body` Markdown até 32 KiB em bytes UTF-8 (vazio permitido), `durationMinutes` inteiro 1 a 600. Criar aula grava sumário, conteúdo e `lessonCount` numa transação. |
+| Q227 | Tamanho do outline | Só os itens que mudam de lugar são gravados (posição: 1 operação; troca de módulo: 2); passou de 100 → `400 OUTLINE_TOO_LARGE`. A Q86 fica para quando aparecer. |
+| Q228 | Permissões de módulos e aulas | As do curso: `courses:update` (dono) e `courses:update-any` (admin), com a Q95. |
+| Q229 | O que o outline aceita | Só reordena: o corpo traz exatamente os módulos e aulas existentes, cada um uma vez; senão `400 OUTLINE_MISMATCH`. Cada item que muda vai com `attribute_exists`; se sumiu no meio, `409 CONFLICT`. |
+| Q230 | Regra de edição na entidade | `course.requireEditableBy(callerId, callerRole)` lança `CourseNotFound`, `Forbidden` ou `CourseArchived` (dono ou `update-any`, Q95, arquivado); o `UpdateCourseUseCase` passa a usá-la. |
+| Q231 | Sub-imp da 1.14 | a. `UnitOfWork` (commit, retry em conflito, tradução) e `requireEditableBy`; b. `Module`, `Lesson`, itens, repositórios de operações e query do outline; c. use cases de módulo; d. use cases de aula com `lessonCount`; e. outline `GET` e `PUT`; f. nove rotas, Yaak e `e2e:dev`. Sem ação IAM nova. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)

@@ -1,0 +1,51 @@
+import type { z } from 'zod';
+
+import { Controller } from '@application/contracts/Controller';
+import {
+  outlineBodySchema,
+  outlineParamsSchema,
+} from '@application/controllers/outline/outlineSchemas';
+import type { CourseOutlineQuery } from '@application/queries/CourseOutlineQuery';
+import { permissions } from '@application/security/permissions';
+import type { ReorderOutlineUseCase } from '@application/usecases/outline/ReorderOutlineUseCase';
+
+export class ReorderOutlineController extends Controller<
+  'private',
+  CourseOutlineQuery.Outline
+> {
+  protected override readonly permission = permissions.CoursesUpdate;
+
+  protected override readonly paramsSchema = outlineParamsSchema;
+
+  protected override readonly bodySchema = outlineBodySchema;
+
+  constructor(private readonly useCase: ReorderOutlineUseCase) {
+    super();
+  }
+
+  protected async handle({
+    accountId,
+    role,
+    params,
+    body,
+  }: Controller.Request<
+    'private',
+    ReorderOutlineController.Body,
+    ReorderOutlineController.Params
+  >): Promise<Controller.Response<CourseOutlineQuery.Outline>> {
+    const result = await this.useCase.execute({
+      callerId: accountId,
+      callerRole: role,
+      courseId: params.id,
+      modules: body.modules,
+    });
+
+    return { statusCode: 200, body: result };
+  }
+}
+
+export namespace ReorderOutlineController {
+  export type Params = z.infer<typeof outlineParamsSchema>;
+
+  export type Body = z.infer<typeof outlineBodySchema>;
+}

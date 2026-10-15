@@ -200,7 +200,8 @@ Tabela `MainTable` com `PK` e `SK`, e dois índices globais sobrecarregados, `GS
 
 - Toda escrita que toca mais de um item é uma transação (Q71).
 - A troca de papel atualiza `role` e `GSI1PK` da Account, só com a conta `ACTIVE` e ainda no papel de origem, e grava o `RoleChange` na mesma transação (Q173); o primeiro admin tem `changedBy = bootstrap`.
-- A posição de módulos e aulas é atributo; o padrão 6 ordena no código. Mover aula de módulo é delete + put em transação.
+- A posição de módulos e aulas é atributo; o padrão 6 ordena no código (posição, depois id). Mover aula de módulo é delete + put do sumário em transação; o conteúdo (`LESSON#l`/`CONTENT`) não muda de chave. O `PUT /outline` grava só o que muda e recusa mais de 100 operações (Q227).
+- Criar aula grava sumário, conteúdo e `ADD lessonCount` no curso numa transação; apagar faz o inverso, só em rascunho (Q24, Q223). Toda escrita em módulo ou aula leva a condição "curso no mesmo status" na transação.
 - Criações usam `attribute_not_exists(PK)` (aula concluída uma vez, uma avaliação por par, unicidade do e-mail).
 - O e-mail é normalizado (trim, minúsculas) antes de entrar em qualquer chave.
 - A troca de status (desativar, reativar) exige o chamador admin `ACTIVE` por `ConditionCheck` na mesma transação (Q194); desativar remove a `session` na mesma escrita (Q212).
