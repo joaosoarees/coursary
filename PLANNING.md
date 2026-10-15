@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-14. Estado: **Épico 0 fechado; próximo passo: criar as tarefas (tracker e histórias das fases)**. As skills de Cognito e TypeScript já existem.
+Última atualização: 2026-10-14. Estado: **Épico 0 fechado; quadro criado; próxima: história 1.0 (discutir as sub-imp antes de codar)**. As skills de Cognito e TypeScript já existem.
 
 ## Como retomar
 
@@ -89,7 +89,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | # | Decisão | Resposta |
 |---|---|---|
 | Q27 | Escopo e fases (história PLAN-1) | Todas as propostas das novas skills entram, nas fases abaixo. |
-| Q28 | Onde ficam as tarefas | Em uma página do claude.ai com banco de dados próprio, no formato do Jira (épico → história → sub-imp). Não no Jira nem no Notion. |
+| Q28 | Onde ficam as tarefas | Em uma página do claude.ai com banco de dados próprio, no formato do Jira (épico → história → sub-imp). Não no Jira nem no Notion. Quadro: https://claude.ai/artifact/2Q6GjZ5cPXusYktJJw4LNj (privado). |
 | Q29 | Template das tarefas | História = entrega visível pela API. Sub-imp por camada (`*Item` e chaves, repositório/query, use case, controller e rota, IaC, testes). Campos: fase, padrões de acesso, skills (uma label por skill), critério de pronto. Toda sub-imp tem a seção "Achados sobre a skill". Um épico por fase, com vínculos "bloqueia" entre histórias. |
 | Q30 | Padrões do projeto | Viram a história PLAN-6 (decisão) e a história 1.0 (esqueleto do repositório, primeira da fase 1). |
 | Q31 | Registro | Toda decisão fechada entra neste arquivo em um commit pequeno. |
