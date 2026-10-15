@@ -1,9 +1,12 @@
+import { Account } from '@application/entities/Account';
 import { AuthUserExists } from '@application/errors/AuthUserExists';
 import { AuthUserNotPending } from '@application/errors/AuthUserNotPending';
 import { InvalidCode } from '@application/errors/InvalidCode';
 import type { AuthGateway } from '@application/gateways/AuthGateway';
 
 export class FakeAuthGateway implements AuthGateway {
+  static readonly unknownAccount = Account.toId('0'.repeat(27));
+
   readonly users = new Map<string, 'UNCONFIRMED' | 'CONFIRMED'>();
   readonly signUps: AuthGateway.SignUpParams[] = [];
   readonly codes = new Map<string, string>();
@@ -15,8 +18,8 @@ export class FakeAuthGateway implements AuthGateway {
   readonly resetCodesSent: string[] = [];
   readonly passwordResets: AuthGateway.ResetPasswordParams[] = [];
   readonly refreshTokensIssued: string[] = [];
-  readonly accountIds = new Map<string, string>();
-  readonly accountIdsByRefreshToken = new Map<string, string>();
+  readonly accountIds = new Map<string, Account.Id>();
+  readonly accountIdsByRefreshToken = new Map<string, Account.Id>();
 
   signUp(params: AuthGateway.SignUpParams): Promise<AuthGateway.SignUpResult> {
     this.signUps.push(params);
@@ -84,20 +87,21 @@ export class FakeAuthGateway implements AuthGateway {
   signIn({ email }: AuthGateway.SignInParams): Promise<AuthGateway.Issued> {
     return this.issueTokens(
       `refresh-${email}-${String(this.refreshTokensIssued.length)}`,
-      this.accountIds.get(email) ?? 'unknown',
+      this.accountIds.get(email) ?? FakeAuthGateway.unknownAccount,
     );
   }
 
   refreshTokens(refreshToken: string): Promise<AuthGateway.Issued> {
     return this.issueTokens(
       `${refreshToken}+`,
-      this.accountIdsByRefreshToken.get(refreshToken) ?? 'unknown',
+      this.accountIdsByRefreshToken.get(refreshToken) ??
+        FakeAuthGateway.unknownAccount,
     );
   }
 
   private issueTokens(
     refreshToken: string,
-    accountId: string,
+    accountId: Account.Id,
   ): Promise<AuthGateway.Issued> {
     if (this.failOnTokens) {
       return Promise.reject(this.failOnTokens);

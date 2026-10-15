@@ -155,8 +155,23 @@ async function cleanUp() {
       '--projection-expression',
       'PK, SK',
     );
+    const { Items: courses = [] } = aws(
+      'dynamodb',
+      'query',
+      '--table-name',
+      table,
+      '--index-name',
+      'GSI1',
+      '--key-condition-expression',
+      'GSI1PK = :pk',
+      '--expression-attribute-values',
+      JSON.stringify({ ':pk': { S: `INSTRUCTOR#${accountId}` } }),
+      '--projection-expression',
+      'PK, SK',
+    );
     const keys = [
       ...Items,
+      ...courses,
       { PK: { S: `EMAIL_CLAIM#${email}` }, SK: { S: `EMAIL_CLAIM#${email}` } },
     ];
 
@@ -176,6 +191,8 @@ async function cleanUp() {
 try {
   const student = await createAccount('student');
   const admin = await createAccount('admin');
+  const otherInstructor = await createAccount('instructor');
+  const plainStudent = await createAccount('learner');
   aws(
     'lambda',
     'invoke',
@@ -257,6 +274,93 @@ try {
     {
       status: history.body?.items?.length === 1 ? 200 : 500,
       body: history.body,
+    },
+    200,
+  );
+
+  console.log('\n# Courses (1.13)');
+  const instructorToken = third.accessToken;
+  await call('PUT', `/admin/users/${otherInstructor.accountId}/role`, {
+    token: adminTokens.accessToken,
+    body: { role: 'instructor' },
+  });
+  const otherToken = (await signIn(otherInstructor)).body.accessToken;
+  const learnerToken = (await signIn(plainStudent)).body.accessToken;
+  const created_ = await call('POST', '/courses', {
+    token: instructorToken,
+    body: { title: 'E2E course', description: 'Created by e2e:dev' },
+  });
+  check('an instructor creates a course', created_, 201);
+  const courseId = created_.body?.id;
+  check(
+    'the instructor edits the course',
+    await call('PATCH', `/courses/${courseId}`, {
+      token: instructorToken,
+      body: { title: 'E2E course, edited' },
+    }),
+    200,
+  );
+  const mine = await call('GET', '/instructor/courses', {
+    token: instructorToken,
+  });
+  check(
+    'the course is in the instructor list',
+    {
+      status: mine.body?.items?.some((item) => item.id === courseId)
+        ? 200
+        : 500,
+      body: mine.body,
+    },
+    200,
+  );
+  check(
+    'another instructor does not see the draft',
+    await call('PATCH', `/courses/${courseId}`, {
+      token: otherToken,
+      body: { title: 'Not mine' },
+    }),
+    404,
+    'COURSE_NOT_FOUND',
+  );
+  check(
+    'an admin edits any course',
+    await call('PATCH', `/courses/${courseId}`, {
+      token: adminTokens.accessToken,
+      body: { description: 'Edited by an admin' },
+    }),
+    200,
+  );
+  check(
+    'a student cannot create a course',
+    await call('POST', '/courses', {
+      token: learnerToken,
+      body: { title: 'Not allowed' },
+    }),
+    403,
+    'FORBIDDEN',
+  );
+  check(
+    'a malformed course id is a validation error',
+    await call('PATCH', '/courses/nope', {
+      token: instructorToken,
+      body: { title: 'X Y Z' },
+    }),
+    400,
+    'VALIDATION',
+  );
+  await call('PATCH', '/me', {
+    token: instructorToken,
+    body: { name: 'E2E renamed' },
+  });
+  const afterRename = await call('PATCH', `/courses/${courseId}`, {
+    token: instructorToken,
+    body: { description: 'After rename' },
+  });
+  check(
+    'renaming the instructor renames the course copy',
+    {
+      status: afterRename.body?.instructorName === 'E2E renamed' ? 200 : 500,
+      body: afterRename.body,
     },
     200,
   );

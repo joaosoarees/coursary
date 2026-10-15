@@ -221,9 +221,10 @@ describe('CognitoAuthGateway.isUserConfirmed', () => {
   });
 });
 
+const internalId = '2Wk1zbcTqPHEuTXoAXZRDcjYKKK';
 const accessToken = [
   'header',
-  Buffer.from(JSON.stringify({ internalId: 'acc-1', jti: 'jti-1' })).toString(
+  Buffer.from(JSON.stringify({ internalId, jti: 'jti-1' })).toString(
     'base64url',
   ),
   'signature',
@@ -263,7 +264,7 @@ describe('CognitoAuthGateway.signIn', () => {
     });
     expect(tokens).toEqual({
       tokens: { accessToken, refreshToken: 'refresh', expiresIn: 3600 },
-      accountId: 'acc-1',
+      accountId: internalId,
       accessJti: 'jti-1',
     });
   });
@@ -321,7 +322,7 @@ describe('CognitoAuthGateway.refreshTokens', () => {
     });
     expect(tokens).toEqual({
       tokens: { accessToken, refreshToken: 'refresh', expiresIn: 3600 },
-      accountId: 'acc-1',
+      accountId: internalId,
       accessJti: 'jti-1',
     });
   });

@@ -85,3 +85,13 @@ describe('Account.hashRefreshToken', () => {
     expect(Account.hashRefreshToken('token-2')).not.toBe(hash);
   });
 });
+
+describe('Account.toId', () => {
+  it('should brand a KSUID and refuse anything else', () => {
+    expect(Account.toId('2Wk1zbcTqPHEuTXoAXZRDcjYKKK')).toBe(
+      '2Wk1zbcTqPHEuTXoAXZRDcjYKKK',
+    );
+    expect(Account.isId('acc-1')).toBe(false);
+    expect(() => Account.toId('acc-1')).toThrow(TypeError);
+  });
+});

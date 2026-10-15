@@ -1,4 +1,4 @@
-import { accountStatuses } from '@application/entities/Account';
+import { type Account, accountStatuses } from '@application/entities/Account';
 import { AccountNotActive } from '@application/errors/AccountNotActive';
 import { AccountNotFound } from '@application/errors/AccountNotFound';
 import { CannotChangeOwnStatus } from '@application/errors/CannotChangeOwnStatus';
@@ -52,8 +52,8 @@ export namespace ChangeStatusUseCase {
     typeof accountStatuses.Active | typeof accountStatuses.Disabled;
 
   export interface Input {
-    callerId: string;
-    accountId: string;
+    callerId: Account.Id;
+    accountId: Account.Id;
     status: Status;
   }
 

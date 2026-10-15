@@ -2,12 +2,12 @@ import KSUID from 'ksuid';
 
 import type { Account } from '@application/entities/Account';
 
-export const BOOTSTRAP_ACTOR = 'bootstrap';
+export const BOOTSTRAP_ACTOR = 'bootstrap' as const;
 
 export class RoleChange {
   readonly id: string;
-  readonly accountId: string;
-  readonly changedBy: string;
+  readonly accountId: Account.Id;
+  readonly changedBy: RoleChange.Actor;
   readonly fromRole: Account.Role;
   readonly toRole: Account.Role;
   readonly changedAt: Date;
@@ -28,7 +28,7 @@ export class RoleChange {
   }: {
     account: Account;
     toRole: Account.Role;
-    changedBy: string;
+    changedBy: RoleChange.Actor;
   }): RoleChange {
     return new RoleChange({
       id: KSUID.randomSync().string,
@@ -42,10 +42,12 @@ export class RoleChange {
 }
 
 export namespace RoleChange {
+  export type Actor = Account.Id | typeof BOOTSTRAP_ACTOR;
+
   export interface Attributes {
     id: string;
-    accountId: string;
-    changedBy: string;
+    accountId: Account.Id;
+    changedBy: Actor;
     fromRole: Account.Role;
     toRole: Account.Role;
     changedAt: Date;

@@ -1,0 +1,93 @@
+import type { Account } from '@application/entities/Account';
+import { Course } from '@application/entities/Course';
+
+export class CourseItem {
+  static readonly type = 'Course';
+
+  private readonly keys: CourseItem.Keys;
+
+  constructor(private readonly attributes: CourseItem.Attributes) {
+    this.keys = {
+      PK: CourseItem.getPK(attributes.id),
+      SK: CourseItem.getSK(attributes.id),
+      GSI1PK: CourseItem.getGSI1PK(attributes.instructorId),
+      GSI1SK: CourseItem.getGSI1SK(attributes.id),
+    };
+  }
+
+  toItem(): CourseItem.ItemType {
+    return { ...this.keys, ...this.attributes, type: CourseItem.type };
+  }
+
+  static fromEntity(course: Course): CourseItem {
+    return new CourseItem({
+      id: course.id,
+      instructorId: course.instructorId,
+      instructorName: course.instructorName,
+      title: course.title,
+      description: course.description,
+      status: course.status,
+      lessonCount: course.lessonCount,
+      enrollmentCount: course.enrollmentCount,
+      ...(course.publishedAt
+        ? { publishedAt: course.publishedAt.toISOString() }
+        : {}),
+      createdAt: course.createdAt.toISOString(),
+    });
+  }
+
+  static toEntity(item: CourseItem.ItemType): Course {
+    return new Course({
+      id: item.id,
+      instructorId: item.instructorId,
+      instructorName: item.instructorName,
+      title: item.title,
+      description: item.description,
+      status: item.status,
+      lessonCount: item.lessonCount,
+      enrollmentCount: item.enrollmentCount,
+      publishedAt: item.publishedAt ? new Date(item.publishedAt) : undefined,
+      createdAt: new Date(item.createdAt),
+    });
+  }
+
+  static getPK(id: Course.Id): CourseItem.Keys['PK'] {
+    return `COURSE#${id}`;
+  }
+
+  static getSK(id: Course.Id): CourseItem.Keys['SK'] {
+    return `COURSE#${id}`;
+  }
+
+  static getGSI1PK(instructorId: Account.Id): CourseItem.Keys['GSI1PK'] {
+    return `INSTRUCTOR#${instructorId}`;
+  }
+
+  static getGSI1SK(id: Course.Id): CourseItem.Keys['GSI1SK'] {
+    return `COURSE#${id}`;
+  }
+}
+
+export namespace CourseItem {
+  export interface Keys {
+    PK: `COURSE#${string}`;
+    SK: `COURSE#${string}`;
+    GSI1PK: `INSTRUCTOR#${string}`;
+    GSI1SK: `COURSE#${string}`;
+  }
+
+  export interface Attributes {
+    id: Course.Id;
+    instructorId: Account.Id;
+    instructorName: string;
+    title: string;
+    description: string;
+    status: Course.Status;
+    lessonCount: number;
+    enrollmentCount: number;
+    publishedAt?: string;
+    createdAt: string;
+  }
+
+  export type ItemType = Keys & Attributes & { type: 'Course' };
+}

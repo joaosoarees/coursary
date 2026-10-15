@@ -47,8 +47,8 @@ export class ChangeRoleUseCase {
 
 export namespace ChangeRoleUseCase {
   export interface Input {
-    callerId: string;
-    accountId: string;
+    callerId: Account.Id;
+    accountId: Account.Id;
     role: Account.Role;
   }
 

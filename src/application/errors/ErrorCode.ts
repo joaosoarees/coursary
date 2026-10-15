@@ -16,6 +16,8 @@ export const ErrorCode = {
   CannotChangeOwnRole: 'CANNOT_CHANGE_OWN_ROLE',
   CannotChangeOwnStatus: 'CANNOT_CHANGE_OWN_STATUS',
   Conflict: 'CONFLICT',
+  CourseArchived: 'COURSE_ARCHIVED',
+  CourseNotFound: 'COURSE_NOT_FOUND',
   TooManyRequests: 'TOO_MANY_REQUESTS',
 } as const;
 

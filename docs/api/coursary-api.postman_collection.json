@@ -16,6 +16,10 @@
     {
       "key": "accountId",
       "value": "<id da conta alvo>"
+    },
+    {
+      "key": "courseId",
+      "value": "<id do curso>"
     }
   ],
   "item": [
@@ -342,6 +346,79 @@
             ],
             "url": "{{baseUrl}}/admin/users/{{accountId}}/enable",
             "description": "200 { id, status: ACTIVE }; já ativa: 200 sem gravar; a sessão antiga não volta, é preciso entrar de novo. 403 CANNOT_CHANGE_OWN_STATUS, 404 ACCOUNT_NOT_FOUND, 409 ACCOUNT_NOT_ACTIVE (conta pendente), 409 CONFLICT (a conta mudou no meio), 403 FORBIDDEN (sem a permissão users:change-status ou deixou de ser admin ativo), 401."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Courses",
+      "item": [
+        {
+          "name": "Create course",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"DynamoDB na prática\",\n  \"description\": \"Chaves, índices e transações.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/courses",
+            "description": "201 com o curso (DRAFT, instructorName copiado da conta). Título 3 a 120, descrição até 5.000 (opcional). 400 VALIDATION, 401, 403 FORBIDDEN (sem courses:create: aluno)."
+          }
+        },
+        {
+          "name": "Update course",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"DynamoDB na prática, 2ª edição\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/courses/{{courseId}}",
+            "description": "200 com o curso inteiro. Título e/ou descrição. Dono ou admin. Curso alheio em rascunho 404 COURSE_NOT_FOUND, publicado ou arquivado 403 FORBIDDEN; arquivado 409 COURSE_ARCHIVED (também para o admin). 400 VALIDATION (id malformado ou corpo vazio), 401."
+          }
+        },
+        {
+          "name": "My courses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/instructor/courses?limit=20",
+            "description": "200 { items: [{ id, title, status, lessonCount, enrollmentCount, publishedAt, createdAt }], nextCursor }, mais recentes primeiro, todos os status. 400 INVALID_CURSOR, 401, 403 FORBIDDEN (aluno)."
           }
         }
       ]

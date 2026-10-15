@@ -276,6 +276,20 @@ Cada achado:
 - **O que aconteceu**: depois de `AdminConfirmSignUp`, um `ConfirmSignUp` com código errado respondeu `CodeMismatchException` (o 400 `INVALID_CODE` da rota), não `NotAuthorizedException`; o reparo da Q139 só roda com o código certo. O teste automatizado contra `dev` ativa a conta escrevendo o que a confirmação escreve.
 - **Sugestão**: dizer que a exceção depende do código enviado, e mostrar como testar contra um ambiente real sem caixa de e-mail (simulador do SES, `AdminConfirmSignUp`).
 
+### `typescript-branded-types` (1.13)
+
+#### 2026-10-15 · 1.13.a · acerto
+- **A skill diz**: o brand é `string & { readonly __brand }`, concedido só por uma função que valida antes.
+- **O que aconteceu**: `Account.Id` e `Course.Id` com `toId` (formato KSUID) e `isId` como guard. Trocar só o tipo do campo deu 4 erros: um id com brand entra onde se espera `string`, então a proteção só aparece quando as assinaturas (repositórios, use cases, `Controller.Request`) pedem o brand. Id de rota malformado vira 400 no Zod, e id de token malformado vira 401, sem leitura no banco.
+- **Sugestão**: dizer que a migração começa pelas assinaturas que recebem o id, não pelo campo da entidade.
+
+### `dynamodb-denormalization` (1.13)
+
+#### 2026-10-15 · 1.13.d · acerto
+- **A skill diz**: cada cópia tem um dono que a mantém, e quem escreve sabe onde estão as cópias.
+- **O que aconteceu**: o `instructorName` do curso é mantido pelo `PATCH /me`, que acha os cursos pelo `GSI1` (`INSTRUCTOR#<id>`, só `PK` e `SK` projetados) e grava em transações de até 100 `Update` condicionados ao `instructorId`. Repetir o mesmo nome completa o que uma falha deixou.
+- **Sugestão**: nenhuma.
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |

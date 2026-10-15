@@ -119,7 +119,7 @@ export class DynamoAccountRepository implements AccountRepository {
   }
 
   async findById(
-    id: string,
+    id: Account.Id,
     { consistent = true }: AccountRepository.ReadOptions = {},
   ): Promise<Account | null> {
     const item = await this.getLive<AccountItem.ItemType>(
@@ -179,7 +179,7 @@ export class DynamoAccountRepository implements AccountRepository {
     await dynamoClient.send(command);
   }
 
-  async updateName(id: string, name: string): Promise<Account> {
+  async updateName(id: Account.Id, name: string): Promise<Account> {
     const command = new UpdateCommand({
       TableName: this.config.mainTableName,
       Key: { PK: AccountItem.getPK(id), SK: AccountItem.getSK(id) },
@@ -243,7 +243,7 @@ export class DynamoAccountRepository implements AccountRepository {
   }
 
   async saveSession(
-    accountId: string,
+    accountId: Account.Id,
     session: Account.Session,
   ): Promise<void> {
     const command = new UpdateCommand({
@@ -262,7 +262,7 @@ export class DynamoAccountRepository implements AccountRepository {
   }
 
   async rotateSession(
-    accountId: string,
+    accountId: Account.Id,
     previousRefreshTokenHash: string,
     session: Account.Session,
   ): Promise<void> {
@@ -292,7 +292,7 @@ export class DynamoAccountRepository implements AccountRepository {
     }
   }
 
-  async clearSession(accountId: string): Promise<void> {
+  async clearSession(accountId: Account.Id): Promise<void> {
     const command = new UpdateCommand({
       TableName: this.config.mainTableName,
       Key: {
@@ -309,7 +309,7 @@ export class DynamoAccountRepository implements AccountRepository {
 
   async changeStatus(
     { accountId, fromStatus, toStatus }: AccountRepository.StatusChange,
-    adminCallerId: string,
+    adminCallerId: Account.Id,
   ): Promise<void> {
     const command = new TransactWriteCommand({
       TransactItems: [
@@ -342,7 +342,7 @@ export class DynamoAccountRepository implements AccountRepository {
     await DynamoAccountRepository.sendAdminChange(command, 1);
   }
 
-  private adminCallerCheck(adminCallerId: string) {
+  private adminCallerCheck(adminCallerId: Account.Id) {
     return {
       ConditionCheck: {
         TableName: this.config.mainTableName,

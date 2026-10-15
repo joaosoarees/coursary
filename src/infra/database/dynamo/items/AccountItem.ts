@@ -50,11 +50,11 @@ export class AccountItem {
     });
   }
 
-  static getPK(id: string): AccountItem.Keys['PK'] {
+  static getPK(id: Account.Id): AccountItem.Keys['PK'] {
     return `ACCOUNT#${id}`;
   }
 
-  static getSK(id: string): AccountItem.Keys['SK'] {
+  static getSK(id: Account.Id): AccountItem.Keys['SK'] {
     return `ACCOUNT#${id}`;
   }
 
@@ -62,7 +62,7 @@ export class AccountItem {
     return `ROLE#${role}`;
   }
 
-  static getGSI1SK(id: string): AccountItem.Keys['GSI1SK'] {
+  static getGSI1SK(id: Account.Id): AccountItem.Keys['GSI1SK'] {
     return `ACCOUNT#${id}`;
   }
 
@@ -70,7 +70,7 @@ export class AccountItem {
     return `EMAIL#${email}`;
   }
 
-  static getGSI2SK(id: string): AccountItem.Keys['GSI2SK'] {
+  static getGSI2SK(id: Account.Id): AccountItem.Keys['GSI2SK'] {
     return `ACCOUNT#${id}`;
   }
 }
@@ -86,7 +86,7 @@ export namespace AccountItem {
   }
 
   export interface Attributes {
-    id: string;
+    id: Account.Id;
     externalId?: string;
     email: string;
     name: string;

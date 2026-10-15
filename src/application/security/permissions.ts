@@ -5,11 +5,19 @@ export const permissions = {
   UsersRead: 'users:read',
   UsersChangeRole: 'users:change-role',
   UsersChangeStatus: 'users:change-status',
+  CoursesCreate: 'courses:create',
+  CoursesUpdate: 'courses:update',
+  CoursesUpdateAny: 'courses:update-any',
+  CoursesListOwn: 'courses:list-own',
 } as const;
 
 export type Permission = (typeof permissions)[keyof typeof permissions];
 
-const instructorPermissions = [] as const satisfies readonly Permission[];
+const instructorPermissions = [
+  permissions.CoursesCreate,
+  permissions.CoursesUpdate,
+  permissions.CoursesListOwn,
+] as const satisfies readonly Permission[];
 
 export const rolePermissions = {
   [accountRoles.Student]: [],
@@ -20,6 +28,7 @@ export const rolePermissions = {
     permissions.UsersRead,
     permissions.UsersChangeRole,
     permissions.UsersChangeStatus,
+    permissions.CoursesUpdateAny,
   ],
 } as const satisfies Record<Account.Role, readonly Permission[]>;
 

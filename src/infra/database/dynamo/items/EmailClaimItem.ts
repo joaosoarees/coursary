@@ -44,7 +44,7 @@ export namespace EmailClaimItem {
 
   export interface Attributes {
     email: string;
-    accountId: string;
+    accountId: Account.Id;
     expiresAt?: number;
   }
 

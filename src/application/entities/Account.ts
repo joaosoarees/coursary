@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 
 import KSUID from 'ksuid';
 
+import { KSUID_PATTERN } from '@application/entities/ksuid';
 import { AccountUnavailable } from '@application/errors/AccountUnavailable';
 
 export const accountRoles = {
@@ -17,7 +18,7 @@ export const accountStatuses = {
 } as const;
 
 export class Account {
-  readonly id: string;
+  readonly id: Account.Id;
   externalId: string | undefined;
   readonly email: string;
   name: string;
@@ -41,6 +42,18 @@ export class Account {
     this.status = accountStatuses.Active;
   }
 
+  static isId(value: unknown): value is Account.Id {
+    return typeof value === 'string' && KSUID_PATTERN.test(value);
+  }
+
+  static toId(value: string): Account.Id {
+    if (!Account.isId(value)) {
+      throw new TypeError(`Not an account id: ${JSON.stringify(value)}`);
+    }
+
+    return value;
+  }
+
   static hashRefreshToken(refreshToken: string): string {
     return createHash('sha256').update(refreshToken).digest('hex');
   }
@@ -59,7 +72,7 @@ export class Account {
 
   static create({ name, email }: { name: string; email: string }): Account {
     return new Account({
-      id: KSUID.randomSync().string,
+      id: Account.toId(KSUID.randomSync().string),
       externalId: undefined,
       email,
       name: name.trim(),
@@ -72,12 +85,14 @@ export class Account {
 }
 
 export namespace Account {
+  export type Id = string & { readonly __brand: 'Account.Id' };
+
   export type Role = (typeof accountRoles)[keyof typeof accountRoles];
 
   export type Status = (typeof accountStatuses)[keyof typeof accountStatuses];
 
   export interface Attributes {
-    id: string;
+    id: Id;
     externalId: string | undefined;
     email: string;
     name: string;

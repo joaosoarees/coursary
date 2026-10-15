@@ -1,4 +1,5 @@
 import type { Page } from '@application/contracts/Page';
+import type { Account } from '@application/entities/Account';
 import type { RoleChangeSummary } from '@application/queries/RoleChangeSummary';
 
 export interface ListRoleChangesQuery {
@@ -7,7 +8,7 @@ export interface ListRoleChangesQuery {
 
 export namespace ListRoleChangesQuery {
   export interface Input {
-    accountId: string;
+    accountId: Account.Id;
     page: Page.Options;
   }
 }

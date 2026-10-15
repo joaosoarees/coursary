@@ -9,7 +9,7 @@ export interface AccountRepository {
   saveExternalId(account: Account): Promise<void>;
 
   findById(
-    id: string,
+    id: Account.Id,
     options?: AccountRepository.ReadOptions,
   ): Promise<Account | null>;
 
@@ -17,26 +17,26 @@ export interface AccountRepository {
 
   activate(account: Account): Promise<void>;
 
-  updateName(id: string, name: string): Promise<Account>;
+  updateName(id: Account.Id, name: string): Promise<Account>;
 
   changeRole(
     roleChange: RoleChange,
     options?: AccountRepository.ChangeRoleOptions,
   ): Promise<void>;
 
-  saveSession(accountId: string, session: Account.Session): Promise<void>;
+  saveSession(accountId: Account.Id, session: Account.Session): Promise<void>;
 
   rotateSession(
-    accountId: string,
+    accountId: Account.Id,
     previousRefreshTokenHash: string,
     session: Account.Session,
   ): Promise<void>;
 
-  clearSession(accountId: string): Promise<void>;
+  clearSession(accountId: Account.Id): Promise<void>;
 
   changeStatus(
     statusChange: AccountRepository.StatusChange,
-    adminCallerId: string,
+    adminCallerId: Account.Id,
   ): Promise<void>;
 }
 
@@ -46,11 +46,11 @@ export namespace AccountRepository {
   }
 
   export interface ChangeRoleOptions {
-    adminCallerId?: string;
+    adminCallerId?: Account.Id;
   }
 
   export interface StatusChange {
-    accountId: string;
+    accountId: Account.Id;
     fromStatus: Account.Status;
     toStatus: Account.Status;
   }

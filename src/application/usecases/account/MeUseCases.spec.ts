@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
+import { InMemoryCourseRepository } from '@tests/fakes/InMemoryCourseRepository';
+import { anAccountId } from '@tests/ids';
 
 import { Account, accountStatuses } from '@application/entities/Account';
 import { AccountUnavailable } from '@application/errors/AccountUnavailable';
@@ -43,14 +45,17 @@ describe('GetMeUseCase', () => {
 
   it('should refuse an account that no longer exists', async () => {
     await expect(
-      new GetMeUseCase(accounts).execute({ accountId: 'missing' }),
+      new GetMeUseCase(accounts).execute({ accountId: anAccountId() }),
     ).rejects.toBeInstanceOf(AccountUnavailable);
   });
 });
 
 describe('UpdateMeUseCase', () => {
   it('should rename the account and return the new profile', async () => {
-    const profile = await new UpdateMeUseCase(accounts).execute({
+    const profile = await new UpdateMeUseCase(
+      accounts,
+      new InMemoryCourseRepository(),
+    ).execute({
       accountId: account.id,
       name: 'Ana Souza',
     });
@@ -63,7 +68,7 @@ describe('UpdateMeUseCase', () => {
     account.status = accountStatuses.Disabled;
 
     await expect(
-      new UpdateMeUseCase(accounts).execute({
+      new UpdateMeUseCase(accounts, new InMemoryCourseRepository()).execute({
         accountId: account.id,
         name: 'Ana Souza',
       }),

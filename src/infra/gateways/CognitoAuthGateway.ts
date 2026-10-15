@@ -27,6 +27,7 @@ import {
   UserNotFoundException,
 } from '@aws-sdk/client-cognito-identity-provider';
 
+import { Account } from '@application/entities/Account';
 import { AccountUnavailable } from '@application/errors/AccountUnavailable';
 import { AuthUserExists } from '@application/errors/AuthUserExists';
 import { AuthUserNotPending } from '@application/errors/AuthUserNotPending';
@@ -346,7 +347,7 @@ export class CognitoAuthGateway implements AuthGateway {
         refreshToken: result.RefreshToken,
         expiresIn: result.ExpiresIn,
       },
-      accountId: internalId,
+      accountId: Account.toId(internalId),
       accessJti: jti,
     };
   }

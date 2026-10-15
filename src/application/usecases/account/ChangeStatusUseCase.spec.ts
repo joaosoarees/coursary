@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
+import { anAccountId } from '@tests/ids';
 
 import { Account, accountRoles } from '@application/entities/Account';
 import { AccountNotActive } from '@application/errors/AccountNotActive';
@@ -77,7 +78,9 @@ describe('ChangeStatusUseCase', () => {
   });
 
   it('should refuse an account that does not exist', async () => {
-    await expect(disable('missing')).rejects.toBeInstanceOf(AccountNotFound);
+    await expect(disable(anAccountId())).rejects.toBeInstanceOf(
+      AccountNotFound,
+    );
   });
 
   it('should refuse a pending account', async () => {
