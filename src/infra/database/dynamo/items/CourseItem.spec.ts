@@ -35,4 +35,18 @@ describe('CourseItem', () => {
       course,
     );
   });
+
+  it('should put only a published course in the catalog index', () => {
+    const course = Course.create({ instructor, title: 'T', description: '' });
+
+    expect(CourseItem.fromEntity(course).toItem()).not.toHaveProperty('GSI2PK');
+
+    course.status = 'PUBLISHED';
+    course.publishedAt = new Date('2026-10-15T12:00:00.000Z');
+
+    expect(CourseItem.fromEntity(course).toItem()).toMatchObject({
+      GSI2PK: 'CATALOG',
+      GSI2SK: `2026-10-15T12:00:00.000Z#${course.id}`,
+    });
+  });
 });

@@ -21,6 +21,8 @@ export const ErrorCode = {
   ModuleNotFound: 'MODULE_NOT_FOUND',
   LessonNotFound: 'LESSON_NOT_FOUND',
   CoursePublished: 'COURSE_PUBLISHED',
+  CourseEmpty: 'COURSE_EMPTY',
+  CourseNotPublished: 'COURSE_NOT_PUBLISHED',
   ModuleNotEmpty: 'MODULE_NOT_EMPTY',
   OutlineMismatch: 'OUTLINE_MISMATCH',
   OutlineTooLarge: 'OUTLINE_TOO_LARGE',

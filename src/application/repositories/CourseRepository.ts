@@ -9,6 +9,10 @@ export interface CourseRepository {
 
   update(id: Course.Id, changes: Course.Changes): Promise<Course>;
 
+  publish(id: Course.Id, publishedAt: Date): Promise<Course>;
+
+  archive(id: Course.Id): Promise<Course>;
+
   updateInstructorName(instructorId: Account.Id, name: string): Promise<void>;
 
   // Holds the transaction to the status the caller checked.

@@ -302,6 +302,18 @@ Cada achado:
 - **O que aconteceu**: o `PUT /outline` grava só o que mudou de lugar (reposicionar = 1 operação, trocar de módulo = 2) e recusa mais de 100. Um fake em memória que devolvia uma operação por movimentação escondeu o limite: um fake que conta operações precisa devolver as mesmas que o repositório real.
 - **Sugestão**: nenhuma.
 
+### `dynamodb-secondary-indexes` (1.15)
+
+#### 2026-10-15 · 1.15.a · acerto
+- **A skill diz** (`changing-indexes.md`): suba o índice antes do código que o consulta; o deploy termina antes do backfill.
+- **O que aconteceu**: o `GSI2` foi num PR e num deploy próprios (Q236). O deploy terminou com o índice em `CREATING`, e ele só ficou `ACTIVE` uns 20 minutos depois, numa tabela com poucas dezenas de itens. O PR do código só abriu depois. As contas, que já gravavam `GSI2PK = EMAIL#…`, entraram no índice sem efeito.
+- **Sugestão**: registrar que até uma tabela pequena leva dezenas de minutos para criar um índice, para ninguém ler o `CREATING` como erro.
+
+#### 2026-10-15 · 1.15.b · acerto
+- **A skill diz**: um índice esparso só recebe os itens com os atributos de chave.
+- **O que aconteceu**: só o curso publicado tem `GSI2PK`/`GSI2SK` (`CATALOG` / `<publishedAt>#<id>`), gravados no mesmo `Update` do status; arquivar remove as duas chaves. Com `ReturnValuesOnConditionCheckFailure: 'ALL_OLD'`, o item antigo diz por que a condição falhou (sem item, arquivado, rascunho sem aula). O `Item` do erro vem como `AttributeValue` (`status.S`) mesmo pelo DocumentClient.
+- **Sugestão**: avisar que o `Item` de `ConditionalCheckFailedException` não é desserializado pelo DocumentClient.
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |

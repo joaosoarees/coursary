@@ -1,10 +1,12 @@
-import { UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { describe, expect, test } from 'vitest';
 
 import { Account } from '@application/entities/Account';
 import { Course } from '@application/entities/Course';
 import { CourseArchived } from '@application/errors/CourseArchived';
+import { CourseEmpty } from '@application/errors/CourseEmpty';
 import { CourseNotFound } from '@application/errors/CourseNotFound';
+import { CourseNotPublished } from '@application/errors/CourseNotPublished';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { DynamoCourseRepository } from '@infra/database/dynamo/repositories/DynamoCourseRepository';
 import { AppConfig } from '@shared/config/AppConfig';
@@ -94,5 +96,49 @@ describe('DynamoCourseRepository', () => {
     expect((await repository.findById(biaCourse.id))?.instructorName).toBe(
       'Bia',
     );
+  });
+
+  const catalogEntry = async (course: Course) => {
+    const { Item } = await dynamoClient.send(
+      new GetCommand({
+        TableName: config.mainTableName,
+        Key: { PK: `COURSE#${course.id}`, SK: `COURSE#${course.id}` },
+        ConsistentRead: true,
+      }),
+    );
+
+    return Item?.GSI2PK as string | undefined;
+  };
+
+  test('publishes a course with lessons into the catalog and archives it out', async () => {
+    const course = await newCourse();
+    await dynamoClient.send(
+      new UpdateCommand({
+        TableName: config.mainTableName,
+        Key: { PK: `COURSE#${course.id}`, SK: `COURSE#${course.id}` },
+        UpdateExpression: 'SET lessonCount = :one',
+        ExpressionAttributeValues: { ':one': 1 },
+      }),
+    );
+
+    const published = await repository.publish(course.id, new Date());
+    expect(published.status).toBe('PUBLISHED');
+    expect(await catalogEntry(course)).toBe('CATALOG');
+
+    const archived = await repository.archive(course.id);
+    expect(archived.status).toBe('ARCHIVED');
+    expect(await catalogEntry(course)).toBeUndefined();
+  });
+
+  test('refuses to publish a course without lessons, and to archive a draft', async () => {
+    const course = await newCourse();
+
+    await expect(
+      repository.publish(course.id, new Date()),
+    ).rejects.toBeInstanceOf(CourseEmpty);
+    await expect(repository.archive(course.id)).rejects.toBeInstanceOf(
+      CourseNotPublished,
+    );
+    expect(await catalogEntry(course)).toBeUndefined();
   });
 });

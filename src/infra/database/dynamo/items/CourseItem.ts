@@ -1,5 +1,5 @@
 import type { Account } from '@application/entities/Account';
-import { Course } from '@application/entities/Course';
+import { Course, courseStatuses } from '@application/entities/Course';
 
 export class CourseItem {
   static readonly type = 'Course';
@@ -7,11 +7,20 @@ export class CourseItem {
   private readonly keys: CourseItem.Keys;
 
   constructor(private readonly attributes: CourseItem.Attributes) {
+    const published =
+      attributes.status === courseStatuses.Published && attributes.publishedAt;
     this.keys = {
       PK: CourseItem.getPK(attributes.id),
       SK: CourseItem.getSK(attributes.id),
       GSI1PK: CourseItem.getGSI1PK(attributes.instructorId),
       GSI1SK: CourseItem.getGSI1SK(attributes.id),
+      // Only a published course is in the catalog (a sparse index, Q10).
+      ...(published
+        ? {
+            GSI2PK: CourseItem.getGSI2PK(),
+            GSI2SK: CourseItem.getGSI2SK(published, attributes.id),
+          }
+        : {}),
     };
   }
 
@@ -66,6 +75,14 @@ export class CourseItem {
   static getGSI1SK(id: Course.Id): CourseItem.Keys['GSI1SK'] {
     return `COURSE#${id}`;
   }
+
+  static getGSI2PK(): 'CATALOG' {
+    return 'CATALOG';
+  }
+
+  static getGSI2SK(publishedAt: string, id: Course.Id): `${string}#${string}` {
+    return `${publishedAt}#${id}`;
+  }
 }
 
 export namespace CourseItem {
@@ -74,6 +91,8 @@ export namespace CourseItem {
     SK: `COURSE#${string}`;
     GSI1PK: `INSTRUCTOR#${string}`;
     GSI1SK: `COURSE#${string}`;
+    GSI2PK?: 'CATALOG';
+    GSI2SK?: `${string}#${string}`;
   }
 
   export interface Attributes {

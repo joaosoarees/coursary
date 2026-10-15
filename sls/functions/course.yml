@@ -21,3 +21,19 @@ listMyCourses:
         method: GET
         path: /instructor/courses
         authorizer: CognitoAuthorizer
+
+publishCourse:
+  handler: src/main/functions/course/publishCourse.handler
+  events:
+    - httpApi:
+        method: POST
+        path: /courses/{id}/publish
+        authorizer: CognitoAuthorizer
+
+archiveCourse:
+  handler: src/main/functions/course/archiveCourse.handler
+  events:
+    - httpApi:
+        method: POST
+        path: /courses/{id}/archive
+        authorizer: CognitoAuthorizer

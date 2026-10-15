@@ -539,6 +539,117 @@ try {
     204,
   );
 
+  console.log('\n# Publish, catalog and course page (1.15)');
+  const inCatalog = async (id) => {
+    let cursor;
+
+    for (let page = 0; page < 20; page++) {
+      const query = cursor ? `?cursor=${cursor}` : '';
+      const { body } = await call('GET', `/courses${query}`);
+
+      if (body?.items?.some((item) => item.id === id)) {
+        return true;
+      }
+
+      cursor = body?.nextCursor;
+
+      if (!cursor) {
+        return false;
+      }
+    }
+
+    return false;
+  };
+  const emptyCourse = (
+    await call('POST', '/courses', {
+      token: instructorToken,
+      body: { title: 'E2E empty course' },
+    })
+  ).body;
+  check(
+    'a course without lessons cannot be published',
+    await call('POST', `/courses/${emptyCourse.id}/publish`, {
+      token: instructorToken,
+    }),
+    409,
+    'COURSE_EMPTY',
+  );
+  check(
+    'a student cannot publish',
+    await call('POST', `/courses/${courseId}/publish`, { token: learnerToken }),
+    403,
+    'FORBIDDEN',
+  );
+  check(
+    'the instructor publishes the course',
+    await call('POST', `/courses/${courseId}/publish`, {
+      token: instructorToken,
+    }),
+    200,
+  );
+  check(
+    'the published course is in the public catalog',
+    { status: (await inCatalog(courseId)) ? 200 : 500 },
+    200,
+  );
+  const publicPage = await call('GET', `/courses/${courseId}`);
+  check('anyone opens the published course page', publicPage, 200);
+  check(
+    'the public page lists the outline without lesson bodies',
+    {
+      status:
+        publicPage.body?.modules?.length === 1 &&
+        !JSON.stringify(publicPage.body).includes('# Lesson')
+          ? 200
+          : 500,
+      body: publicPage.body,
+    },
+    200,
+  );
+  check(
+    'a draft has no public page',
+    await call('GET', `/courses/${emptyCourse.id}`),
+    404,
+    'COURSE_NOT_FOUND',
+  );
+  check(
+    'a lesson of a published course cannot be deleted',
+    await call(
+      'DELETE',
+      `/courses/${courseId}/modules/${moduleB.id}/lessons/${l3}`,
+      { token: instructorToken },
+    ),
+    409,
+    'COURSE_PUBLISHED',
+  );
+  check(
+    'the instructor archives the course',
+    await call('POST', `/courses/${courseId}/archive`, {
+      token: instructorToken,
+    }),
+    200,
+  );
+  check(
+    'the archived course leaves the catalog',
+    { status: (await inCatalog(courseId)) ? 500 : 200 },
+    200,
+  );
+  check(
+    'the archived course has no public page',
+    await call('GET', `/courses/${courseId}`),
+    404,
+    'COURSE_NOT_FOUND',
+  );
+  check(
+    'an archived course cannot be edited',
+    await call('PATCH', `/courses/${courseId}`, {
+      token: instructorToken,
+      body: { title: 'After archive' },
+    }),
+    409,
+    'COURSE_ARCHIVED',
+  );
+
   console.log('\n# Disable and enable (Q193, Q212)');
   check(
     'admin disables the student',
