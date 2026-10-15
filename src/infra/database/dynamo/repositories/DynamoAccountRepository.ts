@@ -19,6 +19,7 @@ import { dynamoClient } from '@infra/clients/dynamoClient';
 import { AccountItem } from '@infra/database/dynamo/items/AccountItem';
 import { EmailClaimItem } from '@infra/database/dynamo/items/EmailClaimItem';
 import { RoleChangeItem } from '@infra/database/dynamo/items/RoleChangeItem';
+import { nowInSeconds } from '@infra/database/dynamo/ttl';
 import { AppConfig } from '@shared/config/AppConfig';
 
 export class DynamoAccountRepository implements AccountRepository {
@@ -46,7 +47,7 @@ export class DynamoAccountRepository implements AccountRepository {
               ConditionExpression:
                 'attribute_not_exists(PK) OR expiresAt < :now',
               ExpressionAttributeValues: {
-                ':now': DynamoAccountRepository.nowInSeconds(),
+                ':now': nowInSeconds(),
               },
             },
           },
@@ -280,18 +281,10 @@ export class DynamoAccountRepository implements AccountRepository {
     const { Item } = await dynamoClient.send(getCommand);
     const item = Item as TItem | undefined;
 
-    if (
-      !item ||
-      (item.expiresAt &&
-        item.expiresAt < DynamoAccountRepository.nowInSeconds())
-    ) {
+    if (!item || (item.expiresAt && item.expiresAt < nowInSeconds())) {
       return null;
     }
 
     return item;
-  }
-
-  private static nowInSeconds(): number {
-    return Math.floor(Date.now() / 1000);
   }
 }

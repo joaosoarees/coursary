@@ -34,7 +34,7 @@ export class DynamoPagination<TKeySchema extends z.ZodObject> {
     return result.data;
   }
 
-  async queryPage<TItem extends Key>(
+  async queryPage<TItem extends object>(
     input: Omit<QueryCommandInput, 'Limit' | 'ExclusiveStartKey'>,
     { limit, cursor }: Page.Options,
   ): Promise<Page<TItem>> {
@@ -74,11 +74,12 @@ export class DynamoPagination<TKeySchema extends z.ZodObject> {
     };
   }
 
-  private pickKey(item: Key | undefined): Key {
+  private pickKey(item: object | undefined): Key {
     const attributes = Object.keys(this.keySchema.shape);
+    const values = new Map(Object.entries(item ?? {}));
 
     return Object.fromEntries(
-      attributes.map((attribute) => [attribute, item?.[attribute]]),
+      attributes.map((attribute) => [attribute, values.get(attribute)]),
     );
   }
 }
