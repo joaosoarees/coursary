@@ -71,7 +71,7 @@ Resources:
                   - s3:GetObject
                   - s3:PutObject
                   - s3:DeleteObject
-                Resource: !Sub arn:aws:s3:::${DeploymentBucketName}/coursary-api/*
+                Resource: !Sub arn:aws:s3:::${DeploymentBucketName}/serverless/coursary-api/*
               - Effect: Allow
                 Action: ssm:GetParameter
                 Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/serverless-framework/*
