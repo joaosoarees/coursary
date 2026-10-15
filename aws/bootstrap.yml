@@ -33,7 +33,7 @@ Resources:
               StringEquals:
                 token.actions.githubusercontent.com:aud: sts.amazonaws.com
               StringLike:
-                token.actions.githubusercontent.com:sub: repo:joaosoarees/coursary-api:*
+                token.actions.githubusercontent.com:sub: repo:joaosoarees@59843125/coursary-api@1416276221:*
 
   DeployerRole:
     Type: AWS::IAM::Role

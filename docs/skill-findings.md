@@ -67,3 +67,4 @@ Cada achado:
 | URL ou cookie assinado do CloudFront para arquivos privados | Q54, Q69 |
 | Vídeo em streaming adaptativo (HLS, MediaConvert) | Q54 |
 | Permissões mínimas para deployar com o Serverless (role de deploy por projeto) | Q118 |
+| Role da AWS para GitHub Actions por OIDC (inclui o `sub` imutável `repo:<owner>@<id>/<repo>@<id>:…`, padrão neste repositório) | 1.1.c |
