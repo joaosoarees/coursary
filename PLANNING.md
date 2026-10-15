@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.14 na `develop` e em `dev`, conferidas por `pnpm e2e:dev` (Q218, 38 checagens); próxima: 1.15 (publicar, arquivar, catálogo, curso completo), ainda sem sub-imp**.
+Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.14 na `develop` e em `dev`, conferidas por `pnpm e2e:dev` (Q218, 38 checagens); 1.15 (publicar, arquivar, catálogo, curso completo) em grilling, decisões Q232 a Q236**.
 
 ## Como retomar
 
@@ -285,6 +285,11 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q229 | O que o outline aceita | Só reordena: o corpo traz exatamente os módulos e aulas existentes, cada um uma vez; senão `400 OUTLINE_MISMATCH`. Cada item que muda vai com `attribute_exists`; se sumiu no meio, `409 CONFLICT`. |
 | Q230 | Regra de edição na entidade | `course.requireEditableBy(callerId, callerRole)` lança `CourseNotFound`, `Forbidden` ou `CourseArchived` (dono ou `update-any`, Q95, arquivado); o `UpdateCourseUseCase` passa a usá-la. |
 | Q231 | Sub-imp da 1.14 | a. `UnitOfWork` (commit, retry em conflito, tradução) e `requireEditableBy`; b. `Module`, `Lesson`, itens, repositórios de operações e query do outline; c. use cases de módulo; d. use cases de aula com `lessonCount`; e. outline `GET` e `PUT`; f. nove rotas, Yaak e `e2e:dev`. Sem ação IAM nova. |
+| Q232 | Publicar | Só `DRAFT` → `PUBLISHED`, com `lessonCount > 0` na condição da escrita (senão `409 COURSE_EMPTY`); já publicado → 200 sem gravar; arquivado → `409 COURSE_ARCHIVED`. O mesmo `Update` grava `publishedAt` e as chaves do `GSI2`. |
+| Q233 | Arquivar e permissões | Só `PUBLISHED` → `ARCHIVED` (rascunho → `409 COURSE_NOT_PUBLISHED`; apagar rascunho é da fase 3); remove `GSI2PK`/`GSI2SK`. Ações `courses:publish` e `courses:archive` do instrutor (o admin herda); posse por `course.requireEditableBy` (admin por `courses:update-any`). O `courses:archive-any` da Q93 deixa de existir. |
+| Q234 | Catálogo | `GET /courses`, público: publicados, mais recentes primeiro, paginado (20/100), cursor preso a `CATALOG`; item `{ id, title, instructorName, lessonCount, enrollmentCount, publishedAt }`. Capa na fase 4, busca no Algolia (fase 3). |
+| Q235 | Página pública do curso | `GET /courses/{id}`, público: curso, módulos e sumários das aulas (sem corpo) numa `Query` da partição `COURSE#c` (padrão 6); só publicado (rascunho e arquivado → 404; arquivado para matriculados entra com as matrículas). |
+| Q236 | Ordem dos deploys | PR só com o `GSI2` (projeção `ALL`) e `Query` em `…/index/GSI2`, mergeado, deployado e conferido `ACTIVE` antes do PR do código (Q192). As contas já gravam `GSI2PK = EMAIL#…` e entram no índice, sem efeito. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
