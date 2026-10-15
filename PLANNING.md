@@ -165,6 +165,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q109 | `tsconfig` | `strict`, `noUncheckedIndexedAccess`, `noImplicitOverride`; `target: es2024`; `module: preserve` + `moduleResolution: bundler`; `rootDir`, `noEmit`, aliases do foodiary; `experimentalDecorators` + `emitDecoratorMetadata`. Sem `exactOptionalPropertyTypes`. |
 | Q110 | Commits e hooks | commitlint com `config-conventional`, mensagens em inglês, escopos opcionais e livres. lefthook: commitlint no `commit-msg`; Prettier e ESLint nos arquivos alterados no `pre-commit`. Typecheck e testes só no CI. |
 | Q111 | CI | GitHub Actions em PR e push na `main`: `pnpm install --frozen-lockfile`, `lint`, `typecheck`, `test` (DynamoDB Local como serviço), `sls package` de `dev`. Deploy manual da máquina local por enquanto. |
+| Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
 
@@ -192,7 +193,27 @@ Histórias de decisão, antes de qualquer código. Ordem de dependência: PLAN-2
 | PLAN-5 | Registro de achados e critério de pronto das fases | | Feita (Q99 a Q101) |
 | PLAN-6 | Padrões do projeto: gerenciador de pacotes, versões fixadas, monorepo ou não, tsconfig, ESLint e Prettier, commitlint e hooks, scripts, CI, documentação | `typescript-*`, `vitest-setup`, `serverless-typescript-esbuild` (nenhuma skill cobre lint ou commitlint: anotar como skill que falta) | Feita (Q102 a Q111) |
 
-As histórias das fases 1 a 6 só são criadas depois da PLAN-3.
+## Fase 1: histórias
+
+Quebra aprovada em 2026-10-14, seguindo a Q112. Cada história ganha as sub-imp quando começa, discutidas antes de codar.
+
+| História | Entrega visível | O que nasce nela |
+|---|---|---|
+| 1.0 | Commit fora do padrão é recusado; CI verde | Ferramental da PLAN-6, teste do TypeScript 7 (Q104) |
+| 1.1 | Deploy de `dev` com a tabela | `MainTable` só com `PK`/`SK` |
+| 1.2 | `GET /health` responde | `Controller`, adapter HTTP, erros, config por função |
+| 1.3 | Sign-up | Container com `bind`, `UnitOfWork` (`Put` condicional), `Saga`, TTL, user pool, DynamoDB Local nos testes e no CI |
+| 1.4 | Confirmação e reenvio de código | `Update` na `UnitOfWork` |
+| 1.5 | Sign-in e refresh | `GSI2` (e-mail), trigger de pre token |
+| 1.6 | Recuperação de senha | Trigger de custom message |
+| 1.7 | `GET` e `PATCH /me` | |
+| 1.8 | Script do primeiro admin | Módulo de permissões |
+| 1.9 | Rotas de admin | `GSI1` (papel), `RoleChange` |
+| 1.10 | Curso: criar, editar, meus cursos | |
+| 1.11 | Módulos e aulas: CRUD e reordenação | `Delete` na `UnitOfWork` |
+| 1.12 | Publicar, arquivar, catálogo, curso completo | Índice esparso do catálogo |
+
+Fora da fase 1 de propósito: abrir aula (fase 2, precisa de matrícula) e apagar curso em rascunho (fase 3, usa o job com fila da Q86). As fases 2 a 7 ficam só com título até começarem.
 
 ## Próximas perguntas (lista original de 2026-10-12)
 
