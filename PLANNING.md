@@ -224,6 +224,10 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q168 | Adapter das rotas privadas | Como no foodiary: um `lambdaHttpAdapter` só, que lê o `authorizer` do evento (`accountId` `null` nas públicas, `string` nas privadas); com `authorizer` e sem a claim `internalId`, `401 INVALID_SESSION`. `params` e `queryParams` entram com a primeira rota que os usar (Q112). Sub-imp da 1.8: authorizer e adapter; `updateName`; `GetMe` e `UpdateMe`; rotas, roles e Yaak; chamadas reais. |
 | Q169 | Authorizer nas rotas (revê a Q163) | `CognitoAuthorizer` no provider e `authorizer: CognitoAuthorizer` na rota, sem escopo. O API Gateway aceita o id token, mas ele não tem a claim `internalId` (só o access token recebe, Q145), então o adapter o recusa com `401 INVALID_SESSION` (Q164). |
 | Q170 | Role compartilhada (revê a Q97) | Uma role no provider com as permissões de todas as rotas em `sls/config/role.yml` (tabela: `GetItem`, `PutItem`, `UpdateItem`, `DeleteItem`; pool: `AdminGetUser`, `AdminDeleteUser`, `AdminUserGlobalSignOut`), com o boundary. Os dois triggers do pool têm role própria (`preTokenGeneration` com `GetItem`, `customMessage` só com logs): na role compartilhada, que cita o pool, formariam ciclo pool → trigger → role → pool. |
+| Q171 | Módulo de permissões | Sai da 1.9 e entra na 1.10, com a primeira rota que pergunta por uma ação (Q112). A 1.9 entrega só o primeiro admin. |
+| Q172 | Script do primeiro admin | Lambda interna `promoteAdmin`, sem rota HTTP, chamada por `sls invoke -f promoteAdmin --stage <stage> --data '{"email": "…"}'`; reaproveita repositório, entidade e chaves, e a 1.10 reaproveita a mesma operação. |
+| Q173 | O que a promoção grava | Numa transação: a conta com `role = admin` e `GSI1PK = ROLE#admin`, só se `ACTIVE`; e um `RoleChange` (`ACCOUNT#a` / `ROLE_CHANGE#<id>`) com de/para, quando e `changedBy = bootstrap`. Já admin: nada é gravado. |
+| Q174 | Primeiro admin de `dev` | A conta de teste do autor; o papel chega ao token no próximo sign-in ou refresh (até 1 h, Q20). Comando no README para a `prod`. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
@@ -267,8 +271,8 @@ Quebra aprovada em 2026-10-14, seguindo a Q112. Em 2026-10-15 o sign-up foi divi
 | 1.6 | Sign-in e refresh | Trigger de pre token (o `GSI2` saiu pela Q144) |
 | 1.7 | Recuperação de senha | SES e trigger de custom message |
 | 1.8 | `GET` e `PATCH /me` | |
-| 1.9 | Script do primeiro admin | Módulo de permissões |
-| 1.10 | Rotas de admin | `GSI1` (papel), `RoleChange` |
+| 1.9 | Script do primeiro admin | `RoleChange`, troca de papel numa transação (o módulo de permissões passou para a 1.10, Q171) |
+| 1.10 | Rotas de admin | `GSI1` (papel), módulo de permissões (Q171) |
 | 1.11 | Curso: criar, editar, meus cursos | |
 | 1.12 | Módulos e aulas: CRUD e reordenação | `UnitOfWork` (primeira transação entre repositórios: aula + contador do curso) |
 | 1.13 | Publicar, arquivar, catálogo, curso completo | Índice esparso do catálogo |
