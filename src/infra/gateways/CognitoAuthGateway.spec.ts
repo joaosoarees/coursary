@@ -224,9 +224,16 @@ describe('CognitoAuthGateway.isUserConfirmed', () => {
   });
 });
 
+const accessToken = [
+  'header',
+  Buffer.from(JSON.stringify({ internalId: 'acc-1', jti: 'jti-1' })).toString(
+    'base64url',
+  ),
+  'signature',
+].join('.');
 const authResult = {
   AuthenticationResult: {
-    AccessToken: 'access',
+    AccessToken: accessToken,
     IdToken: 'id',
     RefreshToken: 'refresh',
     ExpiresIn: 3600,
@@ -258,9 +265,9 @@ describe('CognitoAuthGateway.signIn', () => {
       },
     });
     expect(tokens).toEqual({
-      accessToken: 'access',
-      refreshToken: 'refresh',
-      expiresIn: 3600,
+      tokens: { accessToken, refreshToken: 'refresh', expiresIn: 3600 },
+      accountId: 'acc-1',
+      accessJti: 'jti-1',
     });
   });
 
@@ -316,9 +323,9 @@ describe('CognitoAuthGateway.refreshTokens', () => {
       RefreshToken: 'old-refresh',
     });
     expect(tokens).toEqual({
-      accessToken: 'access',
-      refreshToken: 'refresh',
-      expiresIn: 3600,
+      tokens: { accessToken, refreshToken: 'refresh', expiresIn: 3600 },
+      accountId: 'acc-1',
+      accessJti: 'jti-1',
     });
   });
 

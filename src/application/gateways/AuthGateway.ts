@@ -1,9 +1,9 @@
 export interface AuthGateway {
   signUp(params: AuthGateway.SignUpParams): Promise<AuthGateway.SignUpResult>;
 
-  signIn(params: AuthGateway.SignInParams): Promise<AuthGateway.Tokens>;
+  signIn(params: AuthGateway.SignInParams): Promise<AuthGateway.Issued>;
 
-  refreshTokens(refreshToken: string): Promise<AuthGateway.Tokens>;
+  refreshTokens(refreshToken: string): Promise<AuthGateway.Issued>;
 
   forgotPassword(email: string): Promise<void>;
 
@@ -52,6 +52,12 @@ export namespace AuthGateway {
     accessToken: string;
     refreshToken: string;
     expiresIn: number;
+  }
+
+  export interface Issued {
+    tokens: Tokens;
+    accountId: string;
+    accessJti: string;
   }
 
   export type DeleteUnconfirmedResult = 'deleted' | 'not-found' | 'confirmed';
