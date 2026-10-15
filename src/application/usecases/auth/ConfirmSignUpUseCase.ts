@@ -31,7 +31,9 @@ export class ConfirmSignUpUseCase {
         throw error;
       }
 
-      if (!(await this.authGateway.isUserConfirmed(account.email))) {
+      const confirmed = await this.authGateway.isUserConfirmed(account.email);
+
+      if (!confirmed) {
         throw new InvalidCode();
       }
 

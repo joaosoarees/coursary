@@ -24,10 +24,9 @@ export class RefreshTokensController extends Controller<
   protected async handle(
     request: Controller.Request<'public', RefreshTokensController.Body>,
   ): Promise<Controller.Response<AuthGateway.Tokens>> {
-    return {
-      statusCode: 200,
-      body: await this.refreshTokens.execute(request.body),
-    };
+    const tokens = await this.refreshTokens.execute(request.body);
+
+    return { statusCode: 200, body: tokens };
   }
 }
 

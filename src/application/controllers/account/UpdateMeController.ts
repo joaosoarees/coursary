@@ -21,10 +21,9 @@ export class UpdateMeController extends Controller<'private', AccountProfile> {
   }: Controller.Request<'private', UpdateMeController.Body>): Promise<
     Controller.Response<AccountProfile>
   > {
-    return {
-      statusCode: 200,
-      body: await this.updateMe.execute({ accountId, name: body.name }),
-    };
+    const profile = await this.updateMe.execute({ accountId, name: body.name });
+
+    return { statusCode: 200, body: profile };
   }
 }
 
