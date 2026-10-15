@@ -4,6 +4,9 @@ Resources:
     Properties:
       TableName: ${self:service}-${sls:stage}-MainTable
       BillingMode: PAY_PER_REQUEST
+      TimeToLiveSpecification:
+        AttributeName: expiresAt
+        Enabled: true
       DeletionProtectionEnabled: ${self:custom.stages.${sls:stage}.protected, false}
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: ${self:custom.stages.${sls:stage}.protected, false}
