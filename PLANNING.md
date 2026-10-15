@@ -166,7 +166,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q110 | Commits e hooks | commitlint com `config-conventional`, mensagens em inglês, escopos opcionais e livres. lefthook: commitlint no `commit-msg`; Prettier e ESLint nos arquivos alterados no `pre-commit`. Typecheck e testes só no CI. |
 | Q111 | CI | GitHub Actions em PR e push na `main`: `pnpm install --frozen-lockfile`, `lint`, `typecheck`, `test` (DynamoDB Local como serviço), `sls package` de `dev`. Deploy manual da máquina local por enquanto. |
 | Q113 | Formato de módulo | ES modules (`"type": "module"`). O risco de dependência CommonJS embutida num bundle ESM fica coberto pela chamada real em `dev` (Q100). |
-| Q114 | Org do Serverless | `org: jsoareez`, a mesma do foodiary. |
+| Q114 | Org do Serverless | `org: worldiary`, criada pelo João em 2026-10-15 (a sessão da `jsoareez` passou a responder `Forbidden`). |
 | Q115 | `sls package` no CI | Fica no CI. Ele exige credencial real da AWS (resolve a conta pelo STS) além da `SERVERLESS_ACCESS_KEY`. A AWS vem de uma role sem nenhuma permissão, assumida por OIDC só por workflows deste repositório (`aws/bootstrap.yml`, stack `coursary-api-bootstrap`); o ARN fica no segredo `AWS_CI_ROLE_ARN`. A mesma role ganha permissões se um dia o deploy for pelo CI. |
 | Q116 | Stage `prod` | Declarado no código (proteção e PITR), mas não deployado até a fase 6 ou decisão do João: com o `foodiary-api-dev`, seria a terceira instância do Serverless, e paga. |
 | Q117 | Quando deployar | Depois da revisão dos commits e com o ok do João, antes do push; o resultado entra no último commit. Perfil da AWS: `coursary` (Q118). |
