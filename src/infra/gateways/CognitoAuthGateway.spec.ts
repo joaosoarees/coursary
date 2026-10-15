@@ -3,8 +3,16 @@ import { createHmac } from 'node:crypto';
 import {
   AdminDeleteUserCommand,
   AdminGetUserCommand,
+  CodeMismatchException,
+  ConfirmSignUpCommand,
+  ExpiredCodeException,
+  InvalidParameterException,
   InvalidPasswordException,
+  LimitExceededException,
+  NotAuthorizedException,
+  ResendConfirmationCodeCommand,
   SignUpCommand,
+  TooManyFailedAttemptsException,
   TooManyRequestsException,
   UsernameExistsException,
   UserNotFoundException,
@@ -12,6 +20,8 @@ import {
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AuthUserExists } from '@application/errors/AuthUserExists';
+import { AuthUserNotPending } from '@application/errors/AuthUserNotPending';
+import { InvalidCode } from '@application/errors/InvalidCode';
 import { InvalidPassword } from '@application/errors/InvalidPassword';
 import { TooManyRequests } from '@application/errors/TooManyRequests';
 import { cognitoClient } from '@infra/clients/cognitoClient';
@@ -27,6 +37,11 @@ const signUpParams = {
 };
 
 const send = () => vi.spyOn(cognitoClient, 'send');
+
+const secretHashOf = (username: string) =>
+  createHmac('sha256', 'client-secret')
+    .update(`${username}client-id`)
+    .digest('base64');
 
 beforeEach(() => {
   vi.stubEnv('COGNITO_POOL_ID', 'sa-east-1_pool');
@@ -102,5 +117,94 @@ describe('CognitoAuthGateway.deleteUnconfirmedUser', () => {
     await expect(
       gateway.deleteUnconfirmedUser('ana@example.com'),
     ).resolves.toBe('not-found');
+  });
+});
+
+describe('CognitoAuthGateway.confirmSignUp', () => {
+  it('should confirm the user with the code and the secret hash', async () => {
+    const spy = send().mockResolvedValue({} as never);
+
+    await gateway.confirmSignUp('ana@example.com', '012345');
+
+    const command = spy.mock.calls[0]?.[0] as ConfirmSignUpCommand;
+    expect(command).toBeInstanceOf(ConfirmSignUpCommand);
+    expect(command.input).toEqual({
+      ClientId: 'client-id',
+      Username: 'ana@example.com',
+      ConfirmationCode: '012345',
+      SecretHash: secretHashOf('ana@example.com'),
+    });
+  });
+
+  it.each([
+    [new CodeMismatchException(metadata), InvalidCode],
+    [new ExpiredCodeException(metadata), InvalidCode],
+    [new UserNotFoundException(metadata), InvalidCode],
+    [new NotAuthorizedException(metadata), AuthUserNotPending],
+    [new LimitExceededException(metadata), TooManyRequests],
+    [new TooManyFailedAttemptsException(metadata), TooManyRequests],
+  ])('should translate %s', async (cognitoError, expected) => {
+    send().mockRejectedValue(cognitoError);
+
+    await expect(
+      gateway.confirmSignUp('ana@example.com', '012345'),
+    ).rejects.toBeInstanceOf(expected);
+  });
+});
+
+describe('CognitoAuthGateway.resendConfirmationCode', () => {
+  it('should ask for a new code with the secret hash', async () => {
+    const spy = send().mockResolvedValue({} as never);
+
+    await gateway.resendConfirmationCode('ana@example.com');
+
+    const command = spy.mock.calls[0]?.[0] as ResendConfirmationCodeCommand;
+    expect(command).toBeInstanceOf(ResendConfirmationCodeCommand);
+    expect(command.input).toEqual({
+      ClientId: 'client-id',
+      Username: 'ana@example.com',
+      SecretHash: secretHashOf('ana@example.com'),
+    });
+  });
+
+  it.each([
+    new UserNotFoundException(metadata),
+    new InvalidParameterException(metadata),
+  ])('should answer like a success on %s', async (cognitoError) => {
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    send().mockRejectedValue(cognitoError);
+
+    await expect(
+      gateway.resendConfirmationCode('ana@example.com'),
+    ).resolves.toBeUndefined();
+  });
+
+  it('should translate the service limits', async () => {
+    send().mockRejectedValue(new LimitExceededException(metadata));
+
+    await expect(
+      gateway.resendConfirmationCode('ana@example.com'),
+    ).rejects.toBeInstanceOf(TooManyRequests);
+  });
+});
+
+describe('CognitoAuthGateway.isUserConfirmed', () => {
+  it.each([
+    ['CONFIRMED', true],
+    ['UNCONFIRMED', false],
+  ])('should read a %s user as %s', async (UserStatus, expected) => {
+    send().mockResolvedValue({ UserStatus } as never);
+
+    await expect(gateway.isUserConfirmed('ana@example.com')).resolves.toBe(
+      expected,
+    );
+  });
+
+  it('should read a missing user as not confirmed', async () => {
+    send().mockRejectedValue(new UserNotFoundException(metadata));
+
+    await expect(gateway.isUserConfirmed('ana@example.com')).resolves.toBe(
+      false,
+    );
   });
 });

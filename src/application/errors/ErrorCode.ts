@@ -4,6 +4,7 @@ export const ErrorCode = {
   Validation: 'VALIDATION',
   EmailInUse: 'EMAIL_IN_USE',
   InvalidPassword: 'INVALID_PASSWORD',
+  InvalidCode: 'INVALID_CODE',
   TooManyRequests: 'TOO_MANY_REQUESTS',
 } as const;
 
