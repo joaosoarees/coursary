@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-15. Estado: **Épico 0 fechado; histórias 1.0 a 1.4 na `develop` e em `dev` (sign-up conferido com chamadas reais); próxima: 1.5 (confirmação e reenvio de código), ainda sem sub-imp**.
+Última atualização: 2026-10-15. Estado: **Épico 0 fechado; histórias 1.0 a 1.5 na `develop` e em `dev` (sign-up, confirmação e reenvio conferidos com chamadas reais); próxima: 1.6 (sign-in e refresh), ainda sem sub-imp**.
 
 ## Como retomar
 
@@ -11,7 +11,7 @@ Abra o Claude Code e diga:
 Ao retomar, o assistente deve:
 
 1. Ver no estado acima e na tabela "Fase 1: histórias" qual história é a próxima.
-2. Para a 1.5: reler as decisões Q39, Q40, Q41, Q126, Q127, Q130 e Q134 e as skills `cognito-sign-up-and-confirmation`, `dynamodb-time-to-live`, `dynamodb-item-operations` e `structuring-use-cases` antes de propor as sub-imp.
+2. Para a 1.6: reler as decisões Q20, Q32, Q36, Q78, Q88, Q93, Q134 e Q137 e as skills `cognito-sign-in-and-refresh-tokens`, `cognito-user-pool-iac` e as de trigger de pre token antes de propor as sub-imp. Pergunta já aberta: a tabela da fase 1 põe o `GSI2` (e-mail) na 1.6, mas a Q137 acha a conta pela reserva; o sign-in talvez nem precise do índice (Q112). Há um usuário de teste confirmado em `dev` (endereço do autor, fora do repositório).
 3. Seguir o "Começar tarefa X.X" do `CLAUDE.md`: branch a partir da `develop`, sub-imp propostas e discutidas antes de codar.
 4. Não refazer perguntas já fechadas.
 
