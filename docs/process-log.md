@@ -80,9 +80,28 @@ Atualizado ao fim de cada história do Épico 0.
   - Contas não confirmadas que reservam um e-mail são um vetor de bloqueio (alguém cadastra o e-mail de outra pessoa). TTL no registro pendente resolve.
   - Pedir para os handlers perguntarem por **ação**, não por papel, deixa aberto mover papéis e permissões para dados depois (um painel de admin), sem mudar os handlers.
 
+## Etapa 8: modelagem de dados
+
+- **Objetivo**: chegar a um modelo em que todo padrão de acesso é servido sem scan, documentado num arquivo próprio (`docs/data-model.md`).
+- **Pré-requisitos**: etapas 4, 5 e 7 (escopo, fases, identidade).
+- **Ordem** (`dynamodb-single-table-design`): ERD → lista de padrões de acesso → quadro de entidades → índices → cópias e contadores → validação. Cada passo vira uma seção do documento e um commit.
+- **Perguntas por passo**:
+  - *ERD*: quais entidades o escopo cria? A quem pertence cada uma quando duas relações competem (no Coursary, a avaliação é do par aluno + curso porque sobrevive ao cancelamento)? O que pode ser apagado e o que acontece com os dependentes? Exclusão física ou lógica?
+  - *Padrões*: falta alguma tela ou ação? Quais ordens e filtros ficam no banco e quais vão para a busca? Quais padrões são críticos pela frequência?
+  - *Chaves*: posição em atributo ou na chave? Conteúdo grande no mesmo item ou separado? De que lado mora cada relação N:N? Filtro ou índice para listas pequenas?
+  - *Índices*: projeção.
+  - *Cópias*: para cada valor duplicado, qual é o tipo (exibição, retrato, contador, índice, referência) e quem o mantém?
+  - *Validação*: o assistente percorre a lista sozinho e só traz as lacunas como perguntas.
+- **Skills**: `designing-data-models`, `modeling-entity-relationships`, `defining-access-patterns`, `dynamodb-single-table-design`, `dynamodb-key-design`, `dynamodb-one-to-many-relationships`, `dynamodb-many-to-many-relationships`, `dynamodb-index-overloading`, `dynamodb-secondary-indexes`, `dynamodb-denormalization`.
+- **Lições**:
+  - **Ideias de domínio aparecem durante o ERD** (no Coursary: vários arquivos por dono, vídeo como fase própria, versões de curso). Tratar cada uma como pergunta com consequências, e oferecer a versão simples quando a ideia complica demais (as versões foram descartadas).
+  - **Mostrar o ERD desenhado**, não só em texto: o dono pediu uma visualização mais clara. No repositório, Mermaid, que o GitHub desenha.
+  - **Explicar com itens concretos em JSON** quando a decisão é sobre o formato de um item. "Copiar no AccountItem" só ficou claro com o antes e o depois.
+  - **O dono pode rejeitar uma decisão de modelagem que a skill recomenda** (o item de unicidade do e-mail como entidade). Separar o que o dono quer (o e-mail pertence à conta, busca por e-mail) do que o banco exige (um índice nunca é único) e achar o desenho que atende os dois: o item de reserva virou detalhe do repositório.
+  - O limite de 100 ações por transação aparece cedo; decidir o padrão "marcar e terminar num job" na modelagem, não na implementação.
+
 ## Etapas seguintes (ainda não percorridas)
 
-8. Modelagem de dados: ERD → lista de padrões de acesso → quadro de entidades (PK/SK) → GSIs → desnormalização e contadores → validação.
 9. Arquitetura de execução.
 10. Registro de achados e critério de pronto.
 11. Padrões do projeto.
