@@ -1,5 +1,6 @@
 import type {
   APIGatewayProxyEventV2,
+  APIGatewayProxyEventV2WithJWTAuthorizer,
   APIGatewayProxyStructuredResultV2,
 } from 'aws-lambda';
 import { ZodError } from 'zod';
@@ -7,22 +8,25 @@ import { ZodError } from 'zod';
 import type { Controller } from '@application/contracts/Controller';
 import { ApplicationError } from '@application/errors/ApplicationError';
 import { ErrorCode } from '@application/errors/ErrorCode';
+import { InvalidSession } from '@application/errors/InvalidSession';
 import { lambdaBodyParser } from '@main/utils/lambdaBodyParser';
 import { lambdaErrorResponse } from '@main/utils/lambdaErrorResponse';
+
+type Event = APIGatewayProxyEventV2 | APIGatewayProxyEventV2WithJWTAuthorizer;
 
 export function lambdaHttpAdapter(
   controller: Controller<Controller.RouteType, unknown>,
 ) {
-  return async (
-    event: APIGatewayProxyEventV2,
-  ): Promise<APIGatewayProxyStructuredResultV2> => {
+  return async (event: Event): Promise<APIGatewayProxyStructuredResultV2> => {
     try {
+      const accountId = callerAccountId(event);
       const body = lambdaBodyParser(
         event.body,
         event.isBase64Encoded,
       ) as Record<string, unknown>;
       const { statusCode, body: responseBody } = await controller.execute({
         body,
+        accountId,
       });
 
       return {
@@ -65,4 +69,18 @@ export function lambdaHttpAdapter(
       );
     }
   };
+}
+
+function callerAccountId(event: Event): string | null {
+  if (!('authorizer' in event.requestContext)) {
+    return null;
+  }
+
+  const internalId = event.requestContext.authorizer.jwt.claims.internalId;
+
+  if (typeof internalId !== 'string' || internalId === '') {
+    throw new InvalidSession();
+  }
+
+  return internalId;
 }
