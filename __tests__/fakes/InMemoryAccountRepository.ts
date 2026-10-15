@@ -1,6 +1,11 @@
-import { Account } from '@application/entities/Account';
+import {
+  Account,
+  accountRoles,
+  accountStatuses,
+} from '@application/entities/Account';
 import type { RoleChange } from '@application/entities/RoleChange';
 import { EmailInUse } from '@application/errors/EmailInUse';
+import { Forbidden } from '@application/errors/Forbidden';
 import type { AccountRepository } from '@application/repositories/AccountRepository';
 
 export class InMemoryAccountRepository implements AccountRepository {
@@ -86,7 +91,20 @@ export class InMemoryAccountRepository implements AccountRepository {
     return Promise.resolve(account);
   }
 
-  changeRole(roleChange: RoleChange): Promise<void> {
+  changeRole(
+    roleChange: RoleChange,
+    { adminCallerId }: AccountRepository.ChangeRoleOptions = {},
+  ): Promise<void> {
+    const caller = adminCallerId ? this.accounts.get(adminCallerId) : undefined;
+
+    if (
+      adminCallerId &&
+      (caller?.role !== accountRoles.Admin ||
+        caller.status !== accountStatuses.Active)
+    ) {
+      return Promise.reject(new Forbidden());
+    }
+
     const account = this.accounts.get(roleChange.accountId);
 
     if (account?.role !== roleChange.fromRole) {

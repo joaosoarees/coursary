@@ -5,9 +5,15 @@ import {
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 
-import { Account, accountStatuses } from '@application/entities/Account';
+import {
+  Account,
+  accountRoles,
+  accountStatuses,
+} from '@application/entities/Account';
 import type { RoleChange } from '@application/entities/RoleChange';
 import { EmailInUse } from '@application/errors/EmailInUse';
+import { Forbidden } from '@application/errors/Forbidden';
+import { RoleChangeConflict } from '@application/errors/RoleChangeConflict';
 import type { AccountRepository } from '@application/repositories/AccountRepository';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { AccountItem } from '@infra/database/dynamo/items/AccountItem';
@@ -184,9 +190,34 @@ export class DynamoAccountRepository implements AccountRepository {
     return AccountItem.toEntity(Attributes as AccountItem.ItemType);
   }
 
-  async changeRole(roleChange: RoleChange): Promise<void> {
+  async changeRole(
+    roleChange: RoleChange,
+    { adminCallerId }: AccountRepository.ChangeRoleOptions = {},
+  ): Promise<void> {
     const TableName = this.config.mainTableName;
     const roleChangeItem = RoleChangeItem.fromEntity(roleChange);
+    const callerCheck = adminCallerId
+      ? [
+          {
+            ConditionCheck: {
+              TableName,
+              Key: {
+                PK: AccountItem.getPK(adminCallerId),
+                SK: AccountItem.getSK(adminCallerId),
+              },
+              ConditionExpression: '#role = :admin AND #status = :active',
+              ExpressionAttributeNames: {
+                '#role': 'role',
+                '#status': 'status',
+              },
+              ExpressionAttributeValues: {
+                ':admin': accountRoles.Admin,
+                ':active': accountStatuses.Active,
+              },
+            },
+          },
+        ]
+      : [];
 
     const command = new TransactWriteCommand({
       TransactItems: [
@@ -218,10 +249,22 @@ export class DynamoAccountRepository implements AccountRepository {
             ConditionExpression: 'attribute_not_exists(PK)',
           },
         },
+        ...callerCheck,
       ],
     });
 
-    await dynamoClient.send(command);
+    try {
+      await dynamoClient.send(command);
+    } catch (error) {
+      if (!(error instanceof TransactionCanceledException)) {
+        throw error;
+      }
+
+      const callerFailed =
+        error.CancellationReasons?.[2]?.Code === 'ConditionalCheckFailed';
+
+      throw callerFailed ? new Forbidden() : new RoleChangeConflict();
+    }
   }
 
   private async getLive<TItem extends { expiresAt?: number }>(

@@ -11,6 +11,10 @@ export const ErrorCode = {
   InvalidSession: 'INVALID_SESSION',
   Forbidden: 'FORBIDDEN',
   InvalidCursor: 'INVALID_CURSOR',
+  AccountNotFound: 'ACCOUNT_NOT_FOUND',
+  AccountNotActive: 'ACCOUNT_NOT_ACTIVE',
+  CannotChangeOwnRole: 'CANNOT_CHANGE_OWN_ROLE',
+  Conflict: 'CONFLICT',
   TooManyRequests: 'TOO_MANY_REQUESTS',
 } as const;
 
