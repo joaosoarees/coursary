@@ -1,0 +1,35 @@
+import { Course, courseStatuses } from '@application/entities/Course';
+import type { CourseRepository } from '@application/repositories/CourseRepository';
+import { CourseDetails } from '@application/usecases/course/CourseDetails';
+import type { CourseEditor } from '@application/usecases/outline/CourseEditor';
+
+export class PublishCourseUseCase {
+  constructor(private readonly coursesRepository: CourseRepository) {}
+
+  async execute({
+    callerId,
+    callerRole,
+    courseId,
+  }: PublishCourseUseCase.Input): Promise<CourseDetails> {
+    const found = await this.coursesRepository.findById(courseId);
+    const course = Course.requireFound(found);
+    course.requireEditableBy(callerId, callerRole);
+
+    if (course.status === courseStatuses.Published) {
+      return CourseDetails.fromCourse(course);
+    }
+
+    const published = await this.coursesRepository.publish(
+      courseId,
+      new Date(),
+    );
+
+    return CourseDetails.fromCourse(published);
+  }
+}
+
+export namespace PublishCourseUseCase {
+  export interface Input extends CourseEditor {
+    courseId: Course.Id;
+  }
+}

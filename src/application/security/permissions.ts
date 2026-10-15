@@ -9,6 +9,8 @@ export const permissions = {
   CoursesUpdate: 'courses:update',
   CoursesUpdateAny: 'courses:update-any',
   CoursesListOwn: 'courses:list-own',
+  CoursesPublish: 'courses:publish',
+  CoursesArchive: 'courses:archive',
 } as const;
 
 export type Permission = (typeof permissions)[keyof typeof permissions];
@@ -17,6 +19,8 @@ const instructorPermissions = [
   permissions.CoursesCreate,
   permissions.CoursesUpdate,
   permissions.CoursesListOwn,
+  permissions.CoursesPublish,
+  permissions.CoursesArchive,
 ] as const satisfies readonly Permission[];
 
 export const rolePermissions = {
