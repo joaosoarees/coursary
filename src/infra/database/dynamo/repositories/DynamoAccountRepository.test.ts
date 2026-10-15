@@ -74,3 +74,28 @@ describe('DynamoAccountRepository.create', () => {
     );
   });
 });
+
+describe('DynamoAccountRepository.delete', () => {
+  test('removes the account and frees its e-mail', async () => {
+    const email = uniqueEmail();
+    const account = Account.create({ name: 'Ana', email });
+    await repository.create(account);
+
+    await repository.delete(account);
+
+    expect(await getItem(`ACCOUNT#${account.id}`)).toBeUndefined();
+    expect(await getItem(`EMAIL_CLAIM#${email}`)).toBeUndefined();
+    await expect(
+      repository.create(Account.create({ name: 'Bia', email })),
+    ).resolves.toBeUndefined();
+  });
+
+  test('does not release a claim that belongs to another account', async () => {
+    const email = uniqueEmail();
+    await repository.create(Account.create({ name: 'Ana', email }));
+    const stranger = Account.create({ name: 'Bia', email });
+
+    await expect(repository.delete(stranger)).rejects.toThrow();
+    expect(await getItem(`EMAIL_CLAIM#${email}`)).toBeDefined();
+  });
+});

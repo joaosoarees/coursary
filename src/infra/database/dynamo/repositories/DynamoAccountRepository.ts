@@ -55,4 +55,35 @@ export class DynamoAccountRepository extends AccountRepository {
       throw error;
     }
   }
+
+  async delete(account: Account): Promise<void> {
+    const TableName = this.config.mainTableName;
+
+    await dynamoClient.send(
+      new TransactWriteCommand({
+        TransactItems: [
+          {
+            Delete: {
+              TableName,
+              Key: {
+                PK: AccountItem.getPK(account.id),
+                SK: AccountItem.getSK(account.id),
+              },
+            },
+          },
+          {
+            Delete: {
+              TableName,
+              Key: {
+                PK: EmailClaimItem.getPK(account.email),
+                SK: EmailClaimItem.getSK(account.email),
+              },
+              ConditionExpression: 'accountId = :accountId',
+              ExpressionAttributeValues: { ':accountId': account.id },
+            },
+          },
+        ],
+      }),
+    );
+  }
 }
