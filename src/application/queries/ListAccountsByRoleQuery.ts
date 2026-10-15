@@ -9,7 +9,7 @@ export interface ListAccountsByRoleQuery {
 export namespace ListAccountsByRoleQuery {
   export interface Input {
     role: Account.Role;
-    status: Account.Status | undefined;
+    status?: Account.Status;
     page: Page.Options;
   }
 }

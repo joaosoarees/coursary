@@ -23,6 +23,6 @@ export class ListAccountsUseCase {
 export namespace ListAccountsUseCase {
   export interface Input extends Page.Options {
     role: Account.Role;
-    status: Account.Status | undefined;
+    status?: Account.Status;
   }
 }

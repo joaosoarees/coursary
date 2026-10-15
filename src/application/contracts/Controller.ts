@@ -69,8 +69,8 @@ export namespace Controller {
   export type Request<
     TType extends RouteType,
     TBody = Record<string, unknown>,
-    TParams = Record<string, string | undefined>,
-    TQueryParams = Record<string, string | undefined>,
+    TParams = Record<string, unknown>,
+    TQueryParams = Record<string, unknown>,
   > = BaseRequest<TBody, TParams, TQueryParams> &
     (TType extends 'private'
       ? { accountId: string; role: Account.Role }

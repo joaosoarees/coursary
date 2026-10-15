@@ -6,6 +6,6 @@ export interface Page<TItem> {
 export namespace Page {
   export interface Options {
     limit: number;
-    cursor: string | undefined;
+    cursor?: string;
   }
 }
