@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-14. Estado: **PLAN-2 fechada; próxima história PLAN-3 (modelagem de dados)**. As skills de Cognito e TypeScript já existem.
+Última atualização: 2026-10-14. Estado: **PLAN-3 fechada; próxima história PLAN-4 (arquitetura de execução)**. As skills de Cognito e TypeScript já existem.
 
 ## Como retomar
 
@@ -138,6 +138,8 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q82 | Dados do catálogo no curso | `instructorName` (propagado como na Q81, pelos cursos do instrutor no `GSI1`), `coverVariants` (gravado pelo processador de imagem), `ratingSum` e `ratingCount`. Algolia recebe pelo stream. |
 | Q83 | Contadores | `Course.enrollmentCount`, `Course.lessonCount`, `Course.ratingSum`/`ratingCount`, `Enrollment.completedLessons`: sempre `ADD` na mesma transação da escrita que os muda; refazer quando a transação é cancelada por conflito. Percentual e média só na leitura. Nenhum contador depende do stream. |
 | Q84 | Retratos | Nota e comentário da avaliação, `fromRole`/`toRole`, `enrolledAt`, arquivo de exportação: nunca acompanham o original. Cada atributo copiado é classificado no modelo (exibição, retrato, contador, índice, referência) com seu dono. |
+| Q85 | Avatar e capa copiados no dono | A Account ganha `avatar: { fileId, variants }` e o Course `cover: { fileId, variants }` (substitui o `coverVariants` da Q82). O mapa guarda chaves do S3, não URLs; o controller monta a URL com o domínio da CDN. O processador grava a cópia na mesma transação que marca o `FILE` como `PROCESSED`; trocar apaga o `FILE` antigo, com condição "o `fileId` atual ainda é o antigo". |
+| Q86 | Operações com mais de 100 itens | Duas etapas: uma transação marca o estado (curso `DELETING`, rota responde 202, some das listas) e um job idempotente termina em lotes, com exclusões condicionais e os objetos do S3. Vale para qualquer operação futura que passe do limite de 100 ações. |
 
 #### Fases (Q27)
 
@@ -160,8 +162,8 @@ Histórias de decisão, antes de qualquer código. Ordem de dependência: PLAN-2
 |---|---|---|---|
 | PLAN-1 | Escopo e fases | | Feita (Q27) |
 | PLAN-2 | Identidade e papéis: Q20, revisão de Q17 e Q18, e-mails (Cognito ou Resend) | `cognito-*` | Feita (Q18, Q20, Q32 a Q45) |
-| PLAN-3 | Modelagem de dados: ERD → lista de padrões de acesso → quadro de entidades (PK/SK) → GSIs → desnormalização e contadores → validação percorrendo a lista | `designing-data-models`, `modeling-entity-relationships`, `defining-access-patterns`, `dynamodb-*` | **Aberta** |
-| PLAN-4 | Arquitetura de execução: unidade de trabalho, consistência, paginação, stream → SQS, rotas, autorização | `dynamodb-*`, `sqs-*`, `serverless-*`, DI | A fazer |
+| PLAN-3 | Modelagem de dados: ERD → lista de padrões de acesso → quadro de entidades (PK/SK) → GSIs → desnormalização e contadores → validação percorrendo a lista | `designing-data-models`, `modeling-entity-relationships`, `defining-access-patterns`, `dynamodb-*` | Feita (Q46 a Q86; `docs/data-model.md`) |
+| PLAN-4 | Arquitetura de execução: unidade de trabalho, consistência, paginação, stream → SQS, rotas, autorização | `dynamodb-*`, `sqs-*`, `serverless-*`, DI | **Próxima** |
 | PLAN-5 | Registro de achados e critério de pronto das fases | | A fazer |
 | PLAN-6 | Padrões do projeto: gerenciador de pacotes, versões fixadas, monorepo ou não, tsconfig, ESLint e Prettier, commitlint e hooks, scripts, CI, documentação | `typescript-*`, `vitest-setup`, `serverless-typescript-esbuild` (nenhuma skill cobre lint ou commitlint: anotar como skill que falta) | A fazer |
 
