@@ -10,6 +10,7 @@ export const ErrorCode = {
   EmailNotConfirmed: 'EMAIL_NOT_CONFIRMED',
   InvalidSession: 'INVALID_SESSION',
   Forbidden: 'FORBIDDEN',
+  InvalidCursor: 'INVALID_CURSOR',
   TooManyRequests: 'TOO_MANY_REQUESTS',
 } as const;
 
