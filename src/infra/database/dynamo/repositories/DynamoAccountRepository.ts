@@ -107,11 +107,14 @@ export class DynamoAccountRepository implements AccountRepository {
     );
   }
 
-  async findById(id: string): Promise<Account | null> {
-    const item = await this.getLive<AccountItem.ItemType>({
-      PK: AccountItem.getPK(id),
-      SK: AccountItem.getSK(id),
-    });
+  async findById(
+    id: string,
+    { consistent = true }: AccountRepository.ReadOptions = {},
+  ): Promise<Account | null> {
+    const item = await this.getLive<AccountItem.ItemType>(
+      { PK: AccountItem.getPK(id), SK: AccountItem.getSK(id) },
+      consistent,
+    );
 
     return item ? AccountItem.toEntity(item) : null;
   }
@@ -183,12 +186,13 @@ export class DynamoAccountRepository implements AccountRepository {
 
   private async getLive<TItem extends { expiresAt?: number }>(
     Key: Record<string, string>,
+    consistent = true,
   ): Promise<TItem | null> {
     const { Item } = await dynamoClient.send(
       new GetCommand({
         TableName: this.config.mainTableName,
         Key,
-        ConsistentRead: true,
+        ConsistentRead: consistent,
       }),
     );
     const item = Item as TItem | undefined;
