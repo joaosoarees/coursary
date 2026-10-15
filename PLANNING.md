@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-14. Estado: **falta só a PLAN-6 (padrões do projeto) no Épico 0**. As skills de Cognito e TypeScript já existem.
+Última atualização: 2026-10-14. Estado: **Épico 0 fechado; próximo passo: criar as tarefas (tracker e histórias das fases)**. As skills de Cognito e TypeScript já existem.
 
 ## Como retomar
 
@@ -161,6 +161,10 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q105 | Lint e formatação | ESLint flat com `typescript-eslint` `strictTypeChecked` + `stylisticTypeChecked`; Prettier sozinho como formatador, `eslint-config-prettier` para desligar conflitos (sai o `eslint-plugin-prettier`); ordenação de imports; `no-restricted-imports` por camada (`application` não importa `infra`). |
 | Q106 | Fluxo de git | Branch por história (`feat/1.2-create-course`), PR para a `main`, merge sem squash. Commits de planejamento (`docs:`) podem ir direto na `main`. |
 | Q107 | Documentação | `CLAUDE.md` curto na raiz só com regras de trabalho e onde está cada documento; conhecimento em `docs/`; nenhum `CLAUDE.md` por pasta. |
+| Q108 | Código da API e planejamento | Este repositório é a API, com o código na raiz e `docs/` mantido; renomeado para `coursary-api`. O `web` nasce na fase 6 como `coursary-web` e aponta para o planejamento daqui. |
+| Q109 | `tsconfig` | `strict`, `noUncheckedIndexedAccess`, `noImplicitOverride`; `target: es2024`; `module: preserve` + `moduleResolution: bundler`; `rootDir`, `noEmit`, aliases do foodiary; `experimentalDecorators` + `emitDecoratorMetadata`. Sem `exactOptionalPropertyTypes`. |
+| Q110 | Commits e hooks | commitlint com `config-conventional`, mensagens em inglês, escopos opcionais e livres. lefthook: commitlint no `commit-msg`; Prettier e ESLint nos arquivos alterados no `pre-commit`. Typecheck e testes só no CI. |
+| Q111 | CI | GitHub Actions em PR e push na `main`: `pnpm install --frozen-lockfile`, `lint`, `typecheck`, `test` (DynamoDB Local como serviço), `sls package` de `dev`. Deploy manual da máquina local por enquanto. |
 
 #### Fases (Q27)
 
@@ -186,7 +190,7 @@ Histórias de decisão, antes de qualquer código. Ordem de dependência: PLAN-2
 | PLAN-3 | Modelagem de dados: ERD → lista de padrões de acesso → quadro de entidades (PK/SK) → GSIs → desnormalização e contadores → validação percorrendo a lista | `designing-data-models`, `modeling-entity-relationships`, `defining-access-patterns`, `dynamodb-*` | Feita (Q46 a Q86; `docs/data-model.md`) |
 | PLAN-4 | Arquitetura de execução: unidade de trabalho, consistência, paginação, stream → SQS, rotas, autorização | `dynamodb-*`, `sqs-*`, `serverless-*`, DI | Feita (Q87 a Q98) |
 | PLAN-5 | Registro de achados e critério de pronto das fases | | Feita (Q99 a Q101) |
-| PLAN-6 | Padrões do projeto: gerenciador de pacotes, versões fixadas, monorepo ou não, tsconfig, ESLint e Prettier, commitlint e hooks, scripts, CI, documentação | `typescript-*`, `vitest-setup`, `serverless-typescript-esbuild` (nenhuma skill cobre lint ou commitlint: anotar como skill que falta) | A fazer |
+| PLAN-6 | Padrões do projeto: gerenciador de pacotes, versões fixadas, monorepo ou não, tsconfig, ESLint e Prettier, commitlint e hooks, scripts, CI, documentação | `typescript-*`, `vitest-setup`, `serverless-typescript-esbuild` (nenhuma skill cobre lint ou commitlint: anotar como skill que falta) | Feita (Q102 a Q111) |
 
 As histórias das fases 1 a 6 só são criadas depois da PLAN-3.
 
