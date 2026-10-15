@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FakeAuthGateway } from '@tests/fakes/FakeAuthGateway';
 import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
 
+import { AuthUserExists } from '@application/errors/AuthUserExists';
 import { EmailInUse } from '@application/errors/EmailInUse';
 import { InvalidPassword } from '@application/errors/InvalidPassword';
 import { SignUpUseCase } from '@application/usecases/auth/SignUpUseCase';
@@ -74,6 +75,14 @@ describe('SignUpUseCase', () => {
 
     await expect(signUp.execute(input)).rejects.toBeInstanceOf(EmailInUse);
     expect(auth.users.get('ana@example.com')).toBe('CONFIRMED');
+    expect(accounts.claims.size).toBe(0);
+  });
+
+  it('should answer EmailInUse when the user reappears after the orphan is removed', async () => {
+    auth.users.set('ana@example.com', 'UNCONFIRMED');
+    auth.failOnSignUp = new AuthUserExists('ana@example.com');
+
+    await expect(signUp.execute(input)).rejects.toBeInstanceOf(EmailInUse);
     expect(accounts.claims.size).toBe(0);
   });
 });

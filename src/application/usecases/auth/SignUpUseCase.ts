@@ -68,7 +68,15 @@ export class SignUpUseCase {
         throw new EmailInUse();
       }
 
-      return this.authGateway.signUp(params);
+      try {
+        return await this.authGateway.signUp(params);
+      } catch (retryError) {
+        if (retryError instanceof AuthUserExists) {
+          throw new EmailInUse();
+        }
+
+        throw retryError;
+      }
     }
   }
 }
