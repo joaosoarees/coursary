@@ -1,10 +1,7 @@
 import type { Account } from '@application/entities/Account';
-import { type Course, courseStatuses } from '@application/entities/Course';
-import { CourseArchived } from '@application/errors/CourseArchived';
+import type { Course } from '@application/entities/Course';
 import { CourseNotFound } from '@application/errors/CourseNotFound';
-import { Forbidden } from '@application/errors/Forbidden';
 import type { CourseRepository } from '@application/repositories/CourseRepository';
-import { Permissions, permissions } from '@application/security/permissions';
 import { CourseDetails } from '@application/usecases/course/CourseDetails';
 
 export class UpdateCourseUseCase {
@@ -22,19 +19,7 @@ export class UpdateCourseUseCase {
       throw new CourseNotFound();
     }
 
-    const mayEdit =
-      course.isOwnedBy(callerId) ||
-      Permissions.allows(callerRole, permissions.CoursesUpdateAny);
-
-    if (!mayEdit) {
-      throw course.isVisibleToEveryone()
-        ? new Forbidden()
-        : new CourseNotFound();
-    }
-
-    if (course.status === courseStatuses.Archived) {
-      throw new CourseArchived();
-    }
+    course.requireEditableBy(callerId, callerRole);
 
     const updated = await this.coursesRepository.update(courseId, changes);
 
