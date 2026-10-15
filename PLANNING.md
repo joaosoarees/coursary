@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-14. Estado: **PLAN-3 fechada; próxima história PLAN-4 (arquitetura de execução)**. As skills de Cognito e TypeScript já existem.
+Última atualização: 2026-10-14. Estado: **PLAN-4 fechada; faltam PLAN-5 (achados e critério de pronto) e PLAN-6 (padrões do projeto)**. As skills de Cognito e TypeScript já existem.
 
 ## Como retomar
 
@@ -147,10 +147,11 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q91 | Registro no Algolia | Só publicados, `objectID = courseId`; título, descrição, `instructorName`, chave da capa, `enrollmentCount`, `ratingAverage` (calculado na indexação), `ratingCount`, `publishedAt`. Sair de `PUBLISHED` ou ser apagado remove. Reindexação por script lendo o catálogo no `GSI2`. Nota para o painel de admin: cursos não publicados iriam para um segundo índice com todos os status, alimentado pelo mesmo consumidor e consultado só por uma rota de admin no servidor (`algolia-search-api`), sem expor chave. |
 | Q92 | Stages e proteção | `dev` e `prod`, mesma conta e região, recursos separados. `prod`: proteção contra exclusão na tabela e no pool, PITR, `DeletionPolicy: Retain` nos buckets. `dev`: destrutível. Alarmes nas filas de falha e dos jobs. |
 | Q93 | Rotas | Auth: `POST /auth/sign-up`, `/confirm`, `/resend-code`, `/sign-in`, `/refresh`, `/forgot-password`, `/reset-password`. Conta: `GET`/`PATCH /me`, `POST /me/avatar`. Catálogo (público): `GET /courses`, `/courses/{id}`, `/courses/{id}/reviews`, `/search`. Instrutor: `GET /instructor/courses`, `POST /courses`, `PATCH /courses/{id}`, `POST /courses/{id}/publish`, `/archive`, `DELETE /courses/{id}`, CRUD de módulos e aulas, `PUT /courses/{id}/outline`, `POST /courses/{id}/cover`, `POST /lessons/{lid}/attachments`, `GET /courses/{id}/students`, `POST`/`GET /courses/{id}/exports`, `GET /exports/{id}`. Aluno: `PUT`/`DELETE /courses/{id}/enrollment`, `GET /me/enrollments`, `GET /courses/{id}/progress`, `PUT /courses/{id}/progress/position`, `POST /courses/{id}/lessons/{lid}/complete`, `GET /courses/{id}/lessons/{lid}`, `GET /lessons/{lid}/files/{fid}`, `PUT /courses/{id}/review`. Admin: `GET /admin/users`, `/admin/users/by-email`, `PUT /admin/users/{id}/role`, `POST /admin/users/{id}/disable`, `/enable`, `GET /admin/users/{id}/role-changes`. Fase 5: multipart do vídeo. Arquivar é uma rota só (dono, ou `courses:archive-any`). |
-| Q94 | Permissão na rota | O controller declara a ação exigida (`Controller<'private', Body, Permissão>`); o adapter verifica antes de validar o corpo (403 sem dizer o papel); a posse fica no use case; teste de auditoria das rotas de `/admin`. Forma das constantes: ver a rodada em aberto. |
+| Q94 | Permissão na rota | O controller declara a ação exigida (`Controller<'private', Body, Permissão>`); o adapter verifica antes de validar o corpo (403 sem dizer o papel); a posse fica no use case; teste de auditoria das rotas de `/admin`. Constantes conforme a Q98. |
 | Q95 | 404 ou 403 | 404 quando o chamador não poderia ver o recurso (rascunho alheio); 403 quando o recurso é visível (curso publicado). |
 | Q96 | Formato de erro | `{ error: { code, message, details? } }`; `details` só em validação (campos do Zod). Erros de transação viram códigos próprios (`EMAIL_IN_USE`, `ALREADY_COMPLETED`, `COURSE_NOT_PUBLISHED`). Nenhuma mensagem do AWS SDK chega ao cliente. |
 | Q97 | Funções e permissões | Uma Lambda por rota (handler de seis linhas do foodiary), uma role IAM por função, permissões e variáveis de ambiente só do que a função usa, liberadas por tarefa. |
+| Q98 | Constantes em vez de `enum` | Permissões, papéis e todos os valores fechados (status de conta, curso, matrícula e arquivo; finalidade do arquivo) como objeto `as const` com o tipo derivado (`(typeof x)[keyof typeof x]`). O mapa papel → permissões usa `satisfies Record<Role, readonly Permission[]>`. Nada de `enum` do TypeScript (`typescript-enums-and-alternatives`). |
 
 #### Fases (Q27)
 
@@ -174,7 +175,7 @@ Histórias de decisão, antes de qualquer código. Ordem de dependência: PLAN-2
 | PLAN-1 | Escopo e fases | | Feita (Q27) |
 | PLAN-2 | Identidade e papéis: Q20, revisão de Q17 e Q18, e-mails (Cognito ou Resend) | `cognito-*` | Feita (Q18, Q20, Q32 a Q45) |
 | PLAN-3 | Modelagem de dados: ERD → lista de padrões de acesso → quadro de entidades (PK/SK) → GSIs → desnormalização e contadores → validação percorrendo a lista | `designing-data-models`, `modeling-entity-relationships`, `defining-access-patterns`, `dynamodb-*` | Feita (Q46 a Q86; `docs/data-model.md`) |
-| PLAN-4 | Arquitetura de execução: unidade de trabalho, consistência, paginação, stream → SQS, rotas, autorização | `dynamodb-*`, `sqs-*`, `serverless-*`, DI | **Próxima** |
+| PLAN-4 | Arquitetura de execução: unidade de trabalho, consistência, paginação, stream → SQS, rotas, autorização | `dynamodb-*`, `sqs-*`, `serverless-*`, DI | Feita (Q87 a Q98) |
 | PLAN-5 | Registro de achados e critério de pronto das fases | | A fazer |
 | PLAN-6 | Padrões do projeto: gerenciador de pacotes, versões fixadas, monorepo ou não, tsconfig, ESLint e Prettier, commitlint e hooks, scripts, CI, documentação | `typescript-*`, `vitest-setup`, `serverless-typescript-esbuild` (nenhuma skill cobre lint ou commitlint: anotar como skill que falta) | A fazer |
 
