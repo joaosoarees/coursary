@@ -6,6 +6,7 @@ import type {
 import { ZodError } from 'zod';
 
 import type { Controller } from '@application/contracts/Controller';
+import { Account } from '@application/entities/Account';
 import { ApplicationError } from '@application/errors/ApplicationError';
 import { ErrorCode } from '@application/errors/ErrorCode';
 import { InvalidSession } from '@application/errors/InvalidSession';
@@ -19,15 +20,19 @@ export function lambdaHttpAdapter(
 ) {
   return async (event: Event): Promise<APIGatewayProxyStructuredResultV2> => {
     try {
-      const accountId = callerAccountId(event);
+      const caller = lambdaCaller(event);
       const body = lambdaBodyParser(
         event.body,
         event.isBase64Encoded,
       ) as Record<string, unknown>;
-      const { statusCode, body: responseBody } = await controller.execute({
+      const request = {
+        ...caller,
         body,
-        accountId,
-      });
+        params: event.pathParameters ?? {},
+        queryParams: event.queryStringParameters ?? {},
+      };
+      const { statusCode, body: responseBody } =
+        await controller.execute(request);
 
       return {
         statusCode,
@@ -71,16 +76,23 @@ export function lambdaHttpAdapter(
   };
 }
 
-function callerAccountId(event: Event): string | null {
+type Caller =
+  { accountId: string; role: Account.Role } | { accountId: null; role: null };
+
+function lambdaCaller(event: Event): Caller {
   if (!('authorizer' in event.requestContext)) {
-    return null;
+    return { accountId: null, role: null };
   }
 
-  const internalId = event.requestContext.authorizer.jwt.claims.internalId;
+  const { internalId, role } = event.requestContext.authorizer.jwt.claims;
 
   if (typeof internalId !== 'string' || internalId === '') {
     throw new InvalidSession();
   }
 
-  return internalId;
+  if (!Account.isRole(role)) {
+    throw new InvalidSession();
+  }
+
+  return { accountId: internalId, role };
 }

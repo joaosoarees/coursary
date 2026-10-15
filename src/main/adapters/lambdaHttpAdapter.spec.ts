@@ -7,6 +7,7 @@ import { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
 import { EmailInUse } from '@application/errors/EmailInUse';
+import { permissions } from '@application/security/permissions';
 import { lambdaHttpAdapter } from '@main/adapters/lambdaHttpAdapter';
 
 const makeEvent = (body?: string, isBase64Encoded = false) =>
@@ -16,9 +17,13 @@ const makeEvent = (body?: string, isBase64Encoded = false) =>
     requestContext: { requestId: 'request-1' },
   }) as APIGatewayProxyEventV2;
 
-const makePrivateEvent = (claims: Record<string, string>) =>
+const makePrivateEvent = (
+  claims: Record<string, string>,
+  extra: Partial<APIGatewayProxyEventV2WithJWTAuthorizer> = {},
+) =>
   ({
     isBase64Encoded: false,
+    ...extra,
     requestContext: {
       requestId: 'request-1',
       authorizer: { jwt: { claims, scopes: [] } },
@@ -61,12 +66,27 @@ class EchoController extends Controller<'public', { name: string }> {
   }
 }
 
-class WhoAmIController extends Controller<'private', { accountId: string }> {
+class WhoAmIController extends Controller<'private', unknown> {
   protected handle(request: Controller.Request<'private'>) {
     return Promise.resolve({
       statusCode: 200,
-      body: { accountId: request.accountId },
+      body: {
+        accountId: request.accountId,
+        role: request.role,
+        params: request.params,
+        queryParams: request.queryParams,
+      },
     });
+  }
+}
+
+class AdminOnlyController extends Controller<'private'> {
+  protected override readonly permission = permissions.UsersList;
+
+  protected override readonly bodySchema = z.object({ name: z.string() });
+
+  protected handle() {
+    return Promise.resolve({ statusCode: 204 });
   }
 }
 
@@ -80,12 +100,55 @@ class PublicWhoAmIController extends Controller<'public', { accountId: null }> {
 }
 
 describe('lambdaHttpAdapter', () => {
-  it('should give a private route the account id from the access token', async () => {
+  it('should give a private route the account id and role from the access token', async () => {
     const response = await lambdaHttpAdapter(new WhoAmIController())(
-      makePrivateEvent({ internalId: 'acc-1' }),
+      makePrivateEvent({ internalId: 'acc-1', role: 'admin' }),
     );
 
-    expect(parseBody(response.body)).toEqual({ accountId: 'acc-1' });
+    expect(parseBody(response.body)).toMatchObject({
+      accountId: 'acc-1',
+      role: 'admin',
+    });
+  });
+
+  it('should pass the path and query parameters', async () => {
+    const response = await lambdaHttpAdapter(new WhoAmIController())(
+      makePrivateEvent(
+        { internalId: 'acc-1', role: 'admin' },
+        {
+          pathParameters: { id: 'acc-2' },
+          queryStringParameters: { role: 'student' },
+        },
+      ),
+    );
+
+    expect(parseBody(response.body)).toMatchObject({
+      params: { id: 'acc-2' },
+      queryParams: { role: 'student' },
+    });
+  });
+
+  it('should answer 401 INVALID_SESSION for a token without a known role', async () => {
+    const withoutRole = await lambdaHttpAdapter(new WhoAmIController())(
+      makePrivateEvent({ internalId: 'acc-1' }),
+    );
+    const unknownRole = await lambdaHttpAdapter(new WhoAmIController())(
+      makePrivateEvent({ internalId: 'acc-1', role: 'owner' }),
+    );
+
+    expect(withoutRole.statusCode).toBe(401);
+    expect(unknownRole.statusCode).toBe(401);
+  });
+
+  it('should answer 403 FORBIDDEN before reading the body', async () => {
+    const response = await lambdaHttpAdapter(new AdminOnlyController())(
+      makePrivateEvent({ internalId: 'acc-1', role: 'student' }),
+    );
+
+    expect(response.statusCode).toBe(403);
+    expect(parseBody(response.body)).toEqual({
+      error: { code: 'FORBIDDEN', message: 'You are not allowed to do this.' },
+    });
   });
 
   it('should give a public route no account id', async () => {

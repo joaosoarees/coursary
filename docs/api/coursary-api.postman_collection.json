@@ -12,6 +12,10 @@
     {
       "key": "accessToken",
       "value": "<accessToken do sign-in>"
+    },
+    {
+      "key": "accountId",
+      "value": "<id da conta alvo>"
     }
   ],
   "item": [
@@ -235,6 +239,80 @@
             },
             "url": "{{baseUrl}}/me",
             "description": "200 com o perfil atualizado. 400 VALIDATION, 401, 403 como no Get me."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "List users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/admin/users?role=student&status=ACTIVE&limit=20",
+            "description": "200 { items: [{ id, name, email, role, status, createdAt }], nextCursor }, mais recentes primeiro. role obrigatório; status (PENDING, ACTIVE, DISABLED) e limit (1 a 100, padrão 20) opcionais; para a próxima página, cursor=<nextCursor>. Página curta com nextCursor é normal. 400 VALIDATION, 400 INVALID_CURSOR, 401, 403 FORBIDDEN (sem a permissão users:list)."
+          }
+        },
+        {
+          "name": "Find user by e-mail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/admin/users/by-email?email=ana@example.com",
+            "description": "200 { id, name, email, role, status, createdAt }. 404 ACCOUNT_NOT_FOUND, 400 VALIDATION, 401, 403 FORBIDDEN."
+          }
+        },
+        {
+          "name": "Change role",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"instructor\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/admin/users/{{accountId}}/role",
+            "description": "200 { id, role } (mesmo papel: 200 sem gravar). 403 CANNOT_CHANGE_OWN_ROLE, 404 ACCOUNT_NOT_FOUND, 409 ACCOUNT_NOT_ACTIVE, 409 CONFLICT (a conta mudou no meio), 403 FORBIDDEN (sem a permissão ou deixou de ser admin), 400 VALIDATION, 401."
+          }
+        },
+        {
+          "name": "List role changes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/admin/users/{{accountId}}/role-changes?limit=20",
+            "description": "200 { items: [{ id, fromRole, toRole, changedBy, changedAt }], nextCursor }, mais recentes primeiro. changedBy é o id do admin ou bootstrap. 404 ACCOUNT_NOT_FOUND, 400 INVALID_CURSOR, 401, 403 FORBIDDEN."
           }
         }
       ]

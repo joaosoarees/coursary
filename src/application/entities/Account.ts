@@ -41,6 +41,10 @@ export class Account {
     return email.trim().toLowerCase();
   }
 
+  static isRole(value: unknown): value is Account.Role {
+    return Object.values<unknown>(accountRoles).includes(value);
+  }
+
   static requireActive(account: Account | null): Account {
     if (account?.status !== accountStatuses.Active) {
       throw new AccountUnavailable();

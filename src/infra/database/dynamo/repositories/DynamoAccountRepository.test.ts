@@ -4,6 +4,8 @@ import { describe, expect, test } from 'vitest';
 import { Account, accountRoles } from '@application/entities/Account';
 import { BOOTSTRAP_ACTOR, RoleChange } from '@application/entities/RoleChange';
 import { EmailInUse } from '@application/errors/EmailInUse';
+import { Forbidden } from '@application/errors/Forbidden';
+import { RoleChangeConflict } from '@application/errors/RoleChangeConflict';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { DynamoAccountRepository } from '@infra/database/dynamo/repositories/DynamoAccountRepository';
 import { AppConfig } from '@shared/config/AppConfig';
@@ -351,9 +353,70 @@ describe('DynamoAccountRepository.changeRole', () => {
     });
     await repository.changeRole(first);
 
-    await expect(repository.changeRole(stale)).rejects.toThrow();
+    await expect(repository.changeRole(stale)).rejects.toBeInstanceOf(
+      RoleChangeConflict,
+    );
     expect(await getItem(`ACCOUNT#${account.id}`)).toMatchObject({
       role: 'instructor',
     });
+  });
+
+  const adminAccount = async () => {
+    const account = await activeAccount();
+    const promotion = RoleChange.create({
+      account,
+      toRole: accountRoles.Admin,
+      changedBy: BOOTSTRAP_ACTOR,
+    });
+    await repository.changeRole(promotion);
+    account.role = accountRoles.Admin;
+
+    return account;
+  };
+
+  const demotion = (account: Account, caller: Account) =>
+    repository.changeRole(
+      RoleChange.create({
+        account,
+        toRole: accountRoles.Student,
+        changedBy: caller.id,
+      }),
+      { adminCallerId: caller.id },
+    );
+
+  test('refuses a caller who is no longer admin and records nothing', async () => {
+    const ana = await adminAccount();
+    const bia = await adminAccount();
+    await demotion(bia, ana);
+    const change = RoleChange.create({
+      account: ana,
+      toRole: accountRoles.Student,
+      changedBy: bia.id,
+    });
+
+    await expect(
+      repository.changeRole(change, { adminCallerId: bia.id }),
+    ).rejects.toBeInstanceOf(Forbidden);
+    expect(await getItem(`ACCOUNT#${ana.id}`)).toMatchObject({
+      role: 'admin',
+    });
+    expect(await getRoleChange(ana.id, change.id)).toBeUndefined();
+  });
+
+  test('leaves one admin when two admins demote each other at the same time', async () => {
+    const ana = await adminAccount();
+    const bia = await adminAccount();
+
+    const results = await Promise.allSettled([
+      demotion(bia, ana),
+      demotion(ana, bia),
+    ]);
+
+    expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+    const roles = [
+      (await getItem(`ACCOUNT#${ana.id}`))?.role,
+      (await getItem(`ACCOUNT#${bia.id}`))?.role,
+    ];
+    expect(roles.sort()).toEqual(['admin', 'student']);
   });
 });

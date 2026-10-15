@@ -75,3 +75,17 @@ describe('Account.activate', () => {
     expect(account.status).toBe('ACTIVE');
   });
 });
+
+describe('Account.isRole', () => {
+  it('should accept the three roles', () => {
+    expect(
+      ['student', 'instructor', 'admin'].every((v) => Account.isRole(v)),
+    ).toBe(true);
+  });
+
+  it('should refuse anything else', () => {
+    expect(
+      ['owner', 'Admin', undefined, 1].some((v) => Account.isRole(v)),
+    ).toBe(false);
+  });
+});

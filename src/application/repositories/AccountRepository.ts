@@ -19,11 +19,18 @@ export interface AccountRepository {
 
   updateName(id: string, name: string): Promise<Account>;
 
-  changeRole(roleChange: RoleChange): Promise<void>;
+  changeRole(
+    roleChange: RoleChange,
+    options?: AccountRepository.ChangeRoleOptions,
+  ): Promise<void>;
 }
 
 export namespace AccountRepository {
   export interface ReadOptions {
     consistent?: boolean;
+  }
+
+  export interface ChangeRoleOptions {
+    adminCallerId?: string;
   }
 }

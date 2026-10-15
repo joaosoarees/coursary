@@ -6,7 +6,10 @@ describe('HealthController', () => {
   it('should answer 200 with status ok', async () => {
     const response = await new HealthController().execute({
       body: {},
+      params: {},
+      queryParams: {},
       accountId: null,
+      role: null,
     });
 
     expect(response).toEqual({ statusCode: 200, body: { status: 'ok' } });
