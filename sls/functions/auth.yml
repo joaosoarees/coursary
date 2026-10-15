@@ -1,10 +1,5 @@
 signUp:
   handler: src/main/functions/auth/signUp.handler
-  environment:
-    MAIN_TABLE_NAME: !Ref MainTable
-    COGNITO_POOL_ID: !Ref UserPool
-    COGNITO_CLIENT_ID: !Ref UserPoolClient
-    COGNITO_CLIENT_SECRET: !GetAtt UserPoolClient.ClientSecret
   events:
     - httpApi:
         method: POST
@@ -12,11 +7,6 @@ signUp:
 
 confirmSignUp:
   handler: src/main/functions/auth/confirmSignUp.handler
-  environment:
-    MAIN_TABLE_NAME: !Ref MainTable
-    COGNITO_POOL_ID: !Ref UserPool
-    COGNITO_CLIENT_ID: !Ref UserPoolClient
-    COGNITO_CLIENT_SECRET: !GetAtt UserPoolClient.ClientSecret
   events:
     - httpApi:
         method: POST
@@ -24,10 +14,6 @@ confirmSignUp:
 
 resendConfirmationCode:
   handler: src/main/functions/auth/resendConfirmationCode.handler
-  environment:
-    MAIN_TABLE_NAME: !Ref MainTable
-    COGNITO_CLIENT_ID: !Ref UserPoolClient
-    COGNITO_CLIENT_SECRET: !GetAtt UserPoolClient.ClientSecret
   events:
     - httpApi:
         method: POST
@@ -36,8 +22,6 @@ resendConfirmationCode:
 preTokenGeneration:
   handler: src/main/functions/auth/preTokenGeneration.handler
   timeout: 5
-  environment:
-    MAIN_TABLE_NAME: !Ref MainTable
   iam:
     role:
       statements:
@@ -48,9 +32,6 @@ preTokenGeneration:
 
 signIn:
   handler: src/main/functions/auth/signIn.handler
-  environment:
-    COGNITO_CLIENT_ID: !Ref UserPoolClient
-    COGNITO_CLIENT_SECRET: !GetAtt UserPoolClient.ClientSecret
   events:
     - httpApi:
         method: POST
@@ -58,9 +39,6 @@ signIn:
 
 refreshTokens:
   handler: src/main/functions/auth/refreshTokens.handler
-  environment:
-    COGNITO_CLIENT_ID: !Ref UserPoolClient
-    COGNITO_CLIENT_SECRET: !GetAtt UserPoolClient.ClientSecret
   events:
     - httpApi:
         method: POST
@@ -75,10 +53,6 @@ customMessage:
 
 forgotPassword:
   handler: src/main/functions/auth/forgotPassword.handler
-  environment:
-    MAIN_TABLE_NAME: !Ref MainTable
-    COGNITO_CLIENT_ID: !Ref UserPoolClient
-    COGNITO_CLIENT_SECRET: !GetAtt UserPoolClient.ClientSecret
   events:
     - httpApi:
         method: POST
@@ -86,10 +60,6 @@ forgotPassword:
 
 resetPassword:
   handler: src/main/functions/auth/resetPassword.handler
-  environment:
-    COGNITO_POOL_ID: !Ref UserPool
-    COGNITO_CLIENT_ID: !Ref UserPoolClient
-    COGNITO_CLIENT_SECRET: !GetAtt UserPoolClient.ClientSecret
   events:
     - httpApi:
         method: POST
