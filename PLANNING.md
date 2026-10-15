@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.6 na `develop` e em `dev`; domínio da API em `dev` (`api-dev.coursary.joaodevdude.com`, endpoint padrão desligado); 1.7 (recuperação de senha e e-mails pelo SES) em PR**.
+Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.7 na `develop` e em `dev` (conferidas com chamadas reais), API só em `https://api-dev.coursary.joaodevdude.com`, e-mails pelo SES com templates próprios; próxima: 1.8 (`GET` e `PATCH /me`), ainda sem sub-imp**.
 
 ## Como retomar
 
@@ -11,7 +11,7 @@ Abra o Claude Code e diga:
 Ao retomar, o assistente deve:
 
 1. Ver no estado acima e na tabela "Fase 1: histórias" qual história é a próxima.
-2. Para a 1.7: reler as decisões Q37, Q126 e Q127 e as skills `cognito-password-reset`, `cognito-custom-message-lambda-trigger` e `cognito-user-pools` (SES) antes de propor as sub-imp. Há um usuário de teste confirmado em `dev` (endereço do autor, fora do repositório).
+2. Para a 1.8: reler as decisões Q20, Q32, Q43, Q85, Q88 e Q93 e as skills `cognito-api-gateway-jwt-authorizer`, `dynamodb-item-operations` e `dynamodb-denormalization` antes de propor as sub-imp. É a primeira rota privada: authorizer JWT e `Controller<'private'>`. Há um usuário de teste confirmado em `dev` (endereço do autor, fora do repositório).
 3. Seguir o "Começar tarefa X.X" do `CLAUDE.md`: branch a partir da `develop`, sub-imp propostas e discutidas antes de codar.
 4. Não refazer perguntas já fechadas.
 
