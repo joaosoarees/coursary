@@ -100,6 +100,9 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q35 | Confirmação do cadastro | Código por e-mail em todos os stages, sem auto-confirmação. |
 | Q36 | Duração dos tokens | Access e id de 1 h; refresh de 30 dias com rotação. |
 | Q37 | E-mails de autenticação | SES via Cognito, texto pelo trigger de custom message. O Resend talvez nem entre (a fase 3 decide). |
+| Q20 | Onde vive o papel | `role` no Account (fonte da verdade), copiado para o access token pelo trigger de pre token, que lê o Dynamo. Papel desatualizado por no máximo 1 h. Rotas de admin que mudam papel leem o papel do Dynamo na hora. Grupos do Cognito descartados pela Q38. |
+| Q39 | Ordem do sign-up | (1) Transação no Dynamo: Account `PENDING` e `EMAIL#`, ambos com TTL de 3 dias. (2) `SignUp` no Cognito com `custom:internalId`; se falhar, apagar os dois itens. (3) A confirmação marca `ACTIVE` e remove o TTL. Leituras ignoram itens vencidos ainda não apagados. |
+| Q40 | Quem marca a confirmação | A rota de confirmação, depois do `ConfirmSignUp`. Sem trigger de post confirmation. |
 
 #### Fases (Q27)
 
@@ -127,14 +130,6 @@ Histórias de decisão, antes de qualquer código. Ordem de dependência: PLAN-2
 | PLAN-6 | Padrões do projeto: gerenciador de pacotes, versões fixadas, monorepo ou não, tsconfig, ESLint e Prettier, commitlint e hooks, scripts, CI, documentação | `typescript-*`, `vitest-setup`, `serverless-typescript-esbuild` (nenhuma skill cobre lint ou commitlint: anotar como skill que falta) | A fazer |
 
 As histórias das fases 1 a 6 só são criadas depois da PLAN-3.
-
-## Rodada em aberto (PLAN-2, rodada 2)
-
-Abertas por causa da Q38.
-
-- **Q20 Onde vive o papel (reaberta)**: a rodada 1 recomendou grupos do Cognito, mas pela Q38 a fonte da verdade é a aplicação. Opções: (a) grupos do Cognito; (b) `role` no Account, copiado para o token pelo trigger de pre token, que já existe por causa da Q32 e passaria a ler o Dynamo; (c) `role` no Account, lido do Dynamo a cada requisição que exige papel. → (b): o Account é a fonte, o trigger já existe, o papel fica no máximo 1 h desatualizado (Q36), o padrão 2 sai de um índice próprio, e as rotas de admin que mudam papel leem do Dynamo na hora (`cognito-role-based-route-protection`, "stale roles").
-- **Q39 Ordem do sign-up e conta não confirmada**: → (1) transação no Dynamo com Account `PENDING` e `EMAIL#`, ambos com TTL; (2) `SignUp` no Cognito com `custom:internalId`; se falhar, apagar os dois itens. (3) A confirmação marca o Account como `ACTIVE` e remove o TTL. Uma conta nunca confirmada expira sozinha e libera o e-mail (`dynamodb-time-to-live`).
-- **Q40 Quem marca a confirmação**: a própria rota de confirmação, depois do `ConfirmSignUp`, ou um trigger de post confirmation. → A rota: a regra fica na aplicação e não depende de um trigger do Cognito (Q38).
 
 ## Próximas perguntas (fronteira ainda não percorrida)
 
