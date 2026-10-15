@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-15. Estado: **Épico 0 fechado; histórias 1.0 a 1.5 na `develop` e em `dev` (sign-up, confirmação e reenvio conferidos com chamadas reais); próxima: 1.6 (sign-in e refresh), ainda sem sub-imp**.
+Última atualização: 2026-10-15. Estado: **Épico 0 fechado; histórias 1.0 a 1.6 na `develop` e em `dev` (conferidas com chamadas reais); em andamento: troca do Registry por fábricas e um zip por função (Q151 a Q155); depois: 1.7 (recuperação de senha), ainda sem sub-imp**.
 
 ## Como retomar
 
@@ -11,7 +11,7 @@ Abra o Claude Code e diga:
 Ao retomar, o assistente deve:
 
 1. Ver no estado acima e na tabela "Fase 1: histórias" qual história é a próxima.
-2. Para a 1.6: reler as decisões Q20, Q32, Q36, Q78, Q88, Q93, Q134 e Q137 e as skills `cognito-sign-in-and-refresh-tokens`, `cognito-user-pool-iac` e as de trigger de pre token antes de propor as sub-imp. Pergunta já aberta: a tabela da fase 1 põe o `GSI2` (e-mail) na 1.6, mas a Q137 acha a conta pela reserva; o sign-in talvez nem precise do índice (Q112). Há um usuário de teste confirmado em `dev` (endereço do autor, fora do repositório).
+2. Para a 1.7: reler as decisões Q37, Q126 e Q127 e as skills `cognito-password-reset`, `cognito-custom-message-lambda-trigger` e `cognito-user-pools` (SES) antes de propor as sub-imp. Há um usuário de teste confirmado em `dev` (endereço do autor, fora do repositório).
 3. Seguir o "Começar tarefa X.X" do `CLAUDE.md`: branch a partir da `develop`, sub-imp propostas e discutidas antes de codar.
 4. Não refazer perguntas já fechadas.
 
@@ -204,6 +204,12 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q148 | Refresh | `POST /auth/refresh` `{ refreshToken }` → `GetTokensFromRefreshToken` com o `ClientSecret` → `200 { accessToken, refreshToken, expiresIn }` (o novo substitui o antigo). `NotAuthorized`, `RefreshTokenReuse`, `UserNotFound` → `401 INVALID_SESSION`; conta indisponível → 403. Token validado só pelo formato. |
 | Q149 | Entrega dos tokens | No corpo por enquanto. Cookie `HttpOnly` para o refresh token fica para a fase 5, com o domínio próprio, sabendo que muda o contrato das duas rotas. |
 | Q150 | Sign-out | Fora da 1.6 (Q112); `POST /auth/sign-out` com `RevokeToken` entra quando o front precisar (fase 5). Com a rotação, um refresh token roubado morre no próximo refresh do dono. |
+| Q151 | Um zip por função | `package.individually: true`: cada Lambda recebe só o próprio bundle (antes, um zip de 665 KB com todos os handlers ia para todas). |
+| Q152 | Fim do Registry (revê o `kernel/` trazido do foodiary) | Os testes nunca usaram o container (Q123), e ele fazia todo handler carregar todas as implementações (`main/bindings`), além de exigir `esbuild-plugin-tsc` e metadados de decorator. Troca por fábricas à mão em `src/main/factories/` (`makeAppConfig`, `makeAccountRepository`, `makeAuthGateway`, `make<UseCase>`, `make<Controller>`), cada uma importando só o que usa; o handler é `lambdaHttpAdapter(makeXController())`. Instâncias criadas uma vez por cold start; estado de execução (`Saga`) segue com `new` por chamada (Q87). |
+| Q153 | Sem decorators | O schema vira propriedade do controller (`protected readonly schema`); saem `@Schema`, `@Injectable`, `reflect-metadata`, `experimentalDecorators`, `emitDecoratorMetadata` e `esbuild-plugin-tsc`; `keepNames` sai se nada depender dele. O build volta a ser o esbuild do Serverless. |
+| Q154 | Portas como `interface` | `AccountRepository` e `AuthGateway` deixam de ser classes abstratas (eram tokens do container); implementações e fakes usam `implements`. |
+| Q155 | Conferência automática dos bundles | `pnpm check:bundles`: `sls package` e import de cada handler num `node` separado (método da Q135), no CI antes do deploy. |
+| Q156 | Peso do zod | Medido em `dev`: `health` ~100 ms de init, trigger sem zod ~290 ms, rotas HTTP ~230 a 340 ms. O peso é o SDK; o zod soma ~30 a 50 ms. Fica como está. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
