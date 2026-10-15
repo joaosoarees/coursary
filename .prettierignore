@@ -1,4 +1,3 @@
 pnpm-lock.yaml
 
-# Markdown fica como está escrito: o Prettier realinha as tabelas e gera diffs enormes.
 *.md

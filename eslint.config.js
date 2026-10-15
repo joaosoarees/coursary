@@ -5,7 +5,6 @@ import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
-// Which layers each layer may not import (Q14: application does not import infra).
 const forbiddenImports = {
   kernel: ['application', 'infra', 'main', 'shared'],
   shared: ['application', 'infra', 'main'],
