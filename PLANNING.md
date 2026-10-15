@@ -117,6 +117,9 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q54 | Cursos em vídeo | O vídeo sai do opcional e vira a fase 5: upload multipart pelo instrutor, reprodução privada por URL pré-assinada do MP4. A aula tem vídeo opcional; o Markdown vira a descrição. HLS e URL assinada do CloudFront ficam como evolução e como skill que falta. |
 | Q55 | Retomar a aula | A matrícula guarda a última aula aberta e a posição em segundos, gravadas a cada 15 a 30 s. Sem histórico. |
 | Q56 | Status da conta | `PENDING`, `ACTIVE`, `DISABLED` (admin desativa; o usuário do Cognito é desativado junto; dados mantidos). Exclusão pelo próprio usuário com anonimização (LGPD) fica como evolução, com o status `DELETED`. |
+| Q53 | Arquivos (substitui `COURSE_COVER` na Q46) | Entidade `FILE` com `ownerType` (conta, curso, aula), `ownerId`, `purpose` (`avatar`, `cover`, `attachment`, `video`), `status` (`PENDING`, `UPLOADED`, `PROCESSED`, `FAILED`), `originalKey`, `variants`, `contentType`, `size`, `position`, `createdAt`. Avatar e capa: 1 atual, públicos, variantes webp com sharp, presigned POST. Attachment: vários com ordem, só matriculados, presigned POST. Vídeo: 1 por aula, só matriculados, multipart. Tipos e tamanhos por finalidade num mapa no código. Trocar avatar ou capa apaga os arquivos antigos. |
+| Q57 | Material da aula | Sai do opcional e entra na fase 4 (mesmo pipeline). Download por URL pré-assinada depois de verificar a matrícula. |
+| Q58 | Acesso a arquivos | Só matrícula `ACTIVE` baixa material e assiste vídeo. Em curso arquivado, os ativos continuam com acesso. Nenhum arquivo é apagado por cancelamento ou arquivamento. |
 
 #### Fases (Q27)
 
@@ -125,11 +128,11 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | 1 | Tabela, CRUD de curso/módulo/aula, auth completa com grupos, rotas de admin |
 | 2 | Matrícula, progresso, avaliações (relações, índices, contadores) |
 | 3 | Stream → SQS → Algolia e e-mails do domínio (idempotência, DLQ, redrive; Resend a confirmar) |
-| 4 | Capa do curso com S3 e sharp, consistência do upload com TTL, CSV de alunos |
+| 4 | Arquivos (avatar, capa, material da aula) com S3 e sharp, consistência do upload com TTL, CSV de alunos |
 | 5 | Vídeo das aulas: upload multipart e reprodução por URL pré-assinada (Q54) |
 | 6 | Frontend `web` em S3 + CloudFront |
 | 7 | Evolução de schema |
-| Opcional | Google sign-in, material privado da aula |
+| Opcional | Google sign-in |
 
 ## Épico 0: planejamento e design
 
