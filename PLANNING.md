@@ -181,24 +181,24 @@ Histórias de decisão, antes de qualquer código. Ordem de dependência: PLAN-2
 
 As histórias das fases 1 a 6 só são criadas depois da PLAN-3.
 
-## Próximas perguntas (fronteira ainda não percorrida)
+## Próximas perguntas (lista original de 2026-10-12)
 
-Em ordem aproximada de dependência:
-
-1. **Tabela de chaves**: PK/SK de cada entidade. Pontos a decidir: sort key hierárquica de módulo e aula e como reordenar sem reescrever chaves; onde fica a matrícula (coleção do aluno ou do curso) e a direção invertida no GSI; onde ficam LessonProgress e Review.
-2. **Índices**: um GSI1 sobrecarregado basta para os padrões 1, 2, 4, 5, 10 e 14, ou precisa de um GSI2? Qual é a chave do índice esparso do catálogo.
-3. **Desnormalização**: quais campos são copiados (título do curso na matrícula, nome do instrutor no curso, nome do aluno na matrícula e na avaliação) e como a mudança do original se propaga (stream ou nunca).
-4. **Contadores**: alunos do curso, total de aulas, aulas concluídas, soma e contagem de avaliações. Quais são mantidos em transação e quais pelo stream.
-5. **Unidade de trabalho**: desenho novo com `Put`, `Update`, `Delete` e `ConditionCheck`, sem estado entre invocações; destino do `Saga`.
-6. **Consistência de leitura**: onde `ConsistentRead` é necessário e quais fluxos leem logo depois de escrever passando por GSI.
-7. **Paginação**: formato do cursor opaco, tamanho de página padrão e máximo.
-8. **Stream e Algolia**: tipo de view do stream, filtros de evento, forma do registro no índice, tratamento de registros que falham, reindexação completa.
-9. **Rotas HTTP**: lista de rotas, quais são públicas, formato de erro (herdar o do foodiary).
-10. **Autorização**: como o controller declara o papel exigido e como se verifica a posse do recurso (o instrutor só edita o próprio curso).
-11. **Evolução de schema**: qual mudança real será feita na fase 4 para exercitar a skill (por exemplo, acrescentar um atributo com backfill de chave de índice).
-12. **Fases**: o que entra em cada uma e o critério de "pronta".
-13. **Registro de achados sobre as skills**: onde e em que formato anotar o que cada skill errou ou não cobriu.
-14. **Custo e capacidade**: on-demand confirmado; decidir PITR, proteção contra exclusão e alarmes.
+| # | Tema | Onde foi resolvido |
+|---|---|---|
+| 1 | Tabela de chaves | Q71 a Q78; `docs/data-model.md`, seção 3 |
+| 2 | Índices | Q75, Q79; seção 4 |
+| 3 | Desnormalização | Q80 a Q82, Q85; seção 5 |
+| 4 | Contadores | Q83 |
+| 5 | Unidade de trabalho e `Saga` | Q87 |
+| 6 | Consistência de leitura | Q88 |
+| 7 | Paginação | Q89 |
+| 8 | Stream e Algolia | Q90, Q91 |
+| 9 | Rotas e formato de erro | Q93, Q96 |
+| 10 | Autorização | Q94, Q95, Q98 |
+| 11 | Evolução de schema (agora fase 7) | **Aberta**: PLAN-5 |
+| 12 | Fases e critério de pronto | Fases na Q27 (com Q54); critério: **aberto**, PLAN-5 |
+| 13 | Registro de achados sobre as skills | **Aberta**: PLAN-5 |
+| 14 | Custo e capacidade | Q92 |
 
 ## O que a exploração do foodiary mostrou
 
