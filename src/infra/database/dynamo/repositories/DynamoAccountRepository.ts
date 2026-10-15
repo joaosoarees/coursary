@@ -1,5 +1,5 @@
 import { TransactionCanceledException } from '@aws-sdk/client-dynamodb';
-import { TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
+import { TransactWriteCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 
 import type { Account } from '@application/entities/Account';
 import { EmailInUse } from '@application/errors/EmailInUse';
@@ -33,11 +33,12 @@ export class DynamoAccountRepository extends AccountRepository {
             {
               Put: {
                 TableName,
-                Item: EmailClaimItem.forPendingAccount(
-                  account.email,
-                  account.id,
-                ).toItem(),
-                ConditionExpression: 'attribute_not_exists(PK)',
+                Item: EmailClaimItem.fromEntity(account).toItem(),
+                ConditionExpression:
+                  'attribute_not_exists(PK) OR expiresAt < :now',
+                ExpressionAttributeValues: {
+                  ':now': Math.floor(Date.now() / 1000),
+                },
               },
             },
           ],
@@ -54,5 +55,51 @@ export class DynamoAccountRepository extends AccountRepository {
 
       throw error;
     }
+  }
+
+  async delete(account: Account): Promise<void> {
+    const TableName = this.config.mainTableName;
+
+    await dynamoClient.send(
+      new TransactWriteCommand({
+        TransactItems: [
+          {
+            Delete: {
+              TableName,
+              Key: {
+                PK: AccountItem.getPK(account.id),
+                SK: AccountItem.getSK(account.id),
+              },
+            },
+          },
+          {
+            Delete: {
+              TableName,
+              Key: {
+                PK: EmailClaimItem.getPK(account.email),
+                SK: EmailClaimItem.getSK(account.email),
+              },
+              ConditionExpression: 'accountId = :accountId',
+              ExpressionAttributeValues: { ':accountId': account.id },
+            },
+          },
+        ],
+      }),
+    );
+  }
+
+  async saveExternalId(account: Account): Promise<void> {
+    await dynamoClient.send(
+      new UpdateCommand({
+        TableName: this.config.mainTableName,
+        Key: {
+          PK: AccountItem.getPK(account.id),
+          SK: AccountItem.getSK(account.id),
+        },
+        UpdateExpression: 'SET externalId = :externalId',
+        ConditionExpression: 'attribute_exists(PK)',
+        ExpressionAttributeValues: { ':externalId': account.externalId },
+      }),
+    );
   }
 }

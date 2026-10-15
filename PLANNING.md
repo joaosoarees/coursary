@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-14. Estado: **Épico 0 fechado; quadro criado; próxima: história 1.0 (discutir as sub-imp antes de codar)**. As skills de Cognito e TypeScript já existem.
+Última atualização: 2026-10-15. Estado: **Épico 0 fechado; histórias 1.0 a 1.3 na `develop`; 1.4 (sign-up) no PR #6, aguardando merge e teste em `dev`; próxima: 1.5 (confirmação e reenvio de código)**.
 
 ## Como retomar
 
@@ -14,7 +14,7 @@ Ao retomar, o assistente deve:
 2. Ler as skills que essa história cita antes de perguntar.
 3. Não refazer perguntas já fechadas.
 
-Nada foi implementado ainda. Cada decisão fechada entra neste arquivo em um commit pequeno.
+Cada decisão fechada entra neste arquivo em um commit pequeno.
 
 ## O projeto em uma frase
 
@@ -104,7 +104,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q39 | Ordem do sign-up | (1) Transação no Dynamo: Account `PENDING` e `EMAIL#`, ambos com TTL de 3 dias. (2) `SignUp` no Cognito com `custom:internalId`; se falhar, apagar os dois itens. (3) A confirmação marca `ACTIVE` e remove o TTL. Leituras ignoram itens vencidos ainda não apagados. |
 | Q40 | Quem marca a confirmação | A rota de confirmação, depois do `ConfirmSignUp`. Sem trigger de post confirmation. |
 | Q41 | Usuário órfão no Cognito | As duas limpezas: o stream pega o `REMOVE` do TTL (`userIdentity` = `dynamodb.amazonaws.com`) e chama `AdminDeleteUser` (fase 3); e a rota de sign-up, ao receber `UsernameExistsException` sem `EMAIL#` nosso, apaga o usuário `UNCONFIRMED` e tenta de novo (fase 1). O Dynamo decide, o Cognito obedece. |
-| Q42 | O que o Cognito guarda | Só e-mail, senha e `custom:internalId` (imutável). Perfil no Account. `WriteAttributes` explícito em todo app client, sem `custom:internalId`, com teste no template. |
+| Q42 | O que o Cognito guarda | Só e-mail, senha e `custom:internalId` (imutável). Perfil no Account. `WriteAttributes` explícito em todo app client. **Revisto na 1.4.c**: o `custom:internalId` precisa estar no `WriteAttributes`, porque o `SignUp` só grava um atributo que o client pode escrever (`cognito-role-in-custom-attribute`). A proteção vem de duas coisas: o atributo é imutável (ninguém o altera depois de criado) e o client tem secret (ninguém chama o `SignUp` por fora da API, Q127). |
 | Q43 | Forma do papel | Um valor por usuário (`student`, `instructor`, `admin`). Um módulo de permissões mapeia papel → ações e os handlers perguntam pela ação. O admin herda as ações do instrutor. **Fica aberto para evoluir**: haverá um painel de administradores no mesmo front, então o mapa papel → ações deve poder sair do código para dados sem mudar os handlers. |
 | Q44 | Troca de papel | Só admin, `PUT /admin/users/{id}/role`. Ninguém muda o próprio papel; o último admin não pode ser rebaixado; conta `PENDING` é recusada; linha de auditoria (quem, quando, de/para). O primeiro admin vem do script da Q21, que grava `role = admin` no Account. |
 | Q45 | Instrutor rebaixado | Os cursos dele ficam como estão (publicados no catálogo, matrículas mantidas); ele perde a edição; o admin pode arquivar. Nada é apagado ou transferido. |
@@ -181,7 +181,11 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q126 | E-mail de confirmação até a 1.7 | `COGNITO_DEFAULT`; o SES com o trigger de custom message entra na história de recuperação de senha (Q37). |
 | Q127 | App client com secret | Sim: sem secret, qualquer um chama o `SignUp` direto no Cognito, por fora da API, e cria órfãos (Q38). O secret fica só nas funções que falam com o Cognito (Q97). |
 | Q128 | Estilo dos tipos e dos itens | Tipos em namespaces só com tipos, como no foodiary (`Account.Role`, `AccountItem.ItemType`, `Controller.Response`); constantes `as const` no módulo; `no-namespace` desligada. `*Item` como classe no padrão do foodiary. Brands de id só quando houver dois tipos de id (1.11), já como `Account.Id`/`Course.Id`. |
+| Q129 | Secret do client nas funções | `!GetAtt UserPoolClient.ClientSecret` na variável da função que precisa (como no foodiary; confirmado numa conta real pela skill, mas fora da página de referência). Se a AWS mudar o atributo, trocar para Secrets Manager com referência dinâmica. |
+| Q130 | Usuário confirmado no Cognito e reserva livre | `409 EMAIL_IN_USE`, compensação apaga a reserva recém-criada, log de inconsistência. Nunca apagar automaticamente um usuário confirmado. |
 | Q131 | Branches e deploy | `develop` e `main` protegidas por ruleset do GitHub (PR obrigatório, check `check` verde, sem push direto, sem force-push, sem apagar, só merge commit); repositório público para ter rulesets no plano gratuito. Features abrem PR para `develop`; `develop` abre PR para `main`. O merge na `develop` deploya o stage `dev` pelo CI (a deployer confia no OIDC só de `refs/heads/develop`). Sem deploy de `prod` por CI ainda. Revê a Q106 (PR ia para a `main`) e a Q117 (o merge na `develop` é o ok do deploy). Hook local recusa commit em `main` e `develop`. |
+| Q132 | Revisão da 1.4 antes do merge | Corrigidos: a reserva vencida e ainda não apagada pelo TTL é tomada pelo novo cadastro (`attribute_not_exists(PK) OR expiresAt < :now`, Q39); um segundo `AuthUserExists` depois da limpeza do órfão vira `409 EMAIL_IN_USE`; o e-mail é aparado antes de validar; o log `CompensationFailed` traz a etapa e o `accountId`. Ficam como estão: a remoção da conta cancelada quando a reserva já sumiu (a conta tem TTL) e o usuário criado por um `SignUp` que falhou depois (a Q41 o limpa na próxima tentativa). |
+| Q133 | Adiados da revisão da 1.4 | `isBase64Encoded` no parser do corpo, só se aparecer nas chamadas reais em `dev`; `getKey()` nos `*Item` quando surgir a terceira cópia da chave (1.5, Q112). |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)

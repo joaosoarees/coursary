@@ -15,4 +15,16 @@ export class AppConfig {
   get mainTableName(): string {
     return requiredEnv('MAIN_TABLE_NAME');
   }
+
+  get cognitoPoolId(): string {
+    return requiredEnv('COGNITO_POOL_ID');
+  }
+
+  get cognitoClientId(): string {
+    return requiredEnv('COGNITO_CLIENT_ID');
+  }
+
+  get cognitoClientSecret(): string {
+    return requiredEnv('COGNITO_CLIENT_SECRET');
+  }
 }

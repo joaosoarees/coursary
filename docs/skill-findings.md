@@ -70,6 +70,49 @@ Cada achado:
 - **O que aconteceu**: o projeto inverteu o padrão (tudo compartilhado), porque use cases, repositórios e gateways não guardam estado e o que guarda estado vem por fábrica (Q87).
 - **Sugestão**: dizer quando inverter o padrão faz sentido.
 
+### `cognito-role-in-custom-attribute`, `cognito-user-pool-iac`
+
+#### 2026-10-15 · 1.4.c · acerto
+- **A skill diz**: o atributo em que a aplicação confia fica fora do `WriteAttributes` de todo client; um `SignUp` com atributo não gravável recebe `NotAuthorizedException` e não cria o usuário.
+- **O que aconteceu**: a recusa descrita obrigou a rever a Q42 antes do deploy: o `custom:internalId` é enviado no `SignUp`, então precisa estar na lista.
+- **Sugestão**: nenhuma.
+
+#### 2026-10-15 · 1.4.c · lacuna
+- **A skill diz**: a tabela "Who can write" cobre o usuário, o `SignUp` de qualquer um, o provedor de identidade e o código com credencial de admin.
+- **O que aconteceu**: falta o atributo gravado uma vez pelo servidor no próprio `SignUp`, como o `internalId`. Ele precisa ser gravável pelo client; a proteção vem de `Mutable: false` (ninguém o altera depois) e do client com secret (ninguém chama o `SignUp` por fora da API).
+- **Sugestão**: acrescentar esse caso à tabela, com as duas condições.
+
+#### 2026-10-15 · 1.4.g · acerto
+- **A skill diz**: `!GetAtt UserPoolClient.ClientSecret` funciona, embora não esteja na página de referência.
+- **O que aconteceu**: usado assim na variável só da função de sign-up (Q129).
+- **Sugestão**: nenhuma.
+
+### `serverless-typescript-esbuild`, `typescript-decorators-metadata`
+
+#### 2026-10-15 · 1.4.b · lacuna
+- **A skill diz**: a `typescript-decorators-metadata` diz que o esbuild não emite `design:paramtypes`; a `serverless-typescript-esbuild` mostra o `configFile` como o caminho para plugins do esbuild.
+- **O que aconteceu**: nenhuma das duas liga uma à outra. O build embutido do Serverless v4 precisou do `esbuild-plugin-tsc` no `configFile` para o container resolver dependências pelos tipos, e de `keepNames` junto com `minify`.
+- **Sugestão**: uma seção "decorators com metadados no build do Serverless" com esse `configFile`.
+
+#### 2026-10-15 · 1.4.b · ambíguo
+- **A skill diz**: uma dependência CommonJS embutida num bundle ESM falha na partida com `Dynamic require of "…" is not supported`; a saída é o banner com `createRequire`.
+- **O que aconteceu**: o `ksuid` faz `require('crypto')` e `require('util')` e funcionou na Lambda, sem banner (handler descartável, Q113). A causa não foi confirmada: pode ser o `esbuild-plugin-tsc` ou algo do build do v4.
+- **Sugestão**: investigar e dizer quando o erro de fato acontece.
+
+### `wiring-dependencies`, `injecting-dependencies`
+
+#### 2026-10-15 · 1.4.e · acerto
+- **A skill diz**: objetos que guardam dados da operação em andamento são criados por chamada, por fábrica.
+- **O que aconteceu**: a regra corrigiu o `Saga` do foodiary, que acumulava compensações entre execuções numa Lambda quente.
+- **Sugestão**: nenhuma.
+
+### `cognito-sign-up-and-confirmation`
+
+#### 2026-10-15 · 1.4.d · lacuna
+- **A skill diz**: `UsernameExistsException` vira 409.
+- **O que aconteceu**: nada cobre o sign-up gravado em duas fontes (banco e Cognito) quando a aplicação é a fonte da verdade: o usuário órfão `UNCONFIRMED` é apagado e o `SignUp` repetido; um usuário confirmado sem reserva nunca é apagado e vira 409 com log de inconsistência (Q41, Q130); cada passo anterior é compensado.
+- **Sugestão**: uma seção sobre sign-up com o banco da aplicação, órfãos e compensações.
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |
@@ -78,5 +121,5 @@ Cada achado:
 | commitlint, hooks de git, lint-staged | PLAN-6 |
 | URL ou cookie assinado do CloudFront para arquivos privados | Q54, Q69 |
 | Vídeo em streaming adaptativo (HLS, MediaConvert) | Q54 |
-| Permissões mínimas para deployar com o Serverless (role de deploy por projeto, permissions boundary para as roles que o deploy cria) | Q118, Q121 |
+| Permissões mínimas para deployar com o Serverless (role de deploy por projeto, permissions boundary para as roles que o deploy cria, role por função com o boundary) | Q118, Q121, 1.4.g |
 | Role da AWS para GitHub Actions por OIDC (inclui o `sub` imutável `repo:<owner>@<id>/<repo>@<id>:…`, padrão neste repositório) | 1.1.c |

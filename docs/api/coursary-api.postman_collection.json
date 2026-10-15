@@ -22,6 +22,34 @@
           }
         }
       ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Sign up",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ana Souza\",\n  \"email\": \"ana@example.com\",\n  \"password\": \"secret123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/auth/sign-up",
+            "description": "201 { accountId }. 409 EMAIL_IN_USE, 400 VALIDATION, 400 INVALID_PASSWORD, 429 TOO_MANY_REQUESTS."
+          }
+        }
+      ]
     }
   ]
 }

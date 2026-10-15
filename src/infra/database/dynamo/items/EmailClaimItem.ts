@@ -1,3 +1,4 @@
+import { Account, accountStatuses } from '@application/entities/Account';
 import { expiresAtFromNow, PENDING_TTL_DAYS } from '@infra/database/dynamo/ttl';
 
 export class EmailClaimItem {
@@ -16,11 +17,13 @@ export class EmailClaimItem {
     return { ...this.keys, ...this.attributes, type: EmailClaimItem.type };
   }
 
-  static forPendingAccount(email: string, accountId: string): EmailClaimItem {
+  static fromEntity(account: Account): EmailClaimItem {
     return new EmailClaimItem({
-      email,
-      accountId,
-      expiresAt: expiresAtFromNow(PENDING_TTL_DAYS),
+      email: account.email,
+      accountId: account.id,
+      ...(account.status === accountStatuses.Pending
+        ? { expiresAt: expiresAtFromNow(PENDING_TTL_DAYS) }
+        : {}),
     });
   }
 
