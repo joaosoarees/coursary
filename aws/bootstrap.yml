@@ -35,6 +35,34 @@ Resources:
               StringLike:
                 token.actions.githubusercontent.com:sub: repo:joaosoarees@59843125/coursary-api@1416276221:*
 
+  Boundary:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: coursary-api-boundary
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: logs:*
+            Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/coursary-api-*
+          - Effect: Allow
+            Action: dynamodb:*
+            Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/coursary-api-*
+          - Effect: Allow
+            Action: cognito-idp:*
+            Resource: !Sub arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*
+          - Effect: Allow
+            Action: s3:*
+            Resource:
+              - arn:aws:s3:::coursary-api-*
+              - arn:aws:s3:::coursary-api-*/*
+          - Effect: Allow
+            Action: sqs:*
+            Resource: !Sub arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:coursary-api-*
+          - Effect: Allow
+            Action: ssm:GetParameter*
+            Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/coursary-api/*
+
   DeployerRole:
     Type: AWS::IAM::Role
     Properties:
@@ -48,7 +76,7 @@ Resources:
               AWS: !Sub arn:aws:iam::${AWS::AccountId}:user/${OwnerUserName}
             Action: sts:AssumeRole
       Policies:
-        - PolicyName: deploy-1-1
+        - PolicyName: deploy-broad
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -56,11 +84,12 @@ Resources:
                 Action: cloudformation:*
                 Resource: !Sub arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/coursary-api-*/*
               - Effect: Allow
-                Action: cloudformation:ValidateTemplate
+                Action:
+                  - cloudformation:ValidateTemplate
+                  - cloudformation:ListStacks
+                  - cloudformation:ListExports
+                  - cloudformation:GetTemplateSummary
                 Resource: '*'
-              - Effect: Allow
-                Action: dynamodb:*
-                Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/coursary-api-*
               - Effect: Allow
                 Action:
                   - s3:ListBucket
@@ -75,9 +104,137 @@ Resources:
               - Effect: Allow
                 Action: ssm:GetParameter
                 Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/serverless-framework/*
+              - Effect: Allow
+                Action: ssm:*
+                Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/coursary-api/*
+              - Effect: Allow
+                Action: dynamodb:*
+                Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/coursary-api-*
+              - Effect: Allow
+                Action:
+                  - dynamodb:ListTables
+                  - dynamodb:DescribeLimits
+                  - dynamodb:ListStreams
+                Resource: '*'
+              - Effect: Allow
+                Action: lambda:*
+                Resource:
+                  - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:coursary-api-*
+                  - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:coursary-api-*
+              - Effect: Allow
+                Action:
+                  - lambda:CreateEventSourceMapping
+                  - lambda:GetEventSourceMapping
+                  - lambda:UpdateEventSourceMapping
+                  - lambda:DeleteEventSourceMapping
+                  - lambda:ListEventSourceMappings
+                  - lambda:ListFunctions
+                  - lambda:ListLayers
+                  - lambda:ListLayerVersions
+                  - lambda:GetLayerVersion
+                  - lambda:TagResource
+                  - lambda:UntagResource
+                Resource: '*'
+              - Effect: Allow
+                Action: logs:*
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/coursary-api-*
+              - Effect: Allow
+                Action:
+                  - logs:DescribeLogGroups
+                  - logs:FilterLogEvents
+                  - logs:StartQuery
+                  - logs:GetQueryResults
+                Resource: '*'
+              - Effect: Allow
+                Action: apigateway:*
+                Resource:
+                  - !Sub arn:aws:apigateway:${AWS::Region}::/apis
+                  - !Sub arn:aws:apigateway:${AWS::Region}::/apis/*
+                  - !Sub arn:aws:apigateway:${AWS::Region}::/tags/*
+                  - !Sub arn:aws:apigateway:${AWS::Region}::/domainnames
+                  - !Sub arn:aws:apigateway:${AWS::Region}::/domainnames/*
+              - Effect: Allow
+                Action: cognito-idp:*
+                Resource: !Sub arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*
+              - Effect: Allow
+                Action:
+                  - cognito-idp:CreateUserPool
+                  - cognito-idp:ListUserPools
+                  - cognito-idp:DescribeUserPoolDomain
+                Resource: '*'
+              - Effect: Allow
+                Action: s3:*
+                Resource:
+                  - arn:aws:s3:::coursary-api-*
+                  - arn:aws:s3:::coursary-api-*/*
+              - Effect: Allow
+                Action: sqs:*
+                Resource: !Sub arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:coursary-api-*
+              - Effect: Allow
+                Action: sns:*
+                Resource: !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:coursary-api-*
+              - Effect: Allow
+                Action: cloudwatch:*
+                Resource: !Sub arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:coursary-api-*
+              - Effect: Allow
+                Action:
+                  - cloudwatch:DescribeAlarms
+                  - cloudwatch:GetMetricData
+                  - cloudwatch:ListMetrics
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - cloudfront:*
+                  - acm:*
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - ses:Get*
+                  - ses:List*
+                  - ses:Describe*
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - iam:CreateRole
+                  - iam:PutRolePolicy
+                  - iam:DeleteRolePolicy
+                  - iam:AttachRolePolicy
+                  - iam:DetachRolePolicy
+                  - iam:PutRolePermissionsBoundary
+                Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/coursary-api-*
+                Condition:
+                  StringEquals:
+                    iam:PermissionsBoundary: !Ref Boundary
+              - Effect: Allow
+                Action:
+                  - iam:GetRole
+                  - iam:GetRolePolicy
+                  - iam:ListRolePolicies
+                  - iam:ListAttachedRolePolicies
+                  - iam:TagRole
+                  - iam:UntagRole
+                  - iam:DeleteRole
+                  - iam:UpdateRoleDescription
+                Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/coursary-api-*
+              - Effect: Allow
+                Action: iam:PassRole
+                Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/coursary-api-*
+                Condition:
+                  StringEquals:
+                    iam:PassedToService: lambda.amazonaws.com
+              - Effect: Deny
+                Action: iam:DeleteRolePermissionsBoundary
+                Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/coursary-api-*
+              - Effect: Deny
+                Action: iam:*
+                Resource:
+                  - !Sub arn:aws:iam::${AWS::AccountId}:role/coursary-api-deployer
+                  - !Sub arn:aws:iam::${AWS::AccountId}:role/coursary-api-ci
 
 Outputs:
   CiRoleArn:
     Value: !GetAtt CiRole.Arn
   DeployerRoleArn:
     Value: !GetAtt DeployerRole.Arn
+  BoundaryArn:
+    Value: !Ref Boundary

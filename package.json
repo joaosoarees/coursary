@@ -23,12 +23,15 @@
     "prepare": "lefthook install",
     "sls:package": "sls package --stage dev",
     "deploy:dev": "sls deploy --stage dev",
-    "remove:dev": "sls remove --stage dev"
+    "remove:dev": "sls remove --stage dev",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.3",
     "@commitlint/config-conventional": "21.2.3",
     "@eslint/js": "10.0.1",
+    "@types/aws-lambda": "8.10.164",
     "@types/node": "24.19.2",
     "eslint": "10.12.0",
     "eslint-config-prettier": "10.1.8",
@@ -38,6 +41,7 @@
     "prettier": "3.9.10",
     "serverless": "4.43.0",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.71.2"
+    "typescript-eslint": "8.71.2",
+    "vitest": "5.0.4"
   }
 }
