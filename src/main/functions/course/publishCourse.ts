@@ -1,8 +1,12 @@
+import { PublishCourseController } from '@application/controllers/course/PublishCourseController';
+import { PublishCourseUseCase } from '@application/usecases/course/PublishCourseUseCase';
 import { lambdaHttpAdapter } from '@main/adapters/lambdaHttpAdapter';
-import { makeResolveCallerUseCase } from '@main/factories/account/makeResolveCallerUseCase';
-import { makePublishCourseController } from '@main/factories/course/makePublishCourseController';
+import { makeCourseRepository } from '@main/factories/makeCourseRepository';
+import { makeResolveCallerUseCase } from '@main/factories/makeResolveCallerUseCase';
 
-const controller = makePublishCourseController();
+const coursesRepository = makeCourseRepository();
+const useCase = new PublishCourseUseCase(coursesRepository);
+const controller = new PublishCourseController(useCase);
 const resolveCaller = makeResolveCallerUseCase();
 
 export const handler = lambdaHttpAdapter(controller, resolveCaller);

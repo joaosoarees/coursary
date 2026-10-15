@@ -1,6 +1,8 @@
+import { IssueTokenClaimsUseCase } from '@application/usecases/auth/IssueTokenClaimsUseCase';
 import { cognitoPreTokenAdapter } from '@main/adapters/cognitoPreTokenAdapter';
-import { makeIssueTokenClaimsUseCase } from '@main/factories/auth/makeIssueTokenClaimsUseCase';
+import { makeAccountRepository } from '@main/factories/makeAccountRepository';
 
-const useCase = makeIssueTokenClaimsUseCase();
+const accountsRepository = makeAccountRepository();
+const useCase = new IssueTokenClaimsUseCase(accountsRepository);
 
 export const handler = cognitoPreTokenAdapter(useCase);

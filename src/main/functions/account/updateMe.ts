@@ -1,8 +1,17 @@
+import { UpdateMeController } from '@application/controllers/account/UpdateMeController';
+import { UpdateMeUseCase } from '@application/usecases/account/UpdateMeUseCase';
 import { lambdaHttpAdapter } from '@main/adapters/lambdaHttpAdapter';
-import { makeResolveCallerUseCase } from '@main/factories/account/makeResolveCallerUseCase';
-import { makeUpdateMeController } from '@main/factories/account/makeUpdateMeController';
+import { makeAccountRepository } from '@main/factories/makeAccountRepository';
+import { makeCourseRepository } from '@main/factories/makeCourseRepository';
+import { makeResolveCallerUseCase } from '@main/factories/makeResolveCallerUseCase';
 
-const controller = makeUpdateMeController();
+const accountsRepository = makeAccountRepository();
+const coursesRepository = makeCourseRepository();
+const updateMeUseCase = new UpdateMeUseCase(
+  accountsRepository,
+  coursesRepository,
+);
+const controller = new UpdateMeController(updateMeUseCase);
 
 const resolveCaller = makeResolveCallerUseCase();
 

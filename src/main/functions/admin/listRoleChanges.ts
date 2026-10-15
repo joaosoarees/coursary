@@ -1,8 +1,17 @@
+import { ListRoleChangesController } from '@application/controllers/admin/ListRoleChangesController';
+import { ListRoleChangesUseCase } from '@application/usecases/account/ListRoleChangesUseCase';
 import { lambdaHttpAdapter } from '@main/adapters/lambdaHttpAdapter';
-import { makeResolveCallerUseCase } from '@main/factories/account/makeResolveCallerUseCase';
-import { makeListRoleChangesController } from '@main/factories/admin/makeListRoleChangesController';
+import { makeAccountRepository } from '@main/factories/makeAccountRepository';
+import { makeListRoleChangesQuery } from '@main/factories/makeListRoleChangesQuery';
+import { makeResolveCallerUseCase } from '@main/factories/makeResolveCallerUseCase';
 
-const controller = makeListRoleChangesController();
+const accountsRepository = makeAccountRepository();
+const listRoleChangesQuery = makeListRoleChangesQuery();
+const listRoleChangesUseCase = new ListRoleChangesUseCase(
+  accountsRepository,
+  listRoleChangesQuery,
+);
+const controller = new ListRoleChangesController(listRoleChangesUseCase);
 
 const resolveCaller = makeResolveCallerUseCase();
 

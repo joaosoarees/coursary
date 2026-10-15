@@ -1,6 +1,15 @@
+import { RefreshTokensController } from '@application/controllers/auth/RefreshTokensController';
+import { RefreshTokensUseCase } from '@application/usecases/auth/RefreshTokensUseCase';
 import { lambdaHttpAdapter } from '@main/adapters/lambdaHttpAdapter';
-import { makeRefreshTokensController } from '@main/factories/auth/makeRefreshTokensController';
+import { makeAccountRepository } from '@main/factories/makeAccountRepository';
+import { makeAuthGateway } from '@main/factories/makeAuthGateway';
 
-const controller = makeRefreshTokensController();
+const authGateway = makeAuthGateway();
+const accountsRepository = makeAccountRepository();
+const refreshTokensUseCase = new RefreshTokensUseCase(
+  authGateway,
+  accountsRepository,
+);
+const controller = new RefreshTokensController(refreshTokensUseCase);
 
 export const handler = lambdaHttpAdapter(controller);

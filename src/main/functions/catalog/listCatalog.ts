@@ -1,6 +1,10 @@
+import { ListCatalogController } from '@application/controllers/catalog/ListCatalogController';
+import { ListCatalogUseCase } from '@application/usecases/catalog/ListCatalogUseCase';
 import { lambdaHttpAdapter } from '@main/adapters/lambdaHttpAdapter';
-import { makeListCatalogController } from '@main/factories/catalog/makeListCatalogController';
+import { makeCatalogQuery } from '@main/factories/makeCatalogQuery';
 
-const controller = makeListCatalogController();
+const catalogQuery = makeCatalogQuery();
+const listCatalogUseCase = new ListCatalogUseCase(catalogQuery);
+const controller = new ListCatalogController(listCatalogUseCase);
 
 export const handler = lambdaHttpAdapter(controller);
