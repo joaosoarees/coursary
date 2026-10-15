@@ -1,4 +1,8 @@
-import type { Account } from '@application/entities/Account';
+import {
+  Account,
+  accountStatuses,
+  normalizeEmail,
+} from '@application/entities/Account';
 import { EmailInUse } from '@application/errors/EmailInUse';
 import { AccountRepository } from '@application/repositories/AccountRepository';
 
@@ -6,6 +10,7 @@ export class InMemoryAccountRepository extends AccountRepository {
   readonly accounts = new Map<string, Account>();
   readonly claims = new Map<string, string>();
   failOnSaveExternalId: Error | undefined;
+  failOnActivate: Error | undefined;
 
   create(account: Account): Promise<void> {
     if (this.claims.has(account.email)) {
@@ -31,6 +36,35 @@ export class InMemoryAccountRepository extends AccountRepository {
   saveExternalId(account: Account): Promise<void> {
     if (this.failOnSaveExternalId) {
       return Promise.reject(this.failOnSaveExternalId);
+    }
+
+    this.accounts.set(account.id, account);
+
+    return Promise.resolve();
+  }
+
+  findPendingByEmail(email: string): Promise<Account | null> {
+    const accountId = this.claims.get(normalizeEmail(email));
+    const account = accountId ? this.accounts.get(accountId) : undefined;
+
+    return Promise.resolve(
+      account?.status === accountStatuses.Pending
+        ? new Account({
+            id: account.id,
+            externalId: account.externalId,
+            email: account.email,
+            name: account.name,
+            role: account.role,
+            status: account.status,
+            createdAt: account.createdAt,
+          })
+        : null,
+    );
+  }
+
+  activate(account: Account): Promise<void> {
+    if (this.failOnActivate) {
+      return Promise.reject(this.failOnActivate);
     }
 
     this.accounts.set(account.id, account);

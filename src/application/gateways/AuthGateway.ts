@@ -3,6 +3,12 @@ export abstract class AuthGateway {
     params: AuthGateway.SignUpParams,
   ): Promise<AuthGateway.SignUpResult>;
 
+  abstract confirmSignUp(email: string, code: string): Promise<void>;
+
+  abstract resendConfirmationCode(email: string): Promise<void>;
+
+  abstract isUserConfirmed(email: string): Promise<boolean>;
+
   abstract deleteUnconfirmedUser(
     email: string,
   ): Promise<AuthGateway.DeleteUnconfirmedResult>;

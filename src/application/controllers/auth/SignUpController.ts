@@ -1,13 +1,14 @@
 import { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
+import { emailSchema } from '@application/controllers/auth/emailSchema';
 import { SignUpUseCase } from '@application/usecases/auth/SignUpUseCase';
 import { Injectable } from '@kernel/decorators/Injectable';
 import { Schema } from '@kernel/decorators/Schema';
 
 export const signUpSchema = z.object({
   name: z.string().trim().min(1).max(100),
-  email: z.string().trim().pipe(z.email().max(254)),
+  email: emailSchema,
   password: z
     .string()
     .min(8)

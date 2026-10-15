@@ -3,15 +3,24 @@ import { createHmac } from 'node:crypto';
 import {
   AdminDeleteUserCommand,
   AdminGetUserCommand,
+  CodeMismatchException,
+  ConfirmSignUpCommand,
+  ExpiredCodeException,
+  InvalidParameterException,
   InvalidPasswordException,
   LimitExceededException,
+  NotAuthorizedException,
+  ResendConfirmationCodeCommand,
   SignUpCommand,
+  TooManyFailedAttemptsException,
   TooManyRequestsException,
   UsernameExistsException,
   UserNotFoundException,
 } from '@aws-sdk/client-cognito-identity-provider';
 
 import { AuthUserExists } from '@application/errors/AuthUserExists';
+import { AuthUserNotPending } from '@application/errors/AuthUserNotPending';
+import { InvalidCode } from '@application/errors/InvalidCode';
 import { InvalidPassword } from '@application/errors/InvalidPassword';
 import { TooManyRequests } from '@application/errors/TooManyRequests';
 import { AuthGateway } from '@application/gateways/AuthGateway';
@@ -58,11 +67,74 @@ export class CognitoAuthGateway extends AuthGateway {
         throw new InvalidPassword();
       }
 
+      throw translateLimits(error);
+    }
+  }
+
+  async confirmSignUp(email: string, code: string): Promise<void> {
+    try {
+      await cognitoClient.send(
+        new ConfirmSignUpCommand({
+          ClientId: this.config.cognitoClientId,
+          Username: email,
+          ConfirmationCode: code,
+          SecretHash: this.secretHash(email),
+        }),
+      );
+    } catch (error) {
       if (
-        error instanceof TooManyRequestsException ||
-        error instanceof LimitExceededException
+        error instanceof CodeMismatchException ||
+        error instanceof ExpiredCodeException ||
+        error instanceof UserNotFoundException
       ) {
-        throw new TooManyRequests();
+        throw new InvalidCode();
+      }
+
+      if (error instanceof NotAuthorizedException) {
+        throw new AuthUserNotPending(email);
+      }
+
+      throw translateLimits(error);
+    }
+  }
+
+  async resendConfirmationCode(email: string): Promise<void> {
+    try {
+      await cognitoClient.send(
+        new ResendConfirmationCodeCommand({
+          ClientId: this.config.cognitoClientId,
+          Username: email,
+          SecretHash: this.secretHash(email),
+        }),
+      );
+    } catch (error) {
+      if (
+        error instanceof UserNotFoundException ||
+        error instanceof InvalidParameterException
+      ) {
+        console.warn(
+          JSON.stringify({ event: 'ResendCodeSkipped', reason: error.name }),
+        );
+        return;
+      }
+
+      throw translateLimits(error);
+    }
+  }
+
+  async isUserConfirmed(email: string): Promise<boolean> {
+    try {
+      const { UserStatus } = await cognitoClient.send(
+        new AdminGetUserCommand({
+          UserPoolId: this.config.cognitoPoolId,
+          Username: email,
+        }),
+      );
+
+      return UserStatus === 'CONFIRMED';
+    } catch (error) {
+      if (error instanceof UserNotFoundException) {
+        return false;
       }
 
       throw error;
@@ -102,4 +174,16 @@ export class CognitoAuthGateway extends AuthGateway {
       .update(username + this.config.cognitoClientId)
       .digest('base64');
   }
+}
+
+function translateLimits(error: unknown): unknown {
+  if (
+    error instanceof TooManyRequestsException ||
+    error instanceof LimitExceededException ||
+    error instanceof TooManyFailedAttemptsException
+  ) {
+    return new TooManyRequests();
+  }
+
+  return error;
 }

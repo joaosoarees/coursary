@@ -6,4 +6,8 @@ export abstract class AccountRepository {
   abstract delete(account: Account): Promise<void>;
 
   abstract saveExternalId(account: Account): Promise<void>;
+
+  abstract findPendingByEmail(email: string): Promise<Account | null>;
+
+  abstract activate(account: Account): Promise<void>;
 }

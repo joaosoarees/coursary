@@ -1,4 +1,4 @@
-import { GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { GetCommand, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { describe, expect, test } from 'vitest';
 
 import { Account } from '@application/entities/Account';
@@ -143,5 +143,84 @@ describe('DynamoAccountRepository.saveExternalId', () => {
 
     await expect(repository.saveExternalId(account)).rejects.toThrow();
     expect(await getItem(`ACCOUNT#${account.id}`)).toBeUndefined();
+  });
+});
+
+describe('DynamoAccountRepository.findPendingByEmail', () => {
+  test('finds a pending account through the claim on its e-mail', async () => {
+    const email = uniqueEmail();
+    const account = Account.create({ name: 'Ana', email });
+    await repository.create(account);
+
+    const found = await repository.findPendingByEmail(
+      ` ${email.toUpperCase()} `,
+    );
+
+    expect(found).toMatchObject({ id: account.id, email, status: 'PENDING' });
+  });
+
+  test('finds nothing for an unknown e-mail', async () => {
+    await expect(
+      repository.findPendingByEmail(uniqueEmail()),
+    ).resolves.toBeNull();
+  });
+
+  test('finds nothing once the claim has expired', async () => {
+    const account = Account.create({ name: 'Ana', email: uniqueEmail() });
+    await repository.create(account);
+    await dynamoClient.send(
+      new UpdateCommand({
+        TableName: config.mainTableName,
+        Key: {
+          PK: `EMAIL_CLAIM#${account.email}`,
+          SK: `EMAIL_CLAIM#${account.email}`,
+        },
+        UpdateExpression: 'SET expiresAt = :past',
+        ExpressionAttributeValues: {
+          ':past': Math.floor(Date.now() / 1000) - 60,
+        },
+      }),
+    );
+
+    await expect(
+      repository.findPendingByEmail(account.email),
+    ).resolves.toBeNull();
+  });
+
+  test('finds nothing for an account that is already active', async () => {
+    const account = Account.create({ name: 'Ana', email: uniqueEmail() });
+    await repository.create(account);
+    account.activate();
+    await repository.activate(account);
+
+    await expect(
+      repository.findPendingByEmail(account.email),
+    ).resolves.toBeNull();
+  });
+});
+
+describe('DynamoAccountRepository.activate', () => {
+  test('marks the account active and keeps it and its claim for good', async () => {
+    const account = Account.create({ name: 'Ana', email: uniqueEmail() });
+    await repository.create(account);
+    account.activate();
+
+    await repository.activate(account);
+
+    const accountItem = await getItem(`ACCOUNT#${account.id}`);
+    const claimItem = await getItem(`EMAIL_CLAIM#${account.email}`);
+    expect(accountItem).toMatchObject({ status: 'ACTIVE' });
+    expect(accountItem).not.toHaveProperty('expiresAt');
+    expect(claimItem).toMatchObject({ accountId: account.id });
+    expect(claimItem).not.toHaveProperty('expiresAt');
+  });
+
+  test('refuses an account that is no longer pending', async () => {
+    const account = Account.create({ name: 'Ana', email: uniqueEmail() });
+    await repository.create(account);
+    account.activate();
+    await repository.activate(account);
+
+    await expect(repository.activate(account)).rejects.toThrow();
   });
 });
