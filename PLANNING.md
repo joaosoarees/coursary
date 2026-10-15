@@ -197,6 +197,13 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q141 | Rotas e erros da 1.5 | `POST /auth/confirm` `{ email, code }` → 204; `POST /auth/resend-code` `{ email }` → 204. `CodeMismatch`, `ExpiredCode`, `UserNotFound` e `NotAuthorized` sem reparo → um só `400 INVALID_CODE`; `LimitExceeded`, `TooManyRequests`, `TooManyFailedAttempts` → 429. Código validado como texto `/^\S{1,2048}$/`. |
 | Q142 | Leitura na confirmação e no reenvio | `ConsistentRead: true` nos `Get` da reserva e da conta: a leitura vem segundos depois do sign-up, e um 400 falso seria difícil de reproduzir. |
 | Q143 | Sub-imp e teste da 1.5 | 1.5.a entidade e repositório; 1.5.b `AuthGateway`; 1.5.c `ConfirmSignUpUseCase` com reparo; 1.5.d `ResendConfirmationCodeUseCase`; 1.5.e controllers, funções com role própria, Yaak e chamadas reais. O caminho feliz em `dev` usa um endereço de teste do autor (fora do repositório, que é público). |
+| Q144 | `GSI2` fora da 1.6 | Nem o sign-in nem o trigger buscam por e-mail (o trigger lê o `custom:internalId`; a confirmação usa a reserva, Q137). O `GSI2` nasce com a primeira leitura que precisar dele (busca do admin ou catálogo), pela Q112. |
+| Q145 | Trigger de pre token | Versão 2 (`LambdaVersion: V2_0`) com `UserPoolTier: ESSENTIALS` declarado. Lê a conta pelo `custom:internalId` com `ConsistentRead` (Q88) e põe `internalId` e `role` no access token; o id token fica como está. Role do trigger: só `dynamodb:GetItem`. Roda no sign-in e em cada refresh. |
+| Q146 | Trigger sem conta utilizável | Conta inexistente ou não `ACTIVE` (como `DISABLED`): o trigger lança erro, o Cognito não emite tokens (`UserLambdaValidationException`), a rota responde `403 ACCOUNT_UNAVAILABLE` e loga. Um `DISABLED` vale em no máximo 1 h. |
+| Q147 | Sign-in | `POST /auth/sign-in` `{ email, password }` → `200 { accessToken, refreshToken, expiresIn }`, sem id token. Senha validada só como não vazia (até 256). `NotAuthorized` e `PasswordResetRequired` → `401 INVALID_CREDENTIALS`; `UserNotConfirmed` → `403 EMAIL_NOT_CONFIRMED`; desafio → log e 500; limites → 429. |
+| Q148 | Refresh | `POST /auth/refresh` `{ refreshToken }` → `GetTokensFromRefreshToken` com o `ClientSecret` → `200 { accessToken, refreshToken, expiresIn }` (o novo substitui o antigo). `NotAuthorized`, `RefreshTokenReuse`, `UserNotFound` → `401 INVALID_SESSION`; conta indisponível → 403. Token validado só pelo formato. |
+| Q149 | Entrega dos tokens | No corpo por enquanto. Cookie `HttpOnly` para o refresh token fica para a fase 5, com o domínio próprio, sabendo que muda o contrato das duas rotas. |
+| Q150 | Sign-out | Fora da 1.6 (Q112); `POST /auth/sign-out` com `RevokeToken` entra quando o front precisar (fase 5). Com a rotação, um refresh token roubado morre no próximo refresh do dono. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
@@ -237,7 +244,7 @@ Quebra aprovada em 2026-10-14, seguindo a Q112. Em 2026-10-15 o sign-up foi divi
 | 1.3 | Conta e reserva de e-mail numa transação, testadas no DynamoDB Local; e-mail repetido recusado | Container com `bind`, entidade `Account`, `AccountItem`, transação no próprio `AccountRepository`, TTL, DynamoDB Local nos testes e no CI |
 | 1.4 | Sign-up (`POST /auth/sign-up`) | Validação com Zod, `ApplicationError` → HTTP no adapter, `esbuild-plugin-tsc`, user pool e client com secret, `AuthGateway`, `Saga`, primeira role por função |
 | 1.5 | Confirmação e reenvio de código | |
-| 1.6 | Sign-in e refresh | `GSI2` (e-mail), trigger de pre token |
+| 1.6 | Sign-in e refresh | Trigger de pre token (o `GSI2` saiu pela Q144) |
 | 1.7 | Recuperação de senha | SES e trigger de custom message |
 | 1.8 | `GET` e `PATCH /me` | |
 | 1.9 | Script do primeiro admin | Módulo de permissões |
