@@ -185,6 +185,13 @@ Cada achado:
 - **O que aconteceu**: as rotas privadas exigem o escopo (Q163), e as de `/me` conferem a conta no banco (Q165), que já leem de qualquer forma.
 - **Sugestão**: nenhuma.
 
+### `cognito-custom-message-lambda-trigger` (variáveis globais)
+
+#### 2026-10-15 · Q176 · acerto
+- **A skill diz** (`built-arn.md`): com as variáveis do pool em `provider.environment`, ligar o trigger por um ARN montado com o nome da função evita o ciclo; marcado como não testado, por depender de o pool aceitar o ARN de uma função que ainda não existe.
+- **O que aconteceu**: um stage criado do zero (`envtest`) com o pool apontando para `preTokenGeneration` e `customMessage` por `!Sub …:function:<service>-<stage>-<nome>` subiu sem erro; o cadastro chamou o `customMessage` e o sign-in chamou o `preTokenGeneration` (claims no token). O stage foi removido depois.
+- **Sugestão**: tirar a marca de "não testado" e registrar que vale também para o trigger de pre token versão 2.
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |
