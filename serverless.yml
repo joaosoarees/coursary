@@ -1,0 +1,5 @@
+org: jsoareez
+service: coursary-api
+frameworkVersion: '4.43.0'
+
+provider: ${file(./sls/provider.yml)}
