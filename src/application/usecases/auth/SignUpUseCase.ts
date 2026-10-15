@@ -19,14 +19,16 @@ export class SignUpUseCase {
     password,
   }: SignUpUseCase.Input): Promise<SignUpUseCase.Output> {
     const account = Account.create({ name, email });
-    const saga = new Saga();
+    const saga = new Saga({ accountId: account.id });
 
     return saga.run(async () => {
       await this.accountsRepository.create(account);
-      saga.addCompensation(() => this.accountsRepository.delete(account));
+      saga.addCompensation('deleteAccount', () =>
+        this.accountsRepository.delete(account),
+      );
 
       const { externalId } = await this.signUpInAuth(account, password);
-      saga.addCompensation(async () => {
+      saga.addCompensation('deleteAuthUser', async () => {
         await this.authGateway.deleteUnconfirmedUser(account.email);
       });
 

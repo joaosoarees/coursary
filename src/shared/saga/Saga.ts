@@ -1,10 +1,12 @@
 type Compensation = () => Promise<void>;
 
 export class Saga {
-  private readonly compensations: Compensation[] = [];
+  private readonly compensations: { step: string; run: Compensation }[] = [];
 
-  addCompensation(compensation: Compensation): void {
-    this.compensations.unshift(compensation);
+  constructor(private readonly context: Record<string, unknown> = {}) {}
+
+  addCompensation(step: string, run: Compensation): void {
+    this.compensations.unshift({ step, run });
   }
 
   async run<TResult>(work: () => Promise<TResult>): Promise<TResult> {
@@ -17,13 +19,15 @@ export class Saga {
   }
 
   private async compensate(): Promise<void> {
-    for (const compensation of this.compensations) {
+    for (const { step, run } of this.compensations) {
       try {
-        await compensation();
+        await run();
       } catch (error) {
         console.error(
           JSON.stringify({
             event: 'CompensationFailed',
+            step,
+            ...this.context,
             error: error instanceof Error ? error.message : String(error),
           }),
         );

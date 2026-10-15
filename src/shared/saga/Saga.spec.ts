@@ -8,7 +8,7 @@ describe('Saga', () => {
     const compensation = vi.fn(() => Promise.resolve());
 
     const result = await saga.run(() => {
-      saga.addCompensation(compensation);
+      saga.addCompensation('first', compensation);
       return Promise.resolve('done');
     });
 
@@ -23,11 +23,11 @@ describe('Saga', () => {
 
     await expect(
       saga.run(() => {
-        saga.addCompensation(() => {
+        saga.addCompensation('first', () => {
           order.push('first');
           return Promise.resolve();
         });
-        saga.addCompensation(() => {
+        saga.addCompensation('second', () => {
           order.push('second');
           return Promise.resolve();
         });
@@ -44,17 +44,39 @@ describe('Saga', () => {
 
     await expect(
       saga.run(() => {
-        saga.addCompensation(last);
-        saga.addCompensation(() => Promise.reject(new Error('delete failed')));
+        saga.addCompensation('last', last);
+        saga.addCompensation('failing', () =>
+          Promise.reject(new Error('delete failed')),
+        );
         return Promise.reject(new Error('cognito is down'));
       }),
     ).rejects.toThrow('cognito is down');
     expect(last).toHaveBeenCalledOnce();
   });
 
+  it('should log the failed step with the saga context', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const saga = new Saga({ accountId: 'acc-1' });
+
+    await expect(
+      saga.run(() => {
+        saga.addCompensation('deleteAccount', () =>
+          Promise.reject(new Error('delete failed')),
+        );
+        return Promise.reject(new Error('cognito is down'));
+      }),
+    ).rejects.toThrow('cognito is down');
+    expect(JSON.parse(log.mock.calls[0]?.[0] as string)).toEqual({
+      event: 'CompensationFailed',
+      step: 'deleteAccount',
+      accountId: 'acc-1',
+      error: 'delete failed',
+    });
+  });
+
   it('should start empty for every new saga', async () => {
     const earlier = vi.fn(() => Promise.resolve());
-    new Saga().addCompensation(earlier);
+    new Saga().addCompensation('earlier', earlier);
 
     await expect(
       new Saga().run(() => Promise.reject(new Error('fail'))),
