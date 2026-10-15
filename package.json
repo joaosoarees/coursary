@@ -28,7 +28,8 @@
     "test": "vitest run",
     "test:watch": "vitest --project unit",
     "test:unit": "vitest run --project unit",
-    "test:integration": "vitest run --project integration"
+    "test:integration": "vitest run --project integration",
+    "e2e:dev": "node --env-file=.env scripts/e2e-dev.js"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.3",
