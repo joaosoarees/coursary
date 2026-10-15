@@ -181,6 +181,8 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q126 | E-mail de confirmação até a 1.7 | `COGNITO_DEFAULT`; o SES com o trigger de custom message entra na história de recuperação de senha (Q37). |
 | Q127 | App client com secret | Sim: sem secret, qualquer um chama o `SignUp` direto no Cognito, por fora da API, e cria órfãos (Q38). O secret fica só nas funções que falam com o Cognito (Q97). |
 | Q128 | Estilo dos tipos e dos itens | Tipos em namespaces só com tipos, como no foodiary (`Account.Role`, `AccountItem.ItemType`, `Controller.Response`); constantes `as const` no módulo; `no-namespace` desligada. `*Item` como classe no padrão do foodiary. Brands de id só quando houver dois tipos de id (1.11), já como `Account.Id`/`Course.Id`. |
+| Q129 | Secret do client nas funções | `!GetAtt UserPoolClient.ClientSecret` na variável da função que precisa (como no foodiary; confirmado numa conta real pela skill, mas fora da página de referência). Se a AWS mudar o atributo, trocar para Secrets Manager com referência dinâmica. |
+| Q130 | Usuário confirmado no Cognito e reserva livre | `409 EMAIL_IN_USE`, compensação apaga a reserva recém-criada, log de inconsistência. Nunca apagar automaticamente um usuário confirmado. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
