@@ -1,15 +1,15 @@
 import type { Account } from '@application/entities/Account';
 
-export abstract class AccountRepository {
-  abstract create(account: Account): Promise<void>;
+export interface AccountRepository {
+  create(account: Account): Promise<void>;
 
-  abstract delete(account: Account): Promise<void>;
+  delete(account: Account): Promise<void>;
 
-  abstract saveExternalId(account: Account): Promise<void>;
+  saveExternalId(account: Account): Promise<void>;
 
-  abstract findById(id: string): Promise<Account | null>;
+  findById(id: string): Promise<Account | null>;
 
-  abstract findPendingByEmail(email: string): Promise<Account | null>;
+  findPendingByEmail(email: string): Promise<Account | null>;
 
-  abstract activate(account: Account): Promise<void>;
+  activate(account: Account): Promise<void>;
 }

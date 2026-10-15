@@ -1,6 +1,6 @@
 import { type Account, accountStatuses } from '@application/entities/Account';
 import { AccountUnavailable } from '@application/errors/AccountUnavailable';
-import { AccountRepository } from '@application/repositories/AccountRepository';
+import type { AccountRepository } from '@application/repositories/AccountRepository';
 
 export class IssueTokenClaimsUseCase {
   constructor(private readonly accountsRepository: AccountRepository) {}

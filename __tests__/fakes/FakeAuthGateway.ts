@@ -1,9 +1,9 @@
 import { AuthUserExists } from '@application/errors/AuthUserExists';
 import { AuthUserNotPending } from '@application/errors/AuthUserNotPending';
 import { InvalidCode } from '@application/errors/InvalidCode';
-import { AuthGateway } from '@application/gateways/AuthGateway';
+import type { AuthGateway } from '@application/gateways/AuthGateway';
 
-export class FakeAuthGateway extends AuthGateway {
+export class FakeAuthGateway implements AuthGateway {
   readonly users = new Map<string, 'UNCONFIRMED' | 'CONFIRMED'>();
   readonly signUps: AuthGateway.SignUpParams[] = [];
   readonly codes = new Map<string, string>();

@@ -1,8 +1,8 @@
 import { Account } from '@application/entities/Account';
 import { AuthUserExists } from '@application/errors/AuthUserExists';
 import { EmailInUse } from '@application/errors/EmailInUse';
-import { AuthGateway } from '@application/gateways/AuthGateway';
-import { AccountRepository } from '@application/repositories/AccountRepository';
+import type { AuthGateway } from '@application/gateways/AuthGateway';
+import type { AccountRepository } from '@application/repositories/AccountRepository';
 import { Saga } from '@shared/saga/Saga';
 
 export class SignUpUseCase {

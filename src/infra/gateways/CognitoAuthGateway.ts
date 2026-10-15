@@ -35,14 +35,12 @@ import { InvalidCredentials } from '@application/errors/InvalidCredentials';
 import { InvalidPassword } from '@application/errors/InvalidPassword';
 import { InvalidSession } from '@application/errors/InvalidSession';
 import { TooManyRequests } from '@application/errors/TooManyRequests';
-import { AuthGateway } from '@application/gateways/AuthGateway';
+import type { AuthGateway } from '@application/gateways/AuthGateway';
 import { cognitoClient } from '@infra/clients/cognitoClient';
 import { AppConfig } from '@shared/config/AppConfig';
 
-export class CognitoAuthGateway extends AuthGateway {
-  constructor(private readonly config: AppConfig) {
-    super();
-  }
+export class CognitoAuthGateway implements AuthGateway {
+  constructor(private readonly config: AppConfig) {}
 
   async signUp({
     email,

@@ -1,4 +1,4 @@
-import { AuthGateway } from '@application/gateways/AuthGateway';
+import type { AuthGateway } from '@application/gateways/AuthGateway';
 
 export class RefreshTokensUseCase {
   constructor(private readonly authGateway: AuthGateway) {}

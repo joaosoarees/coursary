@@ -1,5 +1,5 @@
 import { normalizeEmail } from '@application/entities/Account';
-import { AuthGateway } from '@application/gateways/AuthGateway';
+import type { AuthGateway } from '@application/gateways/AuthGateway';
 
 export class SignInUseCase {
   constructor(private readonly authGateway: AuthGateway) {}

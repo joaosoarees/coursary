@@ -1,5 +1,5 @@
-import { AuthGateway } from '@application/gateways/AuthGateway';
-import { AccountRepository } from '@application/repositories/AccountRepository';
+import type { AuthGateway } from '@application/gateways/AuthGateway';
+import type { AccountRepository } from '@application/repositories/AccountRepository';
 
 export class ResendConfirmationCodeUseCase {
   constructor(
