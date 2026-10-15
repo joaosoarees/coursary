@@ -122,6 +122,8 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q58 | Acesso a arquivos | Só matrícula `ACTIVE` baixa material e assiste vídeo. Em curso arquivado, os ativos continuam com acesso. Nenhum arquivo é apagado por cancelamento ou arquivamento. |
 | Q59 | Versões de curso | **Sem versionamento.** O curso é um só e todos os alunos, antigos e novos, veem o conteúdo atual. Reestruturar substitui o conteúdo para todos; a Q24 continua valendo (publicado pode ganhar aulas, não perder). Se um dia fizer falta guardar versões antigas, as chaves podem reservar esse nível (decidir no quadro de entidades). |
 | Q65–Q68 | Padrões de acesso revisados | Lista em `docs/data-model.md`, seção 2. Catálogo no Dynamo só por mais recentes; outras ordens no Algolia. Admin busca usuário por e-mail exato e lista por papel e status. Padrões 8b e 16 marcados como críticos. |
+| Q69 | Entrega de arquivos | Avatar e capa (variantes webp) pelo CloudFront com OAC; nome da variante com hash do conteúdo, cache `immutable`, sem invalidação. Material e vídeo por URL pré-assinada do S3. CloudFront com URL assinada fica como evolução (skill que falta). Fase 4. |
+| Q70 | Buckets | Dois: `public-assets` (só o CloudFront lê, via OAC) e `private-files` (só URL pré-assinada). Originais no privado; só as variantes processadas vão para o público. |
 
 #### Fases (Q27)
 
@@ -130,7 +132,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | 1 | Tabela, CRUD de curso/módulo/aula, auth completa com grupos, rotas de admin |
 | 2 | Matrícula, progresso, avaliações (relações, índices, contadores) |
 | 3 | Stream → SQS → Algolia e e-mails do domínio (idempotência, DLQ, redrive; Resend a confirmar) |
-| 4 | Arquivos (avatar, capa, material da aula) com S3 e sharp, consistência do upload com TTL, CSV de alunos |
+| 4 | Arquivos (avatar, capa, material da aula) com S3 e sharp, CDN para as imagens públicas, consistência do upload com TTL, CSV de alunos |
 | 5 | Vídeo das aulas: upload multipart e reprodução por URL pré-assinada (Q54) |
 | 6 | Frontend `web` em S3 + CloudFront |
 | 7 | Evolução de schema |
@@ -220,7 +222,7 @@ Streams, TTL, delete, batch, paginação, condições, índice esparso, relaçã
 - **Cognito**: user-pools, user-pool-iac, sign-up-and-confirmation, sign-in-and-refresh-tokens, password-reset, custom-message-lambda-trigger, pre-sign-up-lambda-trigger, api-gateway-jwt-authorizer, user-groups, role-based-route-protection, group-management-api. Opcionais: google-identity-provider, oauth-authorization-code-flow, oauth-token-exchange, federated-account-linking.
 - **TypeScript**: tsconfig-files-and-strict, target-and-modules, on-node, branded-types, template-literal-and-conditional-types, literal-types-and-const-assertions, enums-and-alternatives, satisfies, narrowing, type-guards-and-assertion-functions, safe-indexed-access.
 - **Modelagem**: designing-data-models, modeling-entity-relationships, defining-access-patterns, dynamodb-time-to-live.
-- **S3 e uploads**: upload-strategies, presigned-post, bucket-cors, event-lambda-trigger, image-processing-sharp, upload-database-consistency, csv-export-from-dynamodb, presigned-download-url, lifecycle-rules; lambda-layers, lambda-native-dependencies. Opcional: multipart-upload.
+- **S3 e uploads**: cloudfront-s3-distribution (imagens públicas), upload-strategies, presigned-post, bucket-cors, event-lambda-trigger, image-processing-sharp, upload-database-consistency, csv-export-from-dynamodb, presigned-download-url, lifecycle-rules; lambda-layers, lambda-native-dependencies. Opcional: multipart-upload.
 - **Filas e e-mail**: sqs-queue-settings, sqs-lambda-queues, sqs-dlq-alarms-and-redrive, sqs-idempotent-consumers, transactional-email-resend, dynamodb-streams-low-level-api.
 - **Frontend (fase 5)**: react-vite-setup, react-query-*, react-hook-form-* (incluindo sortable-field-array), zustand-*, motion-reorder, react-pagination-ellipsis, react-intersection-observer, react-unsaved-changes-warning, multi-step-form-design, react-stepper, hosting-static-frontends, s3-static-site-bucket, cloudfront-*.
 - **Testes, extra**: vitest-mock-extended.
