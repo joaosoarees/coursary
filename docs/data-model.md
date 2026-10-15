@@ -174,7 +174,7 @@ Pontos críticos para o passo 3 (Q68): o padrão 16 grava num item à parte, peq
 
 ## 3. Quadro de entidades
 
-Tabela `MainTable` com `PK` e `SK`, e dois índices globais sobrecarregados, `GSI1` (`GSI1PK`, `GSI1SK`) e `GSI2` (`GSI2PK`, `GSI2SK`). Todo item leva `type` e `id`. Ids são KSUID, que ordenam por tempo (`dynamodb-key-design`). Decisões: Q71 a Q78.
+Tabela `MainTable` com `PK` e `SK`, e dois índices globais sobrecarregados, `GSI1` (`GSI1PK`, `GSI1SK`) e `GSI2` (`GSI2PK`, `GSI2SK`). Todo item leva `type` e `id`. Ids são KSUID, que ordenam por tempo (`dynamodb-key-design`), com resolução de um segundo: ids do mesmo segundo ficam na ordem da parte aleatória, então "mais recentes primeiro" vale entre segundos, não dentro de um. Decisões: Q71 a Q78.
 
 | Entidade | PK | SK | GSI1PK / GSI1SK | GSI2PK / GSI2SK |
 |---|---|---|---|---|
