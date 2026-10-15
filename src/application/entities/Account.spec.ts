@@ -41,3 +41,13 @@ describe('normalizeEmail', () => {
     expect(normalizeEmail('  Rui@Example.com')).toBe('rui@example.com');
   });
 });
+
+describe('Account.activate', () => {
+  it('should make the account active', () => {
+    const account = Account.create({ name: 'Ana', email: 'ana@example.com' });
+
+    account.activate();
+
+    expect(account.status).toBe('ACTIVE');
+  });
+});

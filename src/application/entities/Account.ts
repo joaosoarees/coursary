@@ -35,6 +35,10 @@ export class Account {
     this.createdAt = attributes.createdAt;
   }
 
+  activate(): void {
+    this.status = accountStatuses.Active;
+  }
+
   static create({ name, email }: { name: string; email: string }): Account {
     return new Account({
       id: KSUID.randomSync().string,
