@@ -112,6 +112,11 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q48 | O que é uma aula | Título, corpo em Markdown com limite (por exemplo 32 KB), duração em minutos e posição. Vídeo: ver a rodada em aberto. |
 | Q50 | Capa do curso | Uma capa atual (0..1). Trocar substitui a anterior e apaga do S3 o original e as variantes da capa antiga. |
 | Q52 | Curso arquivado | Não aceita matrículas novas; quem já está matriculado continua assistindo, marcando progresso e pode avaliar. Some do catálogo e da busca (Q10). |
+| Q47 | Dono da avaliação | O par aluno + curso, não a matrícula. Uma por par, para sempre; só quem tem matrícula ativa cria ou edita. |
+| Q49 | Rematrícula (revoga parte da Q23) | Cancelamento lógico: matrícula `ACTIVE` ou `CANCELLED`, progresso guardado. Cancelar marca `CANCELLED` e decrementa o contador; rematricular volta a `ACTIVE`, incrementa e continua de onde parou. Listas de matrículas e de alunos mostram só ativas, por índice esparso. |
+| Q54 | Cursos em vídeo | O vídeo sai do opcional e vira a fase 5: upload multipart pelo instrutor, reprodução privada por URL pré-assinada do MP4. A aula tem vídeo opcional; o Markdown vira a descrição. HLS e URL assinada do CloudFront ficam como evolução e como skill que falta. |
+| Q55 | Retomar a aula | A matrícula guarda a última aula aberta e a posição em segundos, gravadas a cada 15 a 30 s. Sem histórico. |
+| Q56 | Status da conta | `PENDING`, `ACTIVE`, `DISABLED` (admin desativa; o usuário do Cognito é desativado junto; dados mantidos). Exclusão pelo próprio usuário com anonimização (LGPD) fica como evolução, com o status `DELETED`. |
 
 #### Fases (Q27)
 
@@ -121,9 +126,10 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | 2 | Matrícula, progresso, avaliações (relações, índices, contadores) |
 | 3 | Stream → SQS → Algolia e e-mails do domínio (idempotência, DLQ, redrive; Resend a confirmar) |
 | 4 | Capa do curso com S3 e sharp, consistência do upload com TTL, CSV de alunos |
-| 5 | Frontend `web` em S3 + CloudFront |
-| 6 | Evolução de schema |
-| Opcional | Vídeo da aula com multipart, Google sign-in, material privado da aula |
+| 5 | Vídeo das aulas: upload multipart e reprodução por URL pré-assinada (Q54) |
+| 6 | Frontend `web` em S3 + CloudFront |
+| 7 | Evolução de schema |
+| Opcional | Google sign-in, material privado da aula |
 
 ## Épico 0: planejamento e design
 
