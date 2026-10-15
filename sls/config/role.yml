@@ -14,7 +14,4 @@ statements:
     Action:
       - cognito-idp:AdminGetUser
       - cognito-idp:AdminDeleteUser
-      - cognito-idp:AdminUserGlobalSignOut
-      - cognito-idp:AdminDisableUser
-      - cognito-idp:AdminEnableUser
     Resource: !GetAtt UserPool.Arn

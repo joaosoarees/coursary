@@ -11,13 +11,9 @@ export class FakeAuthGateway implements AuthGateway {
   failOnSignUp: Error | undefined;
   failOnResend: Error | undefined;
   failOnTokens: Error | undefined;
-  failOnSignOut: Error | undefined;
   failOnReset: Error | undefined;
-  failOnStatus: Error | undefined;
-  readonly disabled = new Set<string>();
   readonly resetCodesSent: string[] = [];
   readonly passwordResets: AuthGateway.ResetPasswordParams[] = [];
-  readonly signedOut: string[] = [];
   readonly refreshTokensIssued: string[] = [];
   readonly accountIds = new Map<string, string>();
   readonly accountIdsByRefreshToken = new Map<string, string>();
@@ -129,36 +125,6 @@ export class FakeAuthGateway implements AuthGateway {
     }
 
     this.passwordResets.push(params);
-
-    return Promise.resolve();
-  }
-
-  signOutEverywhere(email: string): Promise<void> {
-    if (this.failOnSignOut) {
-      return Promise.reject(this.failOnSignOut);
-    }
-
-    this.signedOut.push(email);
-
-    return Promise.resolve();
-  }
-
-  disableUser(email: string): Promise<void> {
-    if (this.failOnStatus) {
-      return Promise.reject(this.failOnStatus);
-    }
-
-    this.disabled.add(email);
-
-    return Promise.resolve();
-  }
-
-  enableUser(email: string): Promise<void> {
-    if (this.failOnStatus) {
-      return Promise.reject(this.failOnStatus);
-    }
-
-    this.disabled.delete(email);
 
     return Promise.resolve();
   }

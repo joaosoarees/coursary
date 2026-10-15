@@ -320,9 +320,15 @@ export class DynamoAccountRepository implements AccountRepository {
               PK: AccountItem.getPK(accountId),
               SK: AccountItem.getSK(accountId),
             },
-            UpdateExpression: 'SET #status = :toStatus',
+            UpdateExpression:
+              toStatus === accountStatuses.Disabled
+                ? 'SET #status = :toStatus REMOVE #session'
+                : 'SET #status = :toStatus',
             ConditionExpression: '#status = :fromStatus',
-            ExpressionAttributeNames: { '#status': 'status' },
+            ExpressionAttributeNames:
+              toStatus === accountStatuses.Disabled
+                ? { '#status': 'status', '#session': 'session' }
+                : { '#status': 'status' },
             ExpressionAttributeValues: {
               ':toStatus': toStatus,
               ':fromStatus': fromStatus,

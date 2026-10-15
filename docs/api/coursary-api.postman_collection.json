@@ -26,7 +26,8 @@
           "name": "Health",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/health"
+            "url": "{{baseUrl}}/health",
+            "description": ""
           }
         }
       ]
@@ -123,7 +124,7 @@
               }
             },
             "url": "{{baseUrl}}/auth/sign-in",
-            "description": "200 { accessToken, refreshToken, expiresIn }. 401 INVALID_CREDENTIALS, 403 EMAIL_NOT_CONFIRMED, 403 ACCOUNT_UNAVAILABLE, 429 TOO_MANY_REQUESTS."
+            "description": "200 { accessToken, refreshToken, expiresIn }. 401 INVALID_CREDENTIALS, 403 EMAIL_NOT_CONFIRMED, 403 ACCOUNT_UNAVAILABLE, 429 TOO_MANY_REQUESTS. Sessão única: os tokens de um sign-in anterior deixam de valer (401 INVALID_SESSION)."
           }
         },
         {
@@ -146,7 +147,7 @@
               }
             },
             "url": "{{baseUrl}}/auth/refresh",
-            "description": "200 { accessToken, refreshToken, expiresIn }: guarde o refreshToken novo, o antigo deixa de valer (rotação). 401 INVALID_SESSION, 403 ACCOUNT_UNAVAILABLE."
+            "description": "200 { accessToken, refreshToken, expiresIn }: guarde o refreshToken novo, o antigo deixa de valer (rotação). 401 INVALID_SESSION, 403 ACCOUNT_UNAVAILABLE. O access token anterior deixa de valer; um refresh token de sessão anterior responde 401 INVALID_SESSION."
           }
         },
         {
@@ -192,7 +193,7 @@
               }
             },
             "url": "{{baseUrl}}/auth/reset-password",
-            "description": "204, e todas as sessões anteriores são encerradas. 400 INVALID_CODE, 400 INVALID_PASSWORD, 400 VALIDATION, 429 TOO_MANY_REQUESTS."
+            "description": "204, e todas as sessões anteriores são encerradas. 400 INVALID_CODE, 400 INVALID_PASSWORD, 400 VALIDATION, 429 TOO_MANY_REQUESTS. Apaga a sessão: todos os tokens anteriores deixam de valer."
           }
         }
       ]
@@ -326,7 +327,7 @@
               }
             ],
             "url": "{{baseUrl}}/admin/users/{{accountId}}/disable",
-            "description": "200 { id, status: DISABLED }; já desativada: 200 sem gravar, repetindo o Cognito. A conta passa a receber 403 ACCOUNT_UNAVAILABLE em toda rota privada na hora, e o refresh falha. 403 CANNOT_CHANGE_OWN_STATUS, 404 ACCOUNT_NOT_FOUND, 409 ACCOUNT_NOT_ACTIVE (conta pendente), 409 CONFLICT (a conta mudou no meio), 403 FORBIDDEN (sem a permissão users:change-status ou deixou de ser admin ativo), 401, 500 se o Cognito falhar (a conta fica no estado pedido; chamar de novo repara o Cognito)."
+            "description": "200 { id, status: DISABLED }; já desativada: 200 sem gravar. A sessão é apagada: toda rota privada responde 403 ACCOUNT_UNAVAILABLE na hora, o refresh 401 e o sign-in 403. 403 CANNOT_CHANGE_OWN_STATUS, 404 ACCOUNT_NOT_FOUND, 409 ACCOUNT_NOT_ACTIVE (conta pendente), 409 CONFLICT (a conta mudou no meio), 403 FORBIDDEN (sem a permissão users:change-status ou deixou de ser admin ativo), 401."
           }
         },
         {
@@ -340,7 +341,7 @@
               }
             ],
             "url": "{{baseUrl}}/admin/users/{{accountId}}/enable",
-            "description": "200 { id, status: ACTIVE }; já ativa: 200 sem gravar, repetindo o Cognito. 403 CANNOT_CHANGE_OWN_STATUS, 404 ACCOUNT_NOT_FOUND, 409 ACCOUNT_NOT_ACTIVE (conta pendente), 409 CONFLICT (a conta mudou no meio), 403 FORBIDDEN (sem a permissão users:change-status ou deixou de ser admin ativo), 401, 500 se o Cognito falhar (a conta fica no estado pedido; chamar de novo repara o Cognito)."
+            "description": "200 { id, status: ACTIVE }; já ativa: 200 sem gravar; a sessão antiga não volta, é preciso entrar de novo. 403 CANNOT_CHANGE_OWN_STATUS, 404 ACCOUNT_NOT_FOUND, 409 ACCOUNT_NOT_ACTIVE (conta pendente), 409 CONFLICT (a conta mudou no meio), 403 FORBIDDEN (sem a permissão users:change-status ou deixou de ser admin ativo), 401."
           }
         }
       ]

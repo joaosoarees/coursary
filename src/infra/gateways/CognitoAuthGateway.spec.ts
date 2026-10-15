@@ -2,10 +2,7 @@ import { createHmac } from 'node:crypto';
 
 import {
   AdminDeleteUserCommand,
-  AdminDisableUserCommand,
-  AdminEnableUserCommand,
   AdminGetUserCommand,
-  AdminUserGlobalSignOutCommand,
   CodeMismatchException,
   ConfirmForgotPasswordCommand,
   ConfirmSignUpCommand,
@@ -418,48 +415,5 @@ describe('CognitoAuthGateway.resetPassword', () => {
     await expect(gateway.resetPassword(params)).rejects.toBeInstanceOf(
       expected,
     );
-  });
-});
-
-describe('CognitoAuthGateway.signOutEverywhere', () => {
-  it('should revoke every session of the user', async () => {
-    const spy = send().mockResolvedValue({} as never);
-
-    await gateway.signOutEverywhere('ana@example.com');
-
-    const command = spy.mock.calls[0]?.[0] as AdminUserGlobalSignOutCommand;
-    expect(command).toBeInstanceOf(AdminUserGlobalSignOutCommand);
-    expect(command.input).toEqual({
-      UserPoolId: 'sa-east-1_pool',
-      Username: 'ana@example.com',
-    });
-  });
-});
-
-describe('CognitoAuthGateway.disableUser and enableUser', () => {
-  it('should disable the user by e-mail', async () => {
-    const spy = send().mockResolvedValue({} as never);
-
-    await gateway.disableUser('ana@example.com');
-
-    const command = spy.mock.calls[0]?.[0] as AdminDisableUserCommand;
-    expect(command).toBeInstanceOf(AdminDisableUserCommand);
-    expect(command.input).toEqual({
-      UserPoolId: 'sa-east-1_pool',
-      Username: 'ana@example.com',
-    });
-  });
-
-  it('should enable the user by e-mail', async () => {
-    const spy = send().mockResolvedValue({} as never);
-
-    await gateway.enableUser('ana@example.com');
-
-    const command = spy.mock.calls[0]?.[0] as AdminEnableUserCommand;
-    expect(command).toBeInstanceOf(AdminEnableUserCommand);
-    expect(command.input).toEqual({
-      UserPoolId: 'sa-east-1_pool',
-      Username: 'ana@example.com',
-    });
   });
 });

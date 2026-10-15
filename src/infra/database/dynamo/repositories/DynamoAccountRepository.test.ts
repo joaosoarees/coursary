@@ -446,14 +446,19 @@ describe('DynamoAccountRepository.changeStatus', () => {
       caller.id,
     );
 
-  test('disables and enables an account', async () => {
+  test('disables an account, ending its session, and enables it', async () => {
     const admin = await adminAccount();
     const target = await adminAccount();
+    await repository.saveSession(target.id, {
+      accessJti: 'jti-1',
+      refreshTokenHash: 'hash-1',
+    });
 
     await disable(target, admin);
     expect(await getItem(`ACCOUNT#${target.id}`)).toMatchObject({
       status: 'DISABLED',
     });
+    expect((await getItem(`ACCOUNT#${target.id}`))?.session).toBeUndefined();
 
     await repository.changeStatus(
       { accountId: target.id, fromStatus: 'DISABLED', toStatus: 'ACTIVE' },

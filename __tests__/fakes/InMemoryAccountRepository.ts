@@ -173,6 +173,11 @@ export class InMemoryAccountRepository implements AccountRepository {
     }
 
     account.status = toStatus;
+
+    if (toStatus === accountStatuses.Disabled) {
+      account.session = undefined;
+    }
+
     this.statusChanges.push({ accountId, fromStatus, toStatus });
 
     return Promise.resolve();
