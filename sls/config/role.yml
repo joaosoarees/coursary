@@ -6,6 +6,7 @@ statements:
       - dynamodb:UpdateItem
       - dynamodb:DeleteItem
       - dynamodb:Query
+      - dynamodb:ConditionCheckItem
     Resource:
       - !GetAtt MainTable.Arn
       - !Join ['/', [!GetAtt MainTable.Arn, 'index', 'GSI1']]
