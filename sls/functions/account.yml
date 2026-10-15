@@ -2,24 +2,18 @@ getMe:
   handler: src/main/functions/account/getMe.handler
   environment:
     MAIN_TABLE_NAME: !Ref MainTable
-  iam:
-    role:
-      statements: ${file(./sls/iam.yml):getMe}
   events:
     - httpApi:
         method: GET
         path: /me
-        authorizer: ${self:custom.cognitoAuthorizer}
+        authorizer: CognitoAuthorizer
 
 updateMe:
   handler: src/main/functions/account/updateMe.handler
   environment:
     MAIN_TABLE_NAME: !Ref MainTable
-  iam:
-    role:
-      statements: ${file(./sls/iam.yml):updateMe}
   events:
     - httpApi:
         method: PATCH
         path: /me
-        authorizer: ${self:custom.cognitoAuthorizer}
+        authorizer: CognitoAuthorizer
