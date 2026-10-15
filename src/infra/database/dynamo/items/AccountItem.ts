@@ -1,37 +1,28 @@
-import { Account } from '@application/entities/Account';
+import { Account, accountStatuses } from '@application/entities/Account';
 import { expiresAtFromNow, PENDING_TTL_DAYS } from '@infra/database/dynamo/ttl';
 
-export interface AccountItemType {
-  PK: `ACCOUNT#${string}`;
-  SK: `ACCOUNT#${string}`;
-  GSI1PK: `ROLE#${Account.Role}`;
-  GSI1SK: `ACCOUNT#${string}`;
-  GSI2PK: `EMAIL#${string}`;
-  GSI2SK: `ACCOUNT#${string}`;
-  type: 'Account';
-  id: string;
-  externalId?: string;
-  email: string;
-  name: string;
-  role: Account.Role;
-  status: Account.Status;
-  createdAt: string;
-  expiresAt?: number;
-}
+export class AccountItem {
+  static readonly type = 'Account';
 
-export const AccountItem = {
-  getPK: (id: string) => `ACCOUNT#${id}` as const,
-  getSK: (id: string) => `ACCOUNT#${id}` as const,
+  private readonly keys: AccountItem.Keys;
 
-  fromEntity(account: Account): AccountItemType {
-    return {
-      PK: AccountItem.getPK(account.id),
-      SK: AccountItem.getSK(account.id),
-      GSI1PK: `ROLE#${account.role}`,
-      GSI1SK: `ACCOUNT#${account.id}`,
-      GSI2PK: `EMAIL#${account.email}`,
-      GSI2SK: `ACCOUNT#${account.id}`,
-      type: 'Account',
+  constructor(private readonly attributes: AccountItem.Attributes) {
+    this.keys = {
+      PK: AccountItem.getPK(attributes.id),
+      SK: AccountItem.getSK(attributes.id),
+      GSI1PK: AccountItem.getGSI1PK(attributes.role),
+      GSI1SK: AccountItem.getGSI1SK(attributes.id),
+      GSI2PK: AccountItem.getGSI2PK(attributes.email),
+      GSI2SK: AccountItem.getGSI2SK(attributes.id),
+    };
+  }
+
+  toItem(): AccountItem.ItemType {
+    return { ...this.keys, ...this.attributes, type: AccountItem.type };
+  }
+
+  static fromEntity(account: Account): AccountItem {
+    return new AccountItem({
       id: account.id,
       ...(account.externalId ? { externalId: account.externalId } : {}),
       email: account.email,
@@ -39,13 +30,13 @@ export const AccountItem = {
       role: account.role,
       status: account.status,
       createdAt: account.createdAt.toISOString(),
-      ...(account.status === 'PENDING'
+      ...(account.status === accountStatuses.Pending
         ? { expiresAt: expiresAtFromNow(PENDING_TTL_DAYS) }
         : {}),
-    };
-  },
+    });
+  }
 
-  toEntity(item: AccountItemType): Account {
+  static toEntity(item: AccountItem.ItemType): Account {
     return new Account({
       id: item.id,
       externalId: item.externalId,
@@ -55,5 +46,53 @@ export const AccountItem = {
       status: item.status,
       createdAt: new Date(item.createdAt),
     });
-  },
-};
+  }
+
+  static getPK(id: string): AccountItem.Keys['PK'] {
+    return `ACCOUNT#${id}`;
+  }
+
+  static getSK(id: string): AccountItem.Keys['SK'] {
+    return `ACCOUNT#${id}`;
+  }
+
+  static getGSI1PK(role: Account.Role): AccountItem.Keys['GSI1PK'] {
+    return `ROLE#${role}`;
+  }
+
+  static getGSI1SK(id: string): AccountItem.Keys['GSI1SK'] {
+    return `ACCOUNT#${id}`;
+  }
+
+  static getGSI2PK(email: string): AccountItem.Keys['GSI2PK'] {
+    return `EMAIL#${email}`;
+  }
+
+  static getGSI2SK(id: string): AccountItem.Keys['GSI2SK'] {
+    return `ACCOUNT#${id}`;
+  }
+}
+
+export namespace AccountItem {
+  export interface Keys {
+    PK: `ACCOUNT#${string}`;
+    SK: `ACCOUNT#${string}`;
+    GSI1PK: `ROLE#${Account.Role}`;
+    GSI1SK: `ACCOUNT#${string}`;
+    GSI2PK: `EMAIL#${string}`;
+    GSI2SK: `ACCOUNT#${string}`;
+  }
+
+  export interface Attributes {
+    id: string;
+    externalId?: string;
+    email: string;
+    name: string;
+    role: Account.Role;
+    status: Account.Status;
+    createdAt: string;
+    expiresAt?: number;
+  }
+
+  export type ItemType = Keys & Attributes & { type: 'Account' };
+}

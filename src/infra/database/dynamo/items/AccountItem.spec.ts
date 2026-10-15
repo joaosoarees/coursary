@@ -7,7 +7,7 @@ describe('AccountItem', () => {
   it('should build the table and index keys of a pending account', () => {
     const account = Account.create({ name: 'Ana', email: 'ana@example.com' });
 
-    const item = AccountItem.fromEntity(account);
+    const item = AccountItem.fromEntity(account).toItem();
 
     expect(item).toMatchObject({
       PK: `ACCOUNT#${account.id}`,
@@ -24,7 +24,7 @@ describe('AccountItem', () => {
     const account = Account.create({ name: 'Ana', email: 'ana@example.com' });
     const nowInSeconds = Math.floor(Date.now() / 1000);
 
-    const { expiresAt } = AccountItem.fromEntity(account);
+    const { expiresAt } = AccountItem.fromEntity(account).toItem();
 
     expect(expiresAt).toBeGreaterThanOrEqual(nowInSeconds + 3 * 86400);
     expect(expiresAt).toBeLessThan(nowInSeconds + 3 * 86400 + 5);
@@ -34,15 +34,15 @@ describe('AccountItem', () => {
     const account = Account.create({ name: 'Ana', email: 'ana@example.com' });
     account.status = 'ACTIVE';
 
-    expect(AccountItem.fromEntity(account).expiresAt).toBeUndefined();
+    expect(AccountItem.fromEntity(account).toItem().expiresAt).toBeUndefined();
   });
 
   it('should read back the same account it wrote', () => {
     const account = Account.create({ name: 'Ana', email: 'ana@example.com' });
     account.externalId = 'cognito-sub-1';
 
-    expect(AccountItem.toEntity(AccountItem.fromEntity(account))).toEqual(
-      account,
-    );
+    expect(
+      AccountItem.toEntity(AccountItem.fromEntity(account).toItem()),
+    ).toEqual(account);
   });
 });
