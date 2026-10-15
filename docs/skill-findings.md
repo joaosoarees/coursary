@@ -269,6 +269,13 @@ Cada achado:
 - **O que aconteceu**: o autor pediu sessão única (Q210): um sign-in derruba os anteriores, um refresh derruba os access tokens anteriores. A primeira proposta (o trigger de pre token gerando um `sessionId` a cada emissão) tinha um buraco: o dispositivo antigo, ao fazer refresh, retomava a sessão. A versão final guarda na conta o `jti` do access token atual e o SHA-256 do refresh token atual; o refresh só gira a sessão com condição sobre o hash do token recebido, e o adapter compara a claim `jti`. Com isso o Cognito deixou de ser barreira (saíram `AdminDisableUser`, `AdminEnableUser` e `AdminUserGlobalSignOut`), o que só vale porque o client tem secret e ninguém chama o Cognito por fora da API.
 - **Sugestão**: cobrir "uma sessão por usuário" como receita, com o `jti` e o hash do refresh token na base da aplicação, e o aviso de que gerar a sessão no trigger deixa o dispositivo antigo voltar.
 
+### `cognito-sign-up-and-confirmation` (1.12)
+
+#### 2026-10-15 · Q218 · lacuna
+- **A skill diz**: confirmar um usuário já confirmado responde `NotAuthorizedException`.
+- **O que aconteceu**: depois de `AdminConfirmSignUp`, um `ConfirmSignUp` com código errado respondeu `CodeMismatchException` (o 400 `INVALID_CODE` da rota), não `NotAuthorizedException`; o reparo da Q139 só roda com o código certo. O teste automatizado contra `dev` ativa a conta escrevendo o que a confirmação escreve.
+- **Sugestão**: dizer que a exceção depende do código enviado, e mostrar como testar contra um ambiente real sem caixa de e-mail (simulador do SES, `AdminConfirmSignUp`).
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |
@@ -283,3 +290,4 @@ Cada achado:
 | GitHub Environments com OIDC da AWS (o `sub` vira `environment:<nome>`; a trust policy e a restrição de branch do Environment) | Q158 |
 | React Email em Lambda (templates, Tailwind, render no trigger, tamanho do bundle) | Q161 |
 | Manter a tabela do DynamoDB Local igual à IaC (`MainTable.yml`) nos testes de integração | Q189, 1.10.a |
+| Testes de ponta a ponta contra um stage deployado com contas descartáveis (sem caixa de e-mail, limpeza no fim) | Q218 |
