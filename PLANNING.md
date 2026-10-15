@@ -175,6 +175,11 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q120 | Role por função | A health fica com a role padrão do Serverless (só logs). A role por função (Q97) entra na 1.3, com a primeira função que precisa de permissão. |
 | Q121 | Roles criadas pelo deploy | **Permissions boundary** `coursary-api-boundary`: teto de toda role do projeto (logs e tabelas `coursary-api-*`, crescendo por história). A deployer só cria e altera roles `coursary-api-*` que tenham esse boundary, só passa roles para o Lambda, não pode remover boundary e não toca nas próprias roles (`deployer`, `ci`). Serverless: `provider.iam.role.permissionsBoundary`. |
 | Q122 | Amplitude da role de deploy (revisa Q118) | Uma política só, `deploy-broad`, com os serviços do plano até a fase 6 (CloudFormation, DynamoDB, Lambda, logs, API Gateway, Cognito, S3, SQS, SNS, CloudWatch, SSM, CloudFront, ACM, leitura de SES), restrita a `coursary-api-*` onde o serviço filtra por nome. Pool do Cognito, CloudFront e ACM não filtram por nome. O boundary (Q121) acompanha. Quando o projeto estiver sólido, o bootstrap volta a ter só o que se sabe que é usado. |
+| Q123 | Metadados nos testes | Confirmar com um teste do container que o Vitest 5 emite `design:paramtypes` sem plugin (como registra a `typescript-decorators-metadata`); se não emitir, plugin SWC e achado. Testes de use case não usam o container: fakes pelo construtor. |
+| Q124 | Corpo e resposta do sign-up | `{ name, email, password }` → `201 { accountId }`, sem tokens (Q35). E-mail repetido → `409 EMAIL_IN_USE`. |
+| Q125 | Política de senha | Mínimo de 8, com minúscula e número, igual no pool e no schema do Zod. |
+| Q126 | E-mail de confirmação até a 1.7 | `COGNITO_DEFAULT`; o SES com o trigger de custom message entra na história de recuperação de senha (Q37). |
+| Q127 | App client com secret | Sim: sem secret, qualquer um chama o `SignUp` direto no Cognito, por fora da API, e cria órfãos (Q38). O secret fica só nas funções que falam com o Cognito (Q97). |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
@@ -205,23 +210,24 @@ Histórias de decisão, antes de qualquer código. Ordem de dependência: PLAN-2
 
 ## Fase 1: histórias
 
-Quebra aprovada em 2026-10-14, seguindo a Q112. Cada história ganha as sub-imp quando começa, discutidas antes de codar.
+Quebra aprovada em 2026-10-14, seguindo a Q112. Em 2026-10-15 o sign-up foi dividido em 1.3 (persistência) e 1.4 (Cognito e rota), e as seguintes andaram uma casa. Cada história ganha as sub-imp quando começa, discutidas antes de codar.
 
 | História | Entrega visível | O que nasce nela |
 |---|---|---|
 | 1.0 | Commit fora do padrão é recusado; CI verde | Ferramental da PLAN-6, teste do TypeScript 7 (Q104) |
 | 1.1 | Deploy de `dev` com a tabela | `MainTable` só com `PK`/`SK` |
 | 1.2 | `GET /health` responde | `Controller`, adapter HTTP, erros, config por função |
-| 1.3 | Sign-up | Container com `bind`, `UnitOfWork` (`Put` condicional), `Saga`, TTL, user pool, DynamoDB Local nos testes e no CI |
-| 1.4 | Confirmação e reenvio de código | `Update` na `UnitOfWork` |
-| 1.5 | Sign-in e refresh | `GSI2` (e-mail), trigger de pre token |
-| 1.6 | Recuperação de senha | Trigger de custom message |
-| 1.7 | `GET` e `PATCH /me` | |
-| 1.8 | Script do primeiro admin | Módulo de permissões |
-| 1.9 | Rotas de admin | `GSI1` (papel), `RoleChange` |
-| 1.10 | Curso: criar, editar, meus cursos | |
-| 1.11 | Módulos e aulas: CRUD e reordenação | `Delete` na `UnitOfWork` |
-| 1.12 | Publicar, arquivar, catálogo, curso completo | Índice esparso do catálogo |
+| 1.3 | Conta e reserva de e-mail numa transação, testadas no DynamoDB Local; e-mail repetido recusado | Container com `bind`, validação com Zod, entidade `Account`, `AccountItem`, `UnitOfWork` (`Put` condicional), TTL, DynamoDB Local nos testes e no CI |
+| 1.4 | Sign-up (`POST /auth/sign-up`) | User pool e client com secret, `AuthGateway`, `Saga`, `Delete` na `UnitOfWork` (compensação), primeira role por função |
+| 1.5 | Confirmação e reenvio de código | `Update` na `UnitOfWork` |
+| 1.6 | Sign-in e refresh | `GSI2` (e-mail), trigger de pre token |
+| 1.7 | Recuperação de senha | SES e trigger de custom message |
+| 1.8 | `GET` e `PATCH /me` | |
+| 1.9 | Script do primeiro admin | Módulo de permissões |
+| 1.10 | Rotas de admin | `GSI1` (papel), `RoleChange` |
+| 1.11 | Curso: criar, editar, meus cursos | |
+| 1.12 | Módulos e aulas: CRUD e reordenação | |
+| 1.13 | Publicar, arquivar, catálogo, curso completo | Índice esparso do catálogo |
 
 Fora da fase 1 de propósito: abrir aula (fase 2, precisa de matrícula) e apagar curso em rascunho (fase 3, usa o job com fila da Q86). As fases 2 a 7 ficam só com título até começarem.
 
