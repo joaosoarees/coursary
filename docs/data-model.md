@@ -225,3 +225,34 @@ Tabela `MainTable` com `PK` e `SK`, e dois índices globais sobrecarregados, `GS
 | 19, 22 | Abrir aula, materiais | tabela | `LESSON#l` | Query (conteúdo, vídeo, materiais) |
 | 20 | Arquivo por id | tabela | derivada da chave do S3 | Get |
 | 21 | Exportações | `GSI1` / tabela | `COURSE#c`, `begins_with EXPORT#` / `EXPORT#e` | Query / Get |
+
+## 4. Índices secundários
+
+| Índice | Chaves | Projeção | Quem usa |
+|---|---|---|---|
+| `GSI1` | `GSI1PK`, `GSI1SK` | `ALL` | Account por papel (2), cursos do instrutor (4), alunos ativos (10, esparso), avaliações (14), exportações (21) |
+| `GSI2` | `GSI2PK`, `GSI2SK` | `ALL` | Conta por e-mail (1b), catálogo (5, esparso: só cursos publicados) |
+
+Os dois são genéricos: a entidade escreve os atributos de índice que precisa e o prefixo separa os padrões (Q79). Uma matrícula cancelada perde `GSI1PK`/`GSI1SK`; um curso que deixa de estar publicado perde `GSI2PK`/`GSI2SK`.
+
+## 5. Cópias e contadores
+
+Cada valor duplicado tem um tipo e um dono (`dynamodb-denormalization`; Q80 a Q84).
+
+| Atributo | Em | Tipo | Dono |
+|---|---|---|---|
+| `studentName` | Enrollment, Review | exibição | A rota que renomeia a conta: query em `ACCOUNT#a`, transações de até 100 itens |
+| `instructorName` | Course | exibição | A rota que renomeia a conta: cursos do instrutor pelo `GSI1` |
+| `coverVariants` | Course | exibição | O processador de imagem, quando a capa fica `PROCESSED` |
+| `enrollmentCount` | Course | contador | Matricular, cancelar, rematricular (`ADD` na transação) |
+| `lessonCount` | Course | contador | Acrescentar e apagar aula (`ADD` na transação) |
+| `ratingSum`, `ratingCount` | Course | contador | Criar avaliação; editar soma a diferença (`ADD` na transação) |
+| `completedLessons` | Enrollment | contador | Concluir aula (`ADD` na transação, com o put condicional do progresso) |
+| `rating`, `comment` | Review | retrato | Escritos pelo aluno; não seguem nada |
+| `fromRole`, `toRole` | RoleChange | retrato | Escritos uma vez |
+| `enrolledAt` | Enrollment | retrato | Escrito na primeira matrícula; a rematrícula não muda |
+| `fileKey` | StudentExport | retrato | O job de exportação |
+| título, capa, total de aulas do curso | (não copiados) | referência | "Minhas matrículas" lê os cursos por `BatchGet` |
+| entradas de `GSI1` e `GSI2` | índices | índice | O DynamoDB, a cada escrita |
+
+Percentual de progresso e média de avaliação são calculados na leitura, nunca gravados. Contadores nunca dependem do stream; o stream só alimenta cópias externas (Algolia, limpeza do Cognito).
