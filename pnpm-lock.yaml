@@ -197,6 +197,9 @@ importers:
       '@types/node':
         specifier: 24.19.2
         version: 24.19.2
+      esbuild-plugin-tsc:
+        specifier: 0.6.0
+        version: 0.6.0(typescript@6.0.3)
       eslint:
         specifier: 10.12.0
         version: 10.12.0(jiti@2.6.1)
@@ -853,6 +856,11 @@ packages:
   es-toolkit@1.52.0:
     resolution: {integrity: sha512-XTNEJQh1tY1ZJVcf6ayP/2n4ZPyaHlW2FWs7xvw5ddPuhUVjLD3olQVQS7kf58JbAB48iL0uL/jerTrjtV3lDA==}
 
+  esbuild-plugin-tsc@0.6.0:
+    resolution: {integrity: sha512-j26KTBbDSXOzG+8Wh/YgGg6SGCPH1i8JZT1sATT+ED0mHfGpqb1iOHOUvfZry5rRu3Ue0LE9rX1ImkHLawwlgA==}
+    peerDependencies:
+      typescript: ^4.0.0 || ^5.0.0 || ^6.0.0
+
   escalade@3.2.0:
     resolution: {integrity: sha512-WUj2qlxaQtO4g6Pq5c29GTcWGDyd8itL8zTlipgECz3JesAiiOKotd8JU6otB3PACgG6xkJUyVhboMS+bje/jA==}
     engines: {node: '>=6'}
@@ -1341,6 +1349,10 @@ packages:
   strip-ansi@7.2.0:
     resolution: {integrity: sha512-yDPMNjp4WyfYBkHnjIRLfca1i6KMyGCtsVgoKe/z1+6vukgaENdgGBZt+ZmKPc4gavvEZ5OgHfHdrazhgNyG7w==}
     engines: {node: '>=12'}
+
+  strip-comments@2.0.1:
+    resolution: {integrity: sha512-ZprKx+bBLXv067WTCALv8SSz5l2+XhpYCsVtSqlMnkAXMWDq+/ekVbl1ghqP9rUHTzv6sm/DwCOiYutU/yp1fw==}
+    engines: {node: '>=10'}
 
   tinybench@6.2.2:
     resolution: {integrity: sha512-nIZ2N2dFpjBsg2hgitKu7mA+FvsIJuGJOwysRngmVRRmWgR/UyPjwJj8c/fT/dhm8EkHnF5EOogRf+0Z2qrimA==}
@@ -2225,6 +2237,11 @@ snapshots:
 
   es-toolkit@1.52.0: {}
 
+  esbuild-plugin-tsc@0.6.0(typescript@6.0.3):
+    dependencies:
+      strip-comments: 2.0.1
+      typescript: 6.0.3
+
   escalade@3.2.0: {}
 
   escape-string-regexp@4.0.0: {}
@@ -2652,6 +2669,8 @@ snapshots:
   strip-ansi@7.2.0:
     dependencies:
       ansi-regex: 6.4.0
+
+  strip-comments@2.0.1: {}
 
   tinybench@6.2.2: {}
 
