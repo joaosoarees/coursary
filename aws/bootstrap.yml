@@ -1,10 +1,13 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Access for coursary-api. A deployer role assumed from the owner's user and by GitHub Actions on the develop branch, and a permissionless CI role for every workflow of the repository.
+Description: Access for coursary-api. A deployer role assumed from the owner's user and by GitHub Actions in the dev environment, and a permissionless CI role for every workflow of the repository.
 
 Parameters:
   OwnerUserName:
     Type: String
     Description: IAM user allowed to assume the deployer role.
+  HostedZoneId:
+    Type: String
+    Description: Route 53 hosted zone of the API's custom domain.
   DeploymentBucketName:
     Type: String
     Default: serverless-framework-deployments-sa-east-1-59910092-c003
@@ -82,7 +85,7 @@ Resources:
             Condition:
               StringEquals:
                 token.actions.githubusercontent.com:aud: sts.amazonaws.com
-                token.actions.githubusercontent.com:sub: repo:joaosoarees@59843125/coursary-api@1416276221:ref:refs/heads/develop
+                token.actions.githubusercontent.com:sub: repo:joaosoarees@59843125/coursary-api@1416276221:environment:dev
       Policies:
         - PolicyName: deploy-broad
           PolicyDocument:
@@ -195,6 +198,15 @@ Resources:
                   - cloudfront:*
                   - acm:*
                 Resource: '*'
+              - Effect: Allow
+                Action:
+                  - route53:GetHostedZone
+                  - route53:ListResourceRecordSets
+                  - route53:ChangeResourceRecordSets
+                Resource: !Sub arn:aws:route53:::hostedzone/${HostedZoneId}
+              - Effect: Allow
+                Action: route53:GetChange
+                Resource: arn:aws:route53:::change/*
               - Effect: Allow
                 Action:
                   - ses:Get*
