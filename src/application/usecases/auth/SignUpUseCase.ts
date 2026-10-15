@@ -9,8 +9,8 @@ import { Saga } from '@shared/saga/Saga';
 @Injectable()
 export class SignUpUseCase {
   constructor(
-    private readonly accounts: AccountRepository,
-    private readonly auth: AuthGateway,
+    private readonly accountsRepository: AccountRepository,
+    private readonly authGateway: AuthGateway,
   ) {}
 
   async execute({
@@ -22,16 +22,16 @@ export class SignUpUseCase {
     const saga = new Saga();
 
     return saga.run(async () => {
-      await this.accounts.create(account);
-      saga.addCompensation(() => this.accounts.delete(account));
+      await this.accountsRepository.create(account);
+      saga.addCompensation(() => this.accountsRepository.delete(account));
 
       const { externalId } = await this.signUpInAuth(account, password);
       saga.addCompensation(async () => {
-        await this.auth.deleteUnconfirmedUser(account.email);
+        await this.authGateway.deleteUnconfirmedUser(account.email);
       });
 
       account.externalId = externalId;
-      await this.accounts.saveExternalId(account);
+      await this.accountsRepository.saveExternalId(account);
 
       return { accountId: account.id };
     });
@@ -48,13 +48,15 @@ export class SignUpUseCase {
     };
 
     try {
-      return await this.auth.signUp(params);
+      return await this.authGateway.signUp(params);
     } catch (error) {
       if (!(error instanceof AuthUserExists)) {
         throw error;
       }
 
-      const orphan = await this.auth.deleteUnconfirmedUser(account.email);
+      const orphan = await this.authGateway.deleteUnconfirmedUser(
+        account.email,
+      );
 
       if (orphan === 'confirmed') {
         console.error(
@@ -66,7 +68,7 @@ export class SignUpUseCase {
         throw new EmailInUse();
       }
 
-      return this.auth.signUp(params);
+      return this.authGateway.signUp(params);
     }
   }
 }
