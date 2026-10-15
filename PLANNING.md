@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.14 na `develop` e em `dev`, conferidas por `pnpm e2e:dev` (Q218, 38 checagens); 1.15 (publicar, arquivar, catálogo, curso completo) em grilling, decisões Q232 a Q237, sub-imp 1.15.a a 1.15.e**.
+Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.14 na `develop` e em `dev`, conferidas por `pnpm e2e:dev` (Q218, 38 checagens); 1.15 (publicar, arquivar, catálogo, curso completo): `GSI2` deployado e `ACTIVE`, 1.15.b a 1.15.e em PR para a `develop`; falta o `e2e:dev` depois do deploy**.
 
 ## Como retomar
 
