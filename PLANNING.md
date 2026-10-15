@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-14. Estado: **PLAN-4 fechada; faltam PLAN-5 (achados e critério de pronto) e PLAN-6 (padrões do projeto)**. As skills de Cognito e TypeScript já existem.
+Última atualização: 2026-10-14. Estado: **falta só a PLAN-6 (padrões do projeto) no Épico 0**. As skills de Cognito e TypeScript já existem.
 
 ## Como retomar
 
@@ -152,6 +152,9 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q96 | Formato de erro | `{ error: { code, message, details? } }`; `details` só em validação (campos do Zod). Erros de transação viram códigos próprios (`EMAIL_IN_USE`, `ALREADY_COMPLETED`, `COURSE_NOT_PUBLISHED`). Nenhuma mensagem do AWS SDK chega ao cliente. |
 | Q97 | Funções e permissões | Uma Lambda por rota (handler de seis linhas do foodiary), uma role IAM por função, permissões e variáveis de ambiente só do que a função usa, liberadas por tarefa. |
 | Q98 | Constantes em vez de `enum` | Permissões, papéis e todos os valores fechados (status de conta, curso, matrícula e arquivo; finalidade do arquivo) como objeto `as const` com o tipo derivado (`(typeof x)[keyof typeof x]`). O mapa papel → permissões usa `satisfies Record<Role, readonly Permission[]>`. Nada de `enum` do TypeScript (`typescript-enums-and-alternatives`). |
+| Q99 | Registro de achados | Anotado na sub-imp na hora e, no commit que fecha a tarefa, em `docs/skill-findings.md`, agrupado por skill: data, tarefa, tipo (`erro`, `lacuna`, `ambíguo`, `acerto`), o que a skill diz, o que aconteceu, sugestão. Seção final com as skills que faltam. |
+| Q100 | Critério de pronto | História: deploy em `dev`; testes unitários e de integração verdes; rota chamada com token real (feliz e um erro); skills usadas e achados preenchidos (mesmo "nenhum"); `docs/data-model.md` atualizado se chave ou item mudou; commits pequenos com push. Fase: todas as histórias prontas e cobertura das skills conferida pelas labels. |
+| Q101 | Evolução de schema (fase 7) | Dividir o catálogo em `CATALOG#0..n`, reescrevendo o `GSI2PK` dos cursos publicados com o sistema no ar. Reserva: `slug` único com item de reserva e preenchimento. |
 
 #### Fases (Q27)
 
@@ -163,7 +166,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | 4 | Arquivos (avatar, capa, material da aula) com S3 e sharp, CDN para as imagens públicas, consistência do upload com TTL, CSV de alunos |
 | 5 | Vídeo das aulas: upload multipart e reprodução por URL pré-assinada (Q54) |
 | 6 | Frontend `web` em S3 + CloudFront |
-| 7 | Evolução de schema |
+| 7 | Evolução de schema: dividir a partição do catálogo (Q101) |
 | Opcional | Google sign-in |
 
 ## Épico 0: planejamento e design
@@ -176,7 +179,7 @@ Histórias de decisão, antes de qualquer código. Ordem de dependência: PLAN-2
 | PLAN-2 | Identidade e papéis: Q20, revisão de Q17 e Q18, e-mails (Cognito ou Resend) | `cognito-*` | Feita (Q18, Q20, Q32 a Q45) |
 | PLAN-3 | Modelagem de dados: ERD → lista de padrões de acesso → quadro de entidades (PK/SK) → GSIs → desnormalização e contadores → validação percorrendo a lista | `designing-data-models`, `modeling-entity-relationships`, `defining-access-patterns`, `dynamodb-*` | Feita (Q46 a Q86; `docs/data-model.md`) |
 | PLAN-4 | Arquitetura de execução: unidade de trabalho, consistência, paginação, stream → SQS, rotas, autorização | `dynamodb-*`, `sqs-*`, `serverless-*`, DI | Feita (Q87 a Q98) |
-| PLAN-5 | Registro de achados e critério de pronto das fases | | A fazer |
+| PLAN-5 | Registro de achados e critério de pronto das fases | | Feita (Q99 a Q101) |
 | PLAN-6 | Padrões do projeto: gerenciador de pacotes, versões fixadas, monorepo ou não, tsconfig, ESLint e Prettier, commitlint e hooks, scripts, CI, documentação | `typescript-*`, `vitest-setup`, `serverless-typescript-esbuild` (nenhuma skill cobre lint ou commitlint: anotar como skill que falta) | A fazer |
 
 As histórias das fases 1 a 6 só são criadas depois da PLAN-3.
@@ -195,9 +198,9 @@ As histórias das fases 1 a 6 só são criadas depois da PLAN-3.
 | 8 | Stream e Algolia | Q90, Q91 |
 | 9 | Rotas e formato de erro | Q93, Q96 |
 | 10 | Autorização | Q94, Q95, Q98 |
-| 11 | Evolução de schema (agora fase 7) | **Aberta**: PLAN-5 |
-| 12 | Fases e critério de pronto | Fases na Q27 (com Q54); critério: **aberto**, PLAN-5 |
-| 13 | Registro de achados sobre as skills | **Aberta**: PLAN-5 |
+| 11 | Evolução de schema (agora fase 7) | Q101 |
+| 12 | Fases e critério de pronto | Q27, Q54, Q100 |
+| 13 | Registro de achados sobre as skills | Q99 |
 | 14 | Custo e capacidade | Q92 |
 
 ## O que a exploração do foodiary mostrou
