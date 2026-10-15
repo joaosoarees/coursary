@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.9 na `develop` e em `dev` (conferidas com chamadas reais); a conta de teste do autor é o admin de `dev`; próxima: 1.10 (rotas de admin), ainda sem sub-imp**.
+Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.9 na `develop` e em `dev` (conferidas com chamadas reais); a conta de teste do autor é o admin de `dev`; 1.10 (rotas de admin) em grilling na `feat/1.10-admin-routes`, decisões Q178 a Q186; falta a quebra em sub-imp**.
 
 ## Como retomar
 
@@ -181,7 +181,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q125 | Política de senha | Mínimo de 8, com minúscula e número, igual no pool e no schema do Zod. |
 | Q126 | E-mail de confirmação até a 1.7 | `COGNITO_DEFAULT`; o SES com o trigger de custom message entra na história de recuperação de senha (Q37). |
 | Q127 | App client com secret | Sim: sem secret, qualquer um chama o `SignUp` direto no Cognito, por fora da API, e cria órfãos (Q38). O secret fica só nas funções que falam com o Cognito (Q97). |
-| Q128 | Estilo dos tipos e dos itens | Tipos em namespaces só com tipos, como no foodiary (`Account.Role`, `AccountItem.ItemType`, `Controller.Response`); constantes `as const` no módulo; `no-namespace` desligada. `*Item` como classe no padrão do foodiary. Brands de id só quando houver dois tipos de id (1.11), já como `Account.Id`/`Course.Id`. |
+| Q128 | Estilo dos tipos e dos itens | Tipos em namespaces só com tipos, como no foodiary (`Account.Role`, `AccountItem.ItemType`, `Controller.Response`); constantes `as const` no módulo; `no-namespace` desligada. `*Item` como classe no padrão do foodiary. Brands de id só quando houver dois tipos de id (1.12), já como `Account.Id`/`Course.Id`. |
 | Q129 | Secret do client nas funções | `!GetAtt UserPoolClient.ClientSecret` na variável da função que precisa (como no foodiary; confirmado numa conta real pela skill, mas fora da página de referência). Se a AWS mudar o atributo, trocar para Secrets Manager com referência dinâmica. |
 | Q130 | Usuário confirmado no Cognito e reserva livre | `409 EMAIL_IN_USE`, compensação apaga a reserva recém-criada, log de inconsistência. Nunca apagar automaticamente um usuário confirmado. |
 | Q131 | Branches e deploy | `develop` e `main` protegidas por ruleset do GitHub (PR obrigatório, check `check` verde, sem push direto, sem force-push, sem apagar, só merge commit); repositório público para ter rulesets no plano gratuito. Features abrem PR para `develop`; `develop` abre PR para `main`. O merge na `develop` deploya o stage `dev` pelo CI (a deployer confia no OIDC só de `refs/heads/develop`). Sem deploy de `prod` por CI ainda. Revê a Q106 (PR ia para a `main`) e a Q117 (o merge na `develop` é o ok do deploy). Hook local recusa commit em `main` e `develop`. |
@@ -220,7 +220,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q164 | Quem chama | O adapter das rotas privadas lê `internalId` das claims (Q32) e entrega `accountId` ao `Controller<'private'>`, sem ler o banco; sem a claim, `401 INVALID_SESSION`. |
 | Q165 | Token de conta indisponível | As rotas de `/me` já leem a conta: `DISABLED` ou inexistente → `403 ACCOUNT_UNAVAILABLE`, sem esperar o token expirar. |
 | Q166 | `GET /me` | `200 { id, name, email, role, createdAt }`, leitura eventual (Q88). `avatar` entra com o upload (Q85, Q112); `status` fica de fora. |
-| Q167 | `PATCH /me` | Só `name` (validação do sign-up), `200` com o perfil de `ReturnValues: 'ALL_NEW'` (Q88). Troca de e-mail fica como evolução; papel só pelo admin (Q44). A propagação do nome para as cópias entra com as cópias (1.11, fase 2). |
+| Q167 | `PATCH /me` | Só `name` (validação do sign-up), `200` com o perfil de `ReturnValues: 'ALL_NEW'` (Q88). Troca de e-mail fica como evolução; papel só pelo admin (Q44). A propagação do nome para as cópias entra com as cópias (1.12, fase 2). |
 | Q168 | Adapter das rotas privadas | Como no foodiary: um `lambdaHttpAdapter` só, que lê o `authorizer` do evento (`accountId` `null` nas públicas, `string` nas privadas); com `authorizer` e sem a claim `internalId`, `401 INVALID_SESSION`. `params` e `queryParams` entram com a primeira rota que os usar (Q112). Sub-imp da 1.8: authorizer e adapter; `updateName`; `GetMe` e `UpdateMe`; rotas, roles e Yaak; chamadas reais. |
 | Q169 | Authorizer nas rotas (revê a Q163) | `CognitoAuthorizer` no provider e `authorizer: CognitoAuthorizer` na rota, sem escopo. O API Gateway aceita o id token, mas ele não tem a claim `internalId` (só o access token recebe, Q145), então o adapter o recusa com `401 INVALID_SESSION` (Q164). |
 | Q170 | Role compartilhada (revê a Q97) | Uma role no provider com as permissões de todas as rotas em `sls/config/role.yml` (tabela: `GetItem`, `PutItem`, `UpdateItem`, `DeleteItem`; pool: `AdminGetUser`, `AdminDeleteUser`, `AdminUserGlobalSignOut`), com o boundary. Os dois triggers do pool têm role própria (`preTokenGeneration` com `GetItem`, `customMessage` só com logs): na role compartilhada, que cita o pool, formariam ciclo pool → trigger → role → pool. |
@@ -231,6 +231,15 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q175 | Estilo do código | Tudo o que é construído vai para uma `const` antes de ser passado (entidades, itens, comandos do SDK, resultados de `await`, o controller do handler). Auxiliares são métodos estáticos da classe que servem, não funções soltas ao lado dela. Regra da entidade fica na entidade: `Account.requireActive(account \| null)` e `Account.normalizeEmail`. `AccountProfile` é classe com `fromAccount` (namespaces só com tipos, Q128). |
 | Q176 | Variáveis num arquivo só (revê a Q97 nas variáveis) | `provider.environment: ${file(./sls/config/env.yml)}` com `MAIN_TABLE_NAME`, `COGNITO_POOL_ID`, `COGNITO_CLIENT_ID` e `COGNITO_CLIENT_SECRET` para todas as funções. Para não fechar o ciclo pool → trigger → pool, o pool aponta para os triggers por ARN montado com o nome da função (`!Sub …:function:coursary-api-${sls:stage}-<trigger>`). Provado num stage descartável criado do zero (`envtest`): os dois triggers foram chamados; o stage foi removido. |
 | Q177 | Client secret em todas as funções (revê a Q129) | Aceito junto com a Q176, para ter um arquivo só: o secret só serve para chamar o Cognito em nome do client, e só quem já executa código numa das funções o lê. |
+| Q178 | Escopo da 1.10 | Troca de papel, lista por papel, busca por e-mail e histórico de papéis. Desativar e reativar (`AdminDisableUser`/`AdminEnableUser`, compensação, regras) viram a 1.11; as histórias seguintes andam uma casa. |
+| Q179 | Busca por e-mail do admin | Pela reserva, com o `findByEmail` existente (Q137). O `GSI2` continua para o catálogo (Q112); a Q78 previa o índice para isso (achado). |
+| Q180 | Papel do chamador na checagem | O adapter usa a claim `role` do access token em todas as rotas (sem acesso ao banco); sem a claim ou com papel desconhecido, `401 INVALID_SESSION`. A troca de papel reconfirma o chamador no Dynamo dentro da transação (Q181), cumprindo a Q20 e a Q88. Um admin rebaixado ainda lê listas por até 1 h, mas não muda papel. |
+| Q181 | Último admin | Sem contagem: ninguém muda o próprio papel, e a transação do `changeRole` leva um `ConditionCheck` no chamador (`role = admin AND status = ACTIVE`). Dois admins rebaixando um ao outro ao mesmo tempo: a segunda transação falha. O bootstrap (Q173) não leva o `ConditionCheck`. Teste de integração da corrida. |
+| Q182 | `PUT /admin/users/{id}/role` | Corpo `{ role }` → `200 { id, role }`; mesmo papel → 200 sem gravar; próprio papel → `403 CANNOT_CHANGE_OWN_ROLE`; alvo inexistente → `404 ACCOUNT_NOT_FOUND`; alvo `PENDING`/`DISABLED` → `409 ACCOUNT_NOT_ACTIVE`; papel do alvo mudou no meio → `409 CONFLICT`; chamador deixou de ser admin → `403 FORBIDDEN` (pelos `CancellationReasons`). `changedBy` = `accountId` do chamador. |
+| Q183 | Módulo de permissões | `src/application/security/permissions.ts`: `permissions` `as const` (`users:list`, `users:read`, `users:change-role`), `rolePermissions` `as const satisfies Record<Account.Role, readonly Permission[]>` com o admin espalhando as do instrutor, e `Permissions.allows(role, permission)` como única leitura do mapa (a porta para a Q43). Só as ações em uso (Q112). |
+| Q184 | Ação e params no controller (revê a forma da Q94) | Propriedades `permission`, `paramsSchema`, `queryParamsSchema` ao lado do `bodySchema`; o `execute` checa a permissão antes de qualquer validação (`403 FORBIDDEN`, mensagem única). O adapter passa `role`, `params` e `queryParams` como no foodiary. Teste de auditoria: todo controller de rota `/admin` tem `permission`. |
+| Q185 | Paginação com filtro (completa a Q89) | Mantém a Q76: status por `FilterExpression`, com o laço da `dynamodb-query-pagination` (blocos até juntar `limit + 1`, no máximo 3 requisições); cursor = chave do último item devolvido, com os 4 atributos do `GSI1` e `GSI1PK` validado contra o papel pedido; página curta com `nextCursor` é válida. `role` obrigatório, `status` opcional. |
+| Q186 | Respostas de leitura do admin | Lista `{ items: [{ id, name, email, role, status, createdAt }], nextCursor }` (`string \| null`, sem total); por e-mail, o mesmo item ou `404 ACCOUNT_NOT_FOUND`; histórico `{ items: [{ id, fromRole, toRole, changedBy, changedAt }], nextCursor }`, mais recentes primeiro, `404` para conta inexistente. Leituras em classes de query atrás de porta (Q15). |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
@@ -275,10 +284,11 @@ Quebra aprovada em 2026-10-14, seguindo a Q112. Em 2026-10-15 o sign-up foi divi
 | 1.7 | Recuperação de senha | SES e trigger de custom message |
 | 1.8 | `GET` e `PATCH /me` | |
 | 1.9 | Script do primeiro admin | `RoleChange`, troca de papel numa transação (o módulo de permissões passou para a 1.10, Q171) |
-| 1.10 | Rotas de admin | `GSI1` (papel), módulo de permissões (Q171) |
-| 1.11 | Curso: criar, editar, meus cursos | |
-| 1.12 | Módulos e aulas: CRUD e reordenação | `UnitOfWork` (primeira transação entre repositórios: aula + contador do curso) |
-| 1.13 | Publicar, arquivar, catálogo, curso completo | Índice esparso do catálogo |
+| 1.10 | Rotas de admin: papel, lista, busca por e-mail, histórico (Q178) | `GSI1` (papel), módulo de permissões (Q171), params e query no `Controller`, cursor de paginação |
+| 1.11 | Desativar e reativar conta | `AdminDisableUser`/`AdminEnableUser` |
+| 1.12 | Curso: criar, editar, meus cursos | |
+| 1.13 | Módulos e aulas: CRUD e reordenação | `UnitOfWork` (primeira transação entre repositórios: aula + contador do curso) |
+| 1.14 | Publicar, arquivar, catálogo, curso completo | Índice esparso do catálogo |
 
 Fora da fase 1 de propósito: abrir aula (fase 2, precisa de matrícula) e apagar curso em rascunho (fase 3, usa o job com fila da Q86). As fases 2 a 7 ficam só com título até começarem.
 
