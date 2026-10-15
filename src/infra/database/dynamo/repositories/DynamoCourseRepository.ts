@@ -10,8 +10,11 @@ import {
 import type { UnitOfWork } from '@application/contracts/UnitOfWork';
 import type { Account } from '@application/entities/Account';
 import { type Course, courseStatuses } from '@application/entities/Course';
+import { Conflict } from '@application/errors/Conflict';
 import { CourseArchived } from '@application/errors/CourseArchived';
+import { CourseEmpty } from '@application/errors/CourseEmpty';
 import { CourseNotFound } from '@application/errors/CourseNotFound';
+import { CourseNotPublished } from '@application/errors/CourseNotPublished';
 import type { CourseRepository } from '@application/repositories/CourseRepository';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { DynamoUnitOfWork } from '@infra/database/dynamo/DynamoUnitOfWork';
@@ -75,6 +78,87 @@ export class DynamoCourseRepository implements CourseRepository {
       }
 
       throw error;
+    }
+  }
+
+  async publish(id: Course.Id, publishedAt: Date): Promise<Course> {
+    const at = publishedAt.toISOString();
+    const command = new UpdateCommand({
+      TableName: this.config.mainTableName,
+      Key: { PK: CourseItem.getPK(id), SK: CourseItem.getSK(id) },
+      UpdateExpression:
+        'SET #status = :published, publishedAt = :at, GSI2PK = :gsi2pk, GSI2SK = :gsi2sk',
+      ConditionExpression: '#status = :draft AND lessonCount > :none',
+      ExpressionAttributeNames: { '#status': 'status' },
+      ExpressionAttributeValues: {
+        ':published': courseStatuses.Published,
+        ':draft': courseStatuses.Draft,
+        ':none': 0,
+        ':at': at,
+        ':gsi2pk': CourseItem.getGSI2PK(),
+        ':gsi2sk': CourseItem.getGSI2SK(at, id),
+      },
+      ReturnValues: 'ALL_NEW',
+      ReturnValuesOnConditionCheckFailure: 'ALL_OLD',
+    });
+
+    try {
+      const { Attributes } = await dynamoClient.send(command);
+
+      return CourseItem.toEntity(Attributes as CourseItem.ItemType);
+    } catch (error) {
+      if (error instanceof ConditionalCheckFailedException) {
+        throw DynamoCourseRepository.refusal(error, new CourseEmpty());
+      }
+
+      throw error;
+    }
+  }
+
+  async archive(id: Course.Id): Promise<Course> {
+    const command = new UpdateCommand({
+      TableName: this.config.mainTableName,
+      Key: { PK: CourseItem.getPK(id), SK: CourseItem.getSK(id) },
+      UpdateExpression: 'SET #status = :archived REMOVE GSI2PK, GSI2SK',
+      ConditionExpression: '#status = :published',
+      ExpressionAttributeNames: { '#status': 'status' },
+      ExpressionAttributeValues: {
+        ':archived': courseStatuses.Archived,
+        ':published': courseStatuses.Published,
+      },
+      ReturnValues: 'ALL_NEW',
+      ReturnValuesOnConditionCheckFailure: 'ALL_OLD',
+    });
+
+    try {
+      const { Attributes } = await dynamoClient.send(command);
+
+      return CourseItem.toEntity(Attributes as CourseItem.ItemType);
+    } catch (error) {
+      if (error instanceof ConditionalCheckFailedException) {
+        throw DynamoCourseRepository.refusal(error, new CourseNotPublished());
+      }
+
+      throw error;
+    }
+  }
+
+  // The item as it was when the condition failed tells why (Q232, Q233).
+  private static refusal(
+    error: ConditionalCheckFailedException,
+    whenDraft: Error,
+  ): Error {
+    if (!error.Item) {
+      return new CourseNotFound();
+    }
+
+    switch (error.Item.status?.S) {
+      case courseStatuses.Archived:
+        return new CourseArchived();
+      case courseStatuses.Draft:
+        return whenDraft;
+      default:
+        return new Conflict();
     }
   }
 

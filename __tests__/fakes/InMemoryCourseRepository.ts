@@ -5,7 +5,9 @@ import type { Account } from '@application/entities/Account';
 import { type Course, courseStatuses } from '@application/entities/Course';
 import { Conflict } from '@application/errors/Conflict';
 import { CourseArchived } from '@application/errors/CourseArchived';
+import { CourseEmpty } from '@application/errors/CourseEmpty';
 import { CourseNotFound } from '@application/errors/CourseNotFound';
+import { CourseNotPublished } from '@application/errors/CourseNotPublished';
 import type { CourseRepository } from '@application/repositories/CourseRepository';
 
 export class InMemoryCourseRepository implements CourseRepository {
@@ -76,5 +78,50 @@ export class InMemoryCourseRepository implements CourseRepository {
         }
       },
     });
+  }
+
+  publish(id: Course.Id, publishedAt: Date): Promise<Course> {
+    const course = this.courses.get(id);
+
+    if (!course) {
+      return Promise.reject(new CourseNotFound());
+    }
+
+    if (course.status !== courseStatuses.Draft) {
+      return Promise.reject(
+        course.status === courseStatuses.Archived
+          ? new CourseArchived()
+          : new Conflict(),
+      );
+    }
+
+    if (course.lessonCount === 0) {
+      return Promise.reject(new CourseEmpty());
+    }
+
+    course.status = courseStatuses.Published;
+    course.publishedAt = publishedAt;
+
+    return Promise.resolve(course);
+  }
+
+  archive(id: Course.Id): Promise<Course> {
+    const course = this.courses.get(id);
+
+    if (!course) {
+      return Promise.reject(new CourseNotFound());
+    }
+
+    if (course.status !== courseStatuses.Published) {
+      return Promise.reject(
+        course.status === courseStatuses.Draft
+          ? new CourseNotPublished()
+          : new CourseArchived(),
+      );
+    }
+
+    course.status = courseStatuses.Archived;
+
+    return Promise.resolve(course);
   }
 }
