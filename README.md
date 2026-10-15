@@ -16,6 +16,80 @@ API serverless de uma plataforma de cursos: Lambda, API Gateway, Cognito e Dynam
 - Node.js 24 (`.nvmrc`)
 - pnpm 12
 
+## Configuração da AWS e do Serverless
+
+Feita uma vez por conta. As decisões estão na Q114 a Q122 de `PLANNING.md`.
+
+### 1. Serverless Framework
+
+O serviço pertence à org `worldiary` do Serverless (`org` no `serverless.yml`). Na sua máquina:
+
+```bash
+sls login
+```
+
+Se um comando responder `Forbidden` no passo "Authenticating", a sessão guardada em `~/.serverlessrc` não vale mais: rode `sls logout` e depois `sls login`.
+
+### 2. Bootstrap da conta AWS
+
+O `aws/bootstrap.yml` cria o acesso do projeto:
+
+| Recurso | Para quê |
+|---|---|
+| `coursary-api-deployer` | Role usada nos deploys. Só alcança recursos `coursary-api-*` (onde o serviço filtra por nome) |
+| `coursary-api-boundary` | Teto de toda role que o deploy cria: nenhuma Lambda passa disso |
+| `coursary-api-ci` | Role sem permissões que o GitHub Actions assume por OIDC, só para o `sls package` |
+
+Ele é aplicado por um usuário administrador da conta (aqui, `joao-master`). É o único uso desse usuário no projeto:
+
+```bash
+AWS_PROFILE=joao-master aws cloudformation deploy --region sa-east-1 --stack-name coursary-api-bootstrap --template-file aws/bootstrap.yml --capabilities CAPABILITY_NAMED_IAM
+```
+
+Reaplique sempre que o `aws/bootstrap.yml` mudar, por exemplo quando um deploy falhar com `is not authorized to perform` numa ação que falta.
+
+### 3. Perfil `coursary`
+
+Acrescente ao `~/.aws/config`, com o ARN de `DeployerRoleArn` nas saídas da stack `coursary-api-bootstrap`:
+
+```ini
+[profile coursary]
+role_arn = arn:aws:iam::<conta>:role/coursary-api-deployer
+source_profile = joao-master
+region = sa-east-1
+```
+
+Copie o `.env.example` para `.env` e preencha `AWS_PROFILE=coursary`. Para conferir:
+
+```bash
+AWS_PROFILE=coursary aws sts get-caller-identity
+```
+
+A resposta deve ser `assumed-role/coursary-api-deployer/...`.
+
+### 4. Segredos do GitHub Actions
+
+| Segredo | Valor |
+|---|---|
+| `SERVERLESS_ACCESS_KEY` | Chave de acesso da org `worldiary` (Dashboard do Serverless → Settings → Access Keys) |
+| `AWS_CI_ROLE_ARN` | `CiRoleArn` nas saídas da stack `coursary-api-bootstrap` |
+
+```bash
+gh secret set SERVERLESS_ACCESS_KEY --repo joaosoarees/coursary-api
+gh secret set AWS_CI_ROLE_ARN --repo joaosoarees/coursary-api
+```
+
+A role do CI confia no assunto imutável do OIDC deste repositório (`repo:<dono>@<id>/<repo>@<id>:*`). Se o repositório for recriado, os ids mudam e o bootstrap precisa ser atualizado.
+
+## Deploy
+
+```bash
+pnpm deploy:dev
+pnpm remove:dev
+```
+
+Só o stage `dev` existe por enquanto. O `prod` está declarado, com proteção contra exclusão e PITR, mas não é deployado (Q116).
+
 ## Comandos
 
 | Comando | O que faz |
@@ -24,3 +98,5 @@ API serverless de uma plataforma de cursos: Lambda, API Gateway, Cognito e Dynam
 | `pnpm typecheck` | Checa os tipos |
 | `pnpm lint` | Roda o ESLint |
 | `pnpm format` | Formata com o Prettier |
+| `pnpm test` | Roda os testes |
+| `pnpm sls:package` | Gera o template de `dev` sem deployar |
