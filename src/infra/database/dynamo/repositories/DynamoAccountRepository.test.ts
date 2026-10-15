@@ -1,4 +1,4 @@
-import { GetCommand } from '@aws-sdk/lib-dynamodb';
+import { GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { describe, expect, test } from 'vitest';
 
 import { Account } from '@application/entities/Account';
@@ -59,6 +59,30 @@ describe('DynamoAccountRepository.create', () => {
         Account.create({ name: 'Bia', email: email.toUpperCase() }),
       ),
     ).rejects.toBeInstanceOf(EmailInUse);
+  });
+
+  test('takes over a claim that has expired but was not yet removed by TTL', async () => {
+    const email = uniqueEmail();
+    await dynamoClient.send(
+      new PutCommand({
+        TableName: config.mainTableName,
+        Item: {
+          PK: `EMAIL_CLAIM#${email}`,
+          SK: `EMAIL_CLAIM#${email}`,
+          type: 'EmailClaim',
+          email,
+          accountId: 'abandoned',
+          expiresAt: Math.floor(Date.now() / 1000) - 60,
+        },
+      }),
+    );
+    const account = Account.create({ name: 'Ana', email });
+
+    await repository.create(account);
+
+    expect(await getItem(`EMAIL_CLAIM#${email}`)).toMatchObject({
+      accountId: account.id,
+    });
   });
 
   test('lets only one of two simultaneous sign-ups with the same e-mail through', async () => {

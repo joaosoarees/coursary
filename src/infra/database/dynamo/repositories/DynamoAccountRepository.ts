@@ -34,7 +34,11 @@ export class DynamoAccountRepository extends AccountRepository {
               Put: {
                 TableName,
                 Item: EmailClaimItem.fromEntity(account).toItem(),
-                ConditionExpression: 'attribute_not_exists(PK)',
+                ConditionExpression:
+                  'attribute_not_exists(PK) OR expiresAt < :now',
+                ExpressionAttributeValues: {
+                  ':now': Math.floor(Date.now() / 1000),
+                },
               },
             },
           ],
