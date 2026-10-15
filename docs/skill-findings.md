@@ -192,6 +192,41 @@ Cada achado:
 - **O que aconteceu**: um stage criado do zero (`envtest`) com o pool apontando para `preTokenGeneration` e `customMessage` por `!Sub …:function:<service>-<stage>-<nome>` subiu sem erro; o cadastro chamou o `customMessage` e o sign-in chamou o `preTokenGeneration` (claims no token). O stage foi removido depois.
 - **Sugestão**: tirar a marca de "não testado" e registrar que vale também para o trigger de pre token versão 2.
 
+### `cognito-role-based-route-protection`, `typescript-satisfies` (1.10)
+
+#### 2026-10-15 · 1.10.b · acerto
+- **A skill diz**: checar o papel como primeira instrução do handler, antes de validar a entrada, com um 403 único que não diz qual papel serviria; papel desatualizado no token é aceitável para leitura, e a ação sensível relê o papel na fonte. `as const satisfies Record<Role, readonly Permission[]>`, com o `readonly` no tipo.
+- **O que aconteceu**: o `Controller` declara a ação, e o `execute` checa antes de validar `params`, `queryParams` e corpo (Q184); a troca de papel relê o chamador dentro da transação (Q181). Um teste de auditoria lê os `sls/functions/*.yml` e chama cada rota `/admin` com token de aluno, esperando 403; tirar a `permission` de um controller fez o teste falhar.
+- **Sugestão**: mostrar o teste de auditoria que deriva as rotas da IaC, em vez de listá-las à mão.
+
+### `dynamodb-query-pagination` (1.10)
+
+#### 2026-10-15 · 1.10.c · acerto
+- **A skill diz**: com `FilterExpression`, ler `Limit + 1` uma vez só pode encerrar a lista cedo; ler em blocos com teto de requisições, aceitar página curta ou vazia com cursor, e o cursor é a chave do último item devolvido, validada por `z.strictObject` contra a query.
+- **O que aconteceu**: a Q89 do projeto ("lendo `Limit + 1`") estava incompleta, e a skill a corrigiu (Q185). Os atributos da chave do cursor saem do próprio schema estrito, uma fonte só. Para provar a página vazia com cursor no teste, os itens mantidos precisam estar a mais de `3 × (limit + 1)` posições de distância.
+- **Sugestão**: nenhuma.
+
+### `dynamodb-item-operations` (1.10)
+
+#### 2026-10-15 · 1.10.d · lacuna
+- **A skill diz**: condições na própria escrita; transações entre itens aparecem só como menção (a `dynamodb-read-consistency` diz que estão fora dela).
+- **O que aconteceu**: a regra "o último admin não pode ser rebaixado" saiu de um `ConditionCheck` sobre o chamador (outro item) na transação que muda o papel do alvo, sem contador nem query (Q181); o índice em `CancellationReasons` separa o chamador (403) do alvo (409). Dois admins rebaixando um ao outro em paralelo sempre deixam um admin (5 de 5 no DynamoDB Local).
+- **Sugestão**: cobrir `ConditionCheck` como guarda de autorização ou de invariante em outro item, e a leitura de `CancellationReasons` por posição.
+
+### `dynamodb-key-design` (1.10)
+
+#### 2026-10-15 · 1.10.e · lacuna
+- **A skill diz**: um id que ordena por tempo (ULID, KSUID, UUID v7) faz a coleção voltar em ordem de criação.
+- **O que aconteceu**: o KSUID guarda o tempo em segundos (ULID e UUID v7, em milissegundos); contas e mudanças de papel criadas no mesmo segundo voltaram na ordem da parte aleatória, e os testes que esperavam ordem de criação falharam.
+- **Sugestão**: dizer a resolução de cada formato e que, dentro dela, a ordem é a da parte aleatória.
+
+### `dynamodb-index-overloading` (1.10)
+
+#### 2026-10-15 · 1.10.a · acerto
+- **A skill diz**: a entidade escreve os atributos genéricos do índice que usa; o cursor de uma query num GSI leva os quatro atributos de chave.
+- **O que aconteceu**: o `AccountItem` gravava `GSI1PK`/`GSI1SK` desde a 1.3, então o `GSI1` nasceu preenchido no deploy; o cursor da lista de usuários valida `GSI1PK` como o papel pedido.
+- **Sugestão**: nenhuma.
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |
@@ -205,3 +240,4 @@ Cada achado:
 | Domínio próprio no API Gateway HTTP API (ACM por DNS, `DomainName`, `ApiMapping`, registro alias, desligar o endpoint padrão) | Q157 |
 | GitHub Environments com OIDC da AWS (o `sub` vira `environment:<nome>`; a trust policy e a restrição de branch do Environment) | Q158 |
 | React Email em Lambda (templates, Tailwind, render no trigger, tamanho do bundle) | Q161 |
+| Manter a tabela do DynamoDB Local igual à IaC (`MainTable.yml`) nos testes de integração | Q189, 1.10.a |
