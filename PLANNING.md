@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.12 na `develop` e em `dev`, conferidas por `pnpm e2e:dev` (Q218); 1.13 (curso: criar, editar, meus cursos) na `feat/1.13-instructor-courses`, decisões Q204 a Q209 e Q219 a Q221, sub-imp 1.13.a a 1.13.e**.
+Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.12 na `develop` e em `dev`, conferidas por `pnpm e2e:dev` (Q218); 1.13 (curso: criar, editar, meus cursos) com 1.13.a a 1.13.e prontas e em PR para a `develop`; falta o `e2e:dev` depois do deploy**.
 
 ## Como retomar
 
