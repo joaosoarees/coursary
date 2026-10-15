@@ -17,6 +17,7 @@ functions:
   - ${file(./sls/functions/health.yml)}
   - ${file(./sls/functions/auth.yml)}
   - ${file(./sls/functions/account.yml)}
+  - ${file(./sls/functions/admin.yml)}
 
 resources:
   - ${file(./sls/resources/dynamodb/MainTable.yml)}

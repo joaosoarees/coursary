@@ -1,0 +1,4 @@
+promoteAdmin:
+  handler: src/main/functions/admin/promoteAdmin.handler
+  environment:
+    MAIN_TABLE_NAME: !Ref MainTable
