@@ -5,7 +5,10 @@ statements:
       - dynamodb:PutItem
       - dynamodb:UpdateItem
       - dynamodb:DeleteItem
-    Resource: !GetAtt MainTable.Arn
+      - dynamodb:Query
+    Resource:
+      - !GetAtt MainTable.Arn
+      - !Join ['/', [!GetAtt MainTable.Arn, 'index', 'GSI1']]
   - Effect: Allow
     Action:
       - cognito-idp:AdminGetUser
