@@ -17,6 +17,7 @@ API serverless de uma plataforma de cursos (Lambda + DynamoDB single-table). O p
 - **Necessidade → implementação** (Q112): nenhuma abstração, operação, índice ou permissão antes da história que a usa.
 - **A aplicação é a fonte da verdade** (Q38): serviços externos ficam atrás de portas.
 - **Comentários só quando muito úteis.**
+- Toda rota nova entra em `docs/api/coursary-api.postman_collection.json` (importável no Yaak) no mesmo PR.
 - Ao fechar uma sub-imp: registrar os achados no quadro e em `docs/skill-findings.md`; atualizar `docs/data-model.md` se alguma chave ou item mudou.
 - Confie no código, não em documentação antiga: nenhum `CLAUDE.md` por pasta (Q107).
 

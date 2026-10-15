@@ -11,6 +11,10 @@ API serverless de uma plataforma de cursos: Lambda, API Gateway, Cognito e Dynam
 - [Achados sobre as skills](docs/skill-findings.md)
 - [Registro do processo de planejamento](docs/process-log.md)
 
+## Chamando a API
+
+`docs/api/coursary-api.postman_collection.json` tem todas as rotas. No Yaak, importe pelo formato Postman e preencha a variável `baseUrl` com o endpoint que o `pnpm deploy:dev` mostra no fim.
+
 ## Requisitos
 
 - Node.js 24 (`.nvmrc`)
