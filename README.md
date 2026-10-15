@@ -73,15 +73,31 @@ A resposta deve ser `assumed-role/coursary-api-deployer/...`.
 |---|---|
 | `SERVERLESS_ACCESS_KEY` | Chave de acesso da org `worldiary` (Dashboard do Serverless → Settings → Access Keys) |
 | `AWS_CI_ROLE_ARN` | `CiRoleArn` nas saídas da stack `coursary-api-bootstrap` |
+| `AWS_DEPLOY_ROLE_ARN` | `DeployerRoleArn` nas saídas da stack `coursary-api-bootstrap` |
 
 ```bash
 gh secret set SERVERLESS_ACCESS_KEY --repo joaosoarees/coursary-api
 gh secret set AWS_CI_ROLE_ARN --repo joaosoarees/coursary-api
+gh secret set AWS_DEPLOY_ROLE_ARN --repo joaosoarees/coursary-api
 ```
 
 A role do CI confia no assunto imutável do OIDC deste repositório (`repo:<dono>@<id>/<repo>@<id>:*`). Se o repositório for recriado, os ids mudam e o bootstrap precisa ser atualizado.
 
+## Branches
+
+| Branch | Para quê | Recebe |
+|---|---|---|
+| `feat/…`, `chore/…` | Uma história ou ajuste | Commits |
+| `develop` | Integração; cada merge deploya o stage `dev` | PRs das branches de trabalho |
+| `main` | Versão estável | PRs da `develop` |
+
+`main` e `develop` são protegidas por um ruleset do GitHub: só aceitam merge de PR com o check `check` verde, sem push direto, sem force-push e sem apagar a branch. O hook `pre-commit` também recusa commits nelas na sua máquina.
+
 ## Deploy
+
+O merge na `develop` roda o job `deploy-dev` do CI depois das checagens. Ele assume a `coursary-api-deployer` por OIDC (a role só aceita a `develop` deste repositório) e roda `pnpm deploy:dev`. Ainda não há deploy de `prod` por CI.
+
+Da sua máquina, com o perfil `coursary`:
 
 ```bash
 pnpm deploy:dev
