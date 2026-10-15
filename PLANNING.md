@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.13 na `develop` e em `dev`, conferidas por `pnpm e2e:dev` (Q218, 26 checagens); 1.14 (módulos e aulas) com 1.14.a a 1.14.f prontas e em PR para a `develop`; falta o `e2e:dev` depois do deploy**.
+Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.14 na `develop` e em `dev`, conferidas por `pnpm e2e:dev` (Q218, 38 checagens); próxima: 1.15 (publicar, arquivar, catálogo, curso completo), ainda sem sub-imp**.
 
 ## Como retomar
 
@@ -11,7 +11,7 @@ Abra o Claude Code e diga:
 Ao retomar, o assistente deve:
 
 1. Ver no estado acima e na tabela "Fase 1: histórias" qual história é a próxima.
-2. Para a 1.14 (módulos e aulas): reler as decisões Q8, Q24, Q48, Q59, Q71, Q72, Q83, Q86, Q87, Q112, Q206, Q219 e o quadro de entidades de `docs/data-model.md` (Module, Lesson, LessonContent), e as skills `dynamodb-one-to-many-relationships`, `dynamodb-key-design`, `dynamodb-item-operations` e `dynamodb-queries` antes de propor as sub-imp. Nasce a `UnitOfWork` (primeira transação entre repositórios: aula + `lessonCount` do curso). Estender o `pnpm e2e:dev` com os casos novos.
+2. Para a 1.15 (publicar, arquivar, catálogo, curso completo): reler as decisões Q10, Q24, Q52, Q65, Q75, Q89, Q91, Q93, Q95, Q192 (o `GSI2` vai num deploy antes do código que o consulta), Q206, Q219, Q222 e o quadro de entidades de `docs/data-model.md` (Course no `GSI2`, padrões 5 e 6), e as skills `dynamodb-secondary-indexes`, `dynamodb-query-pagination`, `dynamodb-denormalization` e `dynamodb-index-overloading` antes de propor as sub-imp. Rotas públicas (sem authorizer) entram aqui. Estender o `pnpm e2e:dev`.
 3. Seguir o "Começar tarefa X.X" do `CLAUDE.md`: branch a partir da `develop`, sub-imp propostas e discutidas antes de codar.
 4. Não refazer perguntas já fechadas.
 
