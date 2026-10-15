@@ -1,4 +1,5 @@
-import { Account, normalizeEmail } from '@application/entities/Account';
+import { Account } from '@application/entities/Account';
+import type { RoleChange } from '@application/entities/RoleChange';
 import { EmailInUse } from '@application/errors/EmailInUse';
 import type { AccountRepository } from '@application/repositories/AccountRepository';
 
@@ -7,6 +8,7 @@ export class InMemoryAccountRepository implements AccountRepository {
   readonly claims = new Map<string, string>();
   failOnSaveExternalId: Error | undefined;
   failOnActivate: Error | undefined;
+  readonly roleChanges: RoleChange[] = [];
 
   create(account: Account): Promise<void> {
     if (this.claims.has(account.email)) {
@@ -44,7 +46,7 @@ export class InMemoryAccountRepository implements AccountRepository {
   }
 
   findByEmail(email: string): Promise<Account | null> {
-    const accountId = this.claims.get(normalizeEmail(email));
+    const accountId = this.claims.get(Account.normalizeEmail(email));
     const account = accountId ? this.accounts.get(accountId) : undefined;
 
     return Promise.resolve(
@@ -82,5 +84,18 @@ export class InMemoryAccountRepository implements AccountRepository {
     account.name = name;
 
     return Promise.resolve(account);
+  }
+
+  changeRole(roleChange: RoleChange): Promise<void> {
+    const account = this.accounts.get(roleChange.accountId);
+
+    if (account?.role !== roleChange.fromRole) {
+      return Promise.reject(new Error('The role changed in the meantime.'));
+    }
+
+    account.role = roleChange.toRole;
+    this.roleChanges.push(roleChange);
+
+    return Promise.resolve();
   }
 }

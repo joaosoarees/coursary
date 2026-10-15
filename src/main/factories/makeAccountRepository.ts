@@ -3,5 +3,7 @@ import { DynamoAccountRepository } from '@infra/database/dynamo/repositories/Dyn
 import { makeAppConfig } from '@main/factories/makeAppConfig';
 
 export function makeAccountRepository(): AccountRepository {
-  return new DynamoAccountRepository(makeAppConfig());
+  const appConfig = makeAppConfig();
+
+  return new DynamoAccountRepository(appConfig);
 }

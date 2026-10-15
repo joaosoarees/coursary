@@ -2,5 +2,7 @@ import { ForgotPasswordController } from '@application/controllers/auth/ForgotPa
 import { makeForgotPasswordUseCase } from '@main/factories/auth/makeForgotPasswordUseCase';
 
 export function makeForgotPasswordController(): ForgotPasswordController {
-  return new ForgotPasswordController(makeForgotPasswordUseCase());
+  const forgotPasswordUseCase = makeForgotPasswordUseCase();
+
+  return new ForgotPasswordController(forgotPasswordUseCase);
 }

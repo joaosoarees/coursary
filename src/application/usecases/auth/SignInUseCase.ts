@@ -1,4 +1,4 @@
-import { normalizeEmail } from '@application/entities/Account';
+import { Account } from '@application/entities/Account';
 import type { AuthGateway } from '@application/gateways/AuthGateway';
 
 export class SignInUseCase {
@@ -8,6 +8,9 @@ export class SignInUseCase {
     email,
     password,
   }: AuthGateway.SignInParams): Promise<AuthGateway.Tokens> {
-    return this.authGateway.signIn({ email: normalizeEmail(email), password });
+    return this.authGateway.signIn({
+      email: Account.normalizeEmail(email),
+      password,
+    });
   }
 }

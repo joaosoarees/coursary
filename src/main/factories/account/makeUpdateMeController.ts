@@ -2,5 +2,7 @@ import { UpdateMeController } from '@application/controllers/account/UpdateMeCon
 import { makeUpdateMeUseCase } from '@main/factories/account/makeUpdateMeUseCase';
 
 export function makeUpdateMeController(): UpdateMeController {
-  return new UpdateMeController(makeUpdateMeUseCase());
+  const updateMeUseCase = makeUpdateMeUseCase();
+
+  return new UpdateMeController(updateMeUseCase);
 }

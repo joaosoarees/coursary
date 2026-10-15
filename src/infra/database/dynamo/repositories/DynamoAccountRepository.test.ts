@@ -1,7 +1,8 @@
 import { GetCommand, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { describe, expect, test } from 'vitest';
 
-import { Account } from '@application/entities/Account';
+import { Account, accountRoles } from '@application/entities/Account';
+import { BOOTSTRAP_ACTOR, RoleChange } from '@application/entities/RoleChange';
 import { EmailInUse } from '@application/errors/EmailInUse';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { DynamoAccountRepository } from '@infra/database/dynamo/repositories/DynamoAccountRepository';
@@ -274,5 +275,85 @@ describe('DynamoAccountRepository.updateName', () => {
   test('refuses an account that does not exist', async () => {
     await expect(repository.updateName('missing', 'Ana')).rejects.toThrow();
     expect(await getItem('ACCOUNT#missing')).toBeUndefined();
+  });
+});
+
+describe('DynamoAccountRepository.changeRole', () => {
+  const activeAccount = async () => {
+    const account = Account.create({ name: 'Ana', email: uniqueEmail() });
+    await repository.create(account);
+    account.activate();
+    await repository.activate(account);
+
+    return account;
+  };
+
+  const getRoleChange = async (accountId: string, id: string) => {
+    const { Item } = await dynamoClient.send(
+      new GetCommand({
+        TableName: config.mainTableName,
+        Key: { PK: `ACCOUNT#${accountId}`, SK: `ROLE_CHANGE#${id}` },
+        ConsistentRead: true,
+      }),
+    );
+
+    return Item;
+  };
+
+  test('changes the role and its index key, and records the change', async () => {
+    const account = await activeAccount();
+    const change = RoleChange.create({
+      account,
+      toRole: accountRoles.Admin,
+      changedBy: BOOTSTRAP_ACTOR,
+    });
+
+    await repository.changeRole(change);
+
+    expect(await getItem(`ACCOUNT#${account.id}`)).toMatchObject({
+      role: 'admin',
+      GSI1PK: 'ROLE#admin',
+    });
+    expect(await getRoleChange(account.id, change.id)).toMatchObject({
+      fromRole: 'student',
+      toRole: 'admin',
+      changedBy: 'bootstrap',
+    });
+  });
+
+  test('refuses an account that is not active and records nothing', async () => {
+    const account = Account.create({ name: 'Ana', email: uniqueEmail() });
+    await repository.create(account);
+    const change = RoleChange.create({
+      account,
+      toRole: accountRoles.Admin,
+      changedBy: BOOTSTRAP_ACTOR,
+    });
+
+    await expect(repository.changeRole(change)).rejects.toThrow();
+    expect(await getItem(`ACCOUNT#${account.id}`)).toMatchObject({
+      role: 'student',
+    });
+    expect(await getRoleChange(account.id, change.id)).toBeUndefined();
+  });
+
+  test('refuses a change made from a role the account no longer has', async () => {
+    const account = await activeAccount();
+    const first = RoleChange.create({
+      account,
+      toRole: accountRoles.Instructor,
+      changedBy: BOOTSTRAP_ACTOR,
+    });
+    const stale = RoleChange.create({
+      account,
+      toRole: accountRoles.Admin,
+      changedBy: BOOTSTRAP_ACTOR,
+    });
+    await repository.changeRole(first);
+
+    await expect(repository.changeRole(stale)).rejects.toThrow();
+    expect(await getItem(`ACCOUNT#${account.id}`)).toMatchObject({
+      role: 'instructor',
+    });
   });
 });

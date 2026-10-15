@@ -1,5 +1,7 @@
 import KSUID from 'ksuid';
 
+import { AccountUnavailable } from '@application/errors/AccountUnavailable';
+
 export const accountRoles = {
   Student: 'student',
   Instructor: 'instructor',
@@ -11,10 +13,6 @@ export const accountStatuses = {
   Active: 'ACTIVE',
   Disabled: 'DISABLED',
 } as const;
-
-export function normalizeEmail(email: string): string {
-  return email.trim().toLowerCase();
-}
 
 export class Account {
   readonly id: string;
@@ -28,7 +26,7 @@ export class Account {
   constructor(attributes: Account.Attributes) {
     this.id = attributes.id;
     this.externalId = attributes.externalId;
-    this.email = normalizeEmail(attributes.email);
+    this.email = Account.normalizeEmail(attributes.email);
     this.name = attributes.name;
     this.role = attributes.role;
     this.status = attributes.status;
@@ -37,6 +35,18 @@ export class Account {
 
   activate(): void {
     this.status = accountStatuses.Active;
+  }
+
+  static normalizeEmail(email: string): string {
+    return email.trim().toLowerCase();
+  }
+
+  static requireActive(account: Account | null): Account {
+    if (account?.status !== accountStatuses.Active) {
+      throw new AccountUnavailable();
+    }
+
+    return account;
   }
 
   static create({ name, email }: { name: string; email: string }): Account {

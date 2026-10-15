@@ -1,9 +1,6 @@
+import { Account } from '@application/entities/Account';
 import type { AccountRepository } from '@application/repositories/AccountRepository';
-import {
-  type AccountProfile,
-  toAccountProfile,
-} from '@application/usecases/account/AccountProfile';
-import { requireActive } from '@application/usecases/account/requireActive';
+import { AccountProfile } from '@application/usecases/account/AccountProfile';
 
 export class UpdateMeUseCase {
   constructor(private readonly accountsRepository: AccountRepository) {}
@@ -12,13 +9,14 @@ export class UpdateMeUseCase {
     accountId,
     name,
   }: UpdateMeUseCase.Input): Promise<AccountProfile> {
-    requireActive(
-      await this.accountsRepository.findById(accountId, { consistent: false }),
-    );
+    const account = await this.accountsRepository.findById(accountId, {
+      consistent: false,
+    });
+    Account.requireActive(account);
 
-    return toAccountProfile(
-      await this.accountsRepository.updateName(accountId, name),
-    );
+    const updated = await this.accountsRepository.updateName(accountId, name);
+
+    return AccountProfile.fromAccount(updated);
   }
 }
 

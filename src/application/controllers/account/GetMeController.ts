@@ -12,6 +12,8 @@ export class GetMeController extends Controller<'private', AccountProfile> {
   }: Controller.Request<'private'>): Promise<
     Controller.Response<AccountProfile>
   > {
-    return { statusCode: 200, body: await this.getMe.execute({ accountId }) };
+    const profile = await this.getMe.execute({ accountId });
+
+    return { statusCode: 200, body: profile };
   }
 }

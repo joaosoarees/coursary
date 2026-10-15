@@ -1,4 +1,5 @@
 import type { Account } from '@application/entities/Account';
+import type { RoleChange } from '@application/entities/RoleChange';
 
 export interface AccountRepository {
   create(account: Account): Promise<void>;
@@ -17,6 +18,8 @@ export interface AccountRepository {
   activate(account: Account): Promise<void>;
 
   updateName(id: string, name: string): Promise<Account>;
+
+  changeRole(roleChange: RoleChange): Promise<void>;
 }
 
 export namespace AccountRepository {

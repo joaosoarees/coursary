@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { Account, normalizeEmail } from '@application/entities/Account';
+import { Account, accountStatuses } from '@application/entities/Account';
+import { AccountUnavailable } from '@application/errors/AccountUnavailable';
 
 describe('Account.create', () => {
   it('should start as a pending student', () => {
@@ -36,9 +37,32 @@ describe('Account.create', () => {
   });
 });
 
-describe('normalizeEmail', () => {
+describe('Account.normalizeEmail', () => {
   it('should trim and lower-case the address', () => {
-    expect(normalizeEmail('  Rui@Example.com')).toBe('rui@example.com');
+    expect(Account.normalizeEmail('  Rui@Example.com')).toBe('rui@example.com');
+  });
+});
+
+describe('Account.requireActive', () => {
+  it('should return an active account', () => {
+    const account = Account.create({ name: 'Ana', email: 'ana@example.com' });
+    account.activate();
+
+    expect(Account.requireActive(account)).toBe(account);
+  });
+
+  it.each([accountStatuses.Pending, accountStatuses.Disabled])(
+    'should refuse a %s account',
+    (status) => {
+      const account = Account.create({ name: 'Ana', email: 'ana@example.com' });
+      account.status = status;
+
+      expect(() => Account.requireActive(account)).toThrow(AccountUnavailable);
+    },
+  );
+
+  it('should refuse a missing account', () => {
+    expect(() => Account.requireActive(null)).toThrow(AccountUnavailable);
   });
 });
 

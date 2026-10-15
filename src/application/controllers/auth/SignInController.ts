@@ -20,7 +20,9 @@ export class SignInController extends Controller<'public', AuthGateway.Tokens> {
   protected async handle(
     request: Controller.Request<'public', SignInController.Body>,
   ): Promise<Controller.Response<AuthGateway.Tokens>> {
-    return { statusCode: 200, body: await this.signIn.execute(request.body) };
+    const tokens = await this.signIn.execute(request.body);
+
+    return { statusCode: 200, body: tokens };
   }
 }
 

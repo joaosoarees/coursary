@@ -3,5 +3,8 @@ import { makeAccountRepository } from '@main/factories/makeAccountRepository';
 import { makeAuthGateway } from '@main/factories/makeAuthGateway';
 
 export function makeForgotPasswordUseCase(): ForgotPasswordUseCase {
-  return new ForgotPasswordUseCase(makeAccountRepository(), makeAuthGateway());
+  const accountsRepository = makeAccountRepository();
+  const authGateway = makeAuthGateway();
+
+  return new ForgotPasswordUseCase(accountsRepository, authGateway);
 }

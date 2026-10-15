@@ -2,7 +2,7 @@ import { ResendConfirmationCodeController } from '@application/controllers/auth/
 import { makeResendConfirmationCodeUseCase } from '@main/factories/auth/makeResendConfirmationCodeUseCase';
 
 export function makeResendConfirmationCodeController(): ResendConfirmationCodeController {
-  return new ResendConfirmationCodeController(
-    makeResendConfirmationCodeUseCase(),
-  );
+  const resendConfirmationCodeUseCase = makeResendConfirmationCodeUseCase();
+
+  return new ResendConfirmationCodeController(resendConfirmationCodeUseCase);
 }

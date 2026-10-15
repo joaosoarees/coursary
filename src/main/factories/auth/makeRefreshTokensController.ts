@@ -2,5 +2,7 @@ import { RefreshTokensController } from '@application/controllers/auth/RefreshTo
 import { makeRefreshTokensUseCase } from '@main/factories/auth/makeRefreshTokensUseCase';
 
 export function makeRefreshTokensController(): RefreshTokensController {
-  return new RefreshTokensController(makeRefreshTokensUseCase());
+  const refreshTokensUseCase = makeRefreshTokensUseCase();
+
+  return new RefreshTokensController(refreshTokensUseCase);
 }

@@ -2,5 +2,7 @@ import { IssueTokenClaimsUseCase } from '@application/usecases/auth/IssueTokenCl
 import { makeAccountRepository } from '@main/factories/makeAccountRepository';
 
 export function makeIssueTokenClaimsUseCase(): IssueTokenClaimsUseCase {
-  return new IssueTokenClaimsUseCase(makeAccountRepository());
+  const accountsRepository = makeAccountRepository();
+
+  return new IssueTokenClaimsUseCase(accountsRepository);
 }
