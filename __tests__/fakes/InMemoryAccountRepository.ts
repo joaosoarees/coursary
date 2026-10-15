@@ -43,6 +43,10 @@ export class InMemoryAccountRepository extends AccountRepository {
     return Promise.resolve();
   }
 
+  findById(id: string): Promise<Account | null> {
+    return Promise.resolve(this.accounts.get(id) ?? null);
+  }
+
   findPendingByEmail(email: string): Promise<Account | null> {
     const accountId = this.claims.get(normalizeEmail(email));
     const account = accountId ? this.accounts.get(accountId) : undefined;

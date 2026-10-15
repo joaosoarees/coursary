@@ -111,6 +111,15 @@ export class DynamoAccountRepository extends AccountRepository {
     );
   }
 
+  async findById(id: string): Promise<Account | null> {
+    const item = await this.getLive<AccountItem.ItemType>({
+      PK: AccountItem.getPK(id),
+      SK: AccountItem.getSK(id),
+    });
+
+    return item ? AccountItem.toEntity(item) : null;
+  }
+
   async findPendingByEmail(email: string): Promise<Account | null> {
     const normalized = normalizeEmail(email);
     const claim = await this.getLive<EmailClaimItem.ItemType>({

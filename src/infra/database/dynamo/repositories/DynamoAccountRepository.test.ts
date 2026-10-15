@@ -224,3 +224,37 @@ describe('DynamoAccountRepository.activate', () => {
     await expect(repository.activate(account)).rejects.toThrow();
   });
 });
+
+describe('DynamoAccountRepository.findById', () => {
+  test('finds an account by its id', async () => {
+    const account = Account.create({ name: 'Ana', email: uniqueEmail() });
+    await repository.create(account);
+
+    await expect(repository.findById(account.id)).resolves.toMatchObject({
+      id: account.id,
+      email: account.email,
+      role: 'student',
+    });
+  });
+
+  test('finds nothing for an unknown id', async () => {
+    await expect(repository.findById('missing')).resolves.toBeNull();
+  });
+
+  test('finds nothing once the account has expired', async () => {
+    const account = Account.create({ name: 'Ana', email: uniqueEmail() });
+    await repository.create(account);
+    await dynamoClient.send(
+      new UpdateCommand({
+        TableName: config.mainTableName,
+        Key: { PK: `ACCOUNT#${account.id}`, SK: `ACCOUNT#${account.id}` },
+        UpdateExpression: 'SET expiresAt = :past',
+        ExpressionAttributeValues: {
+          ':past': Math.floor(Date.now() / 1000) - 60,
+        },
+      }),
+    );
+
+    await expect(repository.findById(account.id)).resolves.toBeNull();
+  });
+});

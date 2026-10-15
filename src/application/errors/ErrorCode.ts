@@ -5,6 +5,7 @@ export const ErrorCode = {
   EmailInUse: 'EMAIL_IN_USE',
   InvalidPassword: 'INVALID_PASSWORD',
   InvalidCode: 'INVALID_CODE',
+  AccountUnavailable: 'ACCOUNT_UNAVAILABLE',
   TooManyRequests: 'TOO_MANY_REQUESTS',
 } as const;
 
