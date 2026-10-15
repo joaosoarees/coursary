@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.9 na `develop` e em `dev` (conferidas com chamadas reais); a conta de teste do autor é o admin de `dev`; 1.10 (rotas de admin) em grilling na `feat/1.10-admin-routes`, decisões Q178 a Q190, sub-imp 1.10.a a 1.10.f**.
+Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.9 na `develop` e em `dev` (conferidas com chamadas reais); a conta de teste do autor é o admin de `dev`; 1.10 (rotas de admin) com 1.10.a a 1.10.e prontas e a 1.10.f em PR para a `develop`; faltam o merge e as chamadas reais em `dev`**.
 
 ## Como retomar
 
@@ -244,6 +244,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q188 | Portas de leitura | Primeiras classes de query (Q15): `ListAccountsByRoleQuery` e `ListRoleChangesQuery`, interfaces em `application/queries/`, implementação em `infra/database/dynamo/queries/`, devolvendo DTOs. Use cases finos: `ListAccountsUseCase`, `FindAccountByEmailUseCase` (pelo `findByEmail`, Q179), `ListRoleChangesUseCase` (`findById` para o 404, depois a query), `ChangeRoleUseCase`. O item da lista é classe com `fromAccount`, como o `AccountProfile`. |
 | Q189 | `GSI1` nos testes | Repetido à mão no `__tests__/dynamodb/globalSetup.ts`; a chamada real em `dev` pega divergência com o `MainTable.yml`. Lacuna: nenhuma skill cobre manter a tabela local igual à IaC. |
 | Q190 | Sub-imp da 1.10 | a. `GSI1` no `MainTable.yml` e no setup, `dynamodb:Query` na tabela e em `…/index/GSI1`; b. permissões, `Controller` e adapter, teste de auditoria; c. `DynamoPagination` e `InvalidCursor`; d. troca de papel (`ConditionCheck` do chamador, erros, use case, teste da corrida); e. queries e use cases de leitura; f. controllers, funções, Yaak e chamadas reais em `dev` depois do merge (feliz e um erro por rota, incluindo 403 com conta de aluno). |
+| Q191 | Ajustes da implementação da 1.10 (revê a forma da Q183 e da Q187) | O ESLint (`no-extraneous-class`) recusa classe só com estáticos: `Permissions` é objeto literal com `allows` (a chamada não muda) e `DynamoPagination` é instância com o schema da chave (`new DynamoPagination(keySchema)` por query). `Controller.execute` é `async`, para o `Forbidden` sair como rejeição. A lista de usuários também ignora contas `PENDING` vencidas (Q39). O teste de auditoria (Q94) lê os `sls/functions/*.yml` (devDependency `yaml`) e chama cada rota `/admin` com token de aluno, esperando 403. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
