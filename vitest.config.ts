@@ -10,7 +10,6 @@ export default defineConfig({
     alias: {
       '@application': src('application'),
       '@infra': src('infra'),
-      '@kernel': src('kernel'),
       '@main': src('main'),
       '@shared': src('shared'),
       '@tests': path.resolve(import.meta.dirname, '__tests__'),

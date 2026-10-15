@@ -6,7 +6,6 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 const forbiddenImports = {
-  kernel: ['application', 'infra', 'main', 'shared'],
   shared: ['application', 'infra', 'main'],
   application: ['infra', 'main'],
   infra: ['main'],
@@ -52,7 +51,7 @@ export default defineConfig([
             ['^node:'],
             ['^@?\\w'],
             ['^@tests/'],
-            ['^@(application|infra|kernel|main|shared)/'],
+            ['^@(application|infra|main|shared)/'],
             ['^\\.'],
           ],
         },
