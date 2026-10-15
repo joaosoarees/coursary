@@ -1,5 +1,5 @@
 import { TransactionCanceledException } from '@aws-sdk/client-dynamodb';
-import { TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
+import { TransactWriteCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 
 import type { Account } from '@application/entities/Account';
 import { EmailInUse } from '@application/errors/EmailInUse';
@@ -83,6 +83,21 @@ export class DynamoAccountRepository extends AccountRepository {
             },
           },
         ],
+      }),
+    );
+  }
+
+  async saveExternalId(account: Account): Promise<void> {
+    await dynamoClient.send(
+      new UpdateCommand({
+        TableName: this.config.mainTableName,
+        Key: {
+          PK: AccountItem.getPK(account.id),
+          SK: AccountItem.getSK(account.id),
+        },
+        UpdateExpression: 'SET externalId = :externalId',
+        ConditionExpression: 'attribute_exists(PK)',
+        ExpressionAttributeValues: { ':externalId': account.externalId },
       }),
     );
   }

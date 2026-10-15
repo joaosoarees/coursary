@@ -99,3 +99,25 @@ describe('DynamoAccountRepository.delete', () => {
     expect(await getItem(`EMAIL_CLAIM#${email}`)).toBeDefined();
   });
 });
+
+describe('DynamoAccountRepository.saveExternalId', () => {
+  test('stores the identity provider id on the account', async () => {
+    const account = Account.create({ name: 'Ana', email: uniqueEmail() });
+    await repository.create(account);
+    account.externalId = 'cognito-sub-1';
+
+    await repository.saveExternalId(account);
+
+    expect(await getItem(`ACCOUNT#${account.id}`)).toMatchObject({
+      externalId: 'cognito-sub-1',
+    });
+  });
+
+  test('refuses an account that does not exist', async () => {
+    const account = Account.create({ name: 'Ana', email: uniqueEmail() });
+    account.externalId = 'cognito-sub-1';
+
+    await expect(repository.saveExternalId(account)).rejects.toThrow();
+    expect(await getItem(`ACCOUNT#${account.id}`)).toBeUndefined();
+  });
+});
