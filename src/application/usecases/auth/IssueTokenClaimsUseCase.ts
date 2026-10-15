@@ -1,0 +1,32 @@
+import { type Account, accountStatuses } from '@application/entities/Account';
+import { AccountUnavailable } from '@application/errors/AccountUnavailable';
+import { AccountRepository } from '@application/repositories/AccountRepository';
+import { Injectable } from '@kernel/decorators/Injectable';
+
+@Injectable()
+export class IssueTokenClaimsUseCase {
+  constructor(private readonly accountsRepository: AccountRepository) {}
+
+  async execute({
+    internalId,
+  }: IssueTokenClaimsUseCase.Input): Promise<IssueTokenClaimsUseCase.Output> {
+    const account = await this.accountsRepository.findById(internalId);
+
+    if (account?.status !== accountStatuses.Active) {
+      throw new AccountUnavailable();
+    }
+
+    return { internalId: account.id, role: account.role };
+  }
+}
+
+export namespace IssueTokenClaimsUseCase {
+  export interface Input {
+    internalId: string;
+  }
+
+  export interface Output {
+    internalId: string;
+    role: Account.Role;
+  }
+}

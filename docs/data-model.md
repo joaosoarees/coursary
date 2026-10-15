@@ -207,8 +207,8 @@ Tabela `MainTable` com `PK` e `SK`, e dois índices globais sobrecarregados, `GS
 
 | # | Padrão | Índice | Chave | Operação |
 |---|---|---|---|---|
-| 1 | Conta por id | tabela | `ACCOUNT#a` / `ACCOUNT#a` | Get |
-| 1b | Conta por e-mail | `GSI2` | `EMAIL#e` | Query |
+| 1 | Conta por id | tabela | `ACCOUNT#a` / `ACCOUNT#a` | Get; forte no trigger de pre token, a cada sign-in e refresh (Q88, Q145) |
+| 1b | Conta por e-mail | `GSI2` | `EMAIL#e` | Query (o índice nasce com o primeiro uso, Q144) |
 | 1c | Conta pendente por e-mail (confirmação, reenvio) | tabela | `EMAIL_CLAIM#e`, depois `ACCOUNT#a` | Dois Get fortes; item vencido conta como ausente (Q137, Q142) |
 | 2 | Usuários por papel | `GSI1` | `ROLE#r` | Query, de trás para frente; status por filtro |
 | 4 | Cursos do instrutor | `GSI1` | `INSTRUCTOR#i` | Query, de trás para frente |
