@@ -17,11 +17,11 @@ Resources:
       UserPoolTier: ESSENTIALS
       LambdaConfig:
         PreTokenGenerationConfig:
-          LambdaArn: !GetAtt PreTokenGenerationLambdaFunction.Arn
+          LambdaArn: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${self:service}-${sls:stage}-preTokenGeneration
           LambdaVersion: V2_0
         CustomMessage: !If
           - ShouldSendEmailsThroughSES
-          - !GetAtt CustomMessageLambdaFunction.Arn
+          - !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${self:service}-${sls:stage}-customMessage
           - !Ref AWS::NoValue
       EmailConfiguration: !If
         - ShouldSendEmailsThroughSES

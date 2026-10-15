@@ -1,7 +1,5 @@
 getMe:
   handler: src/main/functions/account/getMe.handler
-  environment:
-    MAIN_TABLE_NAME: !Ref MainTable
   events:
     - httpApi:
         method: GET
@@ -10,8 +8,6 @@ getMe:
 
 updateMe:
   handler: src/main/functions/account/updateMe.handler
-  environment:
-    MAIN_TABLE_NAME: !Ref MainTable
   events:
     - httpApi:
         method: PATCH
