@@ -166,6 +166,10 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q110 | Commits e hooks | commitlint com `config-conventional`, mensagens em inglês, escopos opcionais e livres. lefthook: commitlint no `commit-msg`; Prettier e ESLint nos arquivos alterados no `pre-commit`. Typecheck e testes só no CI. |
 | Q111 | CI | GitHub Actions em PR e push na `main`: `pnpm install --frozen-lockfile`, `lint`, `typecheck`, `test` (DynamoDB Local como serviço), `sls package` de `dev`. Deploy manual da máquina local por enquanto. |
 | Q113 | Formato de módulo | ES modules (`"type": "module"`). O risco de dependência CommonJS embutida num bundle ESM fica coberto pela chamada real em `dev` (Q100). |
+| Q114 | Org do Serverless | `org: jsoareez`, a mesma do foodiary. |
+| Q115 | `sls package` no CI | Fica no CI, autenticado por `SERVERLESS_ACCESS_KEY` nos segredos do GitHub (chave criada pelo João no Dashboard). |
+| Q116 | Stage `prod` | Declarado no código (proteção e PITR), mas não deployado até a fase 6 ou decisão do João: com o `foodiary-api-dev`, seria a terceira instância do Serverless, e paga. |
+| Q117 | Quando deployar | Depois da revisão dos commits e com o ok do João, antes do push; o resultado entra no último commit. Perfil da AWS: `joao-master`. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
