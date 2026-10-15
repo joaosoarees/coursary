@@ -255,6 +255,13 @@ Cada achado:
 - **O que aconteceu**: desativar ficou em duas etapas sem `Saga` (Q193): o Dynamo muda primeiro e o Cognito acompanha; se o Cognito falha, a conta fica no estado pedido (já bloqueada pelo adapter e pelo trigger de pre token) e a nova chamada repara o Cognito.
 - **Sugestão**: cobrir `AdminDisableUser`/`AdminEnableUser`, o que cada um faz com sessões e refresh tokens, e a ordem com uma base de dados própria.
 
+### `cognito-sign-in-and-refresh-tokens` (1.11)
+
+#### 2026-10-15 · 1.11.e · ambíguo
+- **A skill diz**: conta que não pode entrar é recusada pelo trigger de pre token (`UserLambdaValidationException`).
+- **O que aconteceu**: com o usuário desativado também no Cognito (`AdminDisableUser`), o Cognito recusa o sign-in antes do trigger, com `NotAuthorizedException` "User is disabled.", que a Q147 mapeia para `401 INVALID_CREDENTIALS`, e não para o `403 ACCOUNT_UNAVAILABLE` da Q146. O refresh deu `401 INVALID_SESSION`. Em `dev`: desativar → `/me` com o token antigo 403 na hora, refresh 401, sign-in 401; reativar → o token antigo volta a passar (o Dynamo decide) e o sign-in 200.
+- **Sugestão**: dizer qual barreira responde primeiro quando o usuário está desativado no pool e qual exceção o cliente vê.
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |
