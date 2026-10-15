@@ -65,16 +65,20 @@ Atualizado ao fim de cada história do Épico 0.
   - **Não criar as tarefas das fases antes da modelagem**: elas nasceriam desatualizadas. Primeiro um épico de planejamento (Épico 0) com histórias de decisão.
   - Padrões do projeto (lint, commitlint, CI) entram como uma história de decisão do Épico 0 e como a primeira história de implementação da fase 1.
 
-## Etapa 7: identidade e papéis (em andamento)
+## Etapa 7: identidade e papéis
 
 - **Objetivo**: decidir quem é o usuário para a aplicação, como se cadastra e como o papel é verificado.
 - **Pré-requisitos**: etapas 2 e 4. Vem **antes** da modelagem, porque mexe na entidade de usuário e nos padrões de acesso dela.
 - **Perguntas**: qual é o id do usuário (o do provedor ou um próprio)? Onde vive a unicidade do e-mail? Quando nasce o registro do usuário e o que acontece com contas não confirmadas? Como se confirma o cadastro? Quanto dura o token? Onde vive o papel e quanto tempo ele pode ficar desatualizado? Quem envia os e-mails de autenticação?
-  - *Coursary*: ver Q32 a Q40 e Q20 em `PLANNING.md`.
+  - Também: o que o provedor guarda (só credenciais, ou perfil também)? Quem pode escrever cada atributo? O papel é um valor ou uma lista, e há hierarquia? Quem troca papel e com que limites (o próprio, o último admin, auditoria)? O que acontece com os recursos de quem perde o papel?
+  - *Coursary*: ver Q18, Q20 e Q32 a Q45 em `PLANNING.md`. Fechada em três rodadas.
 - **Skills**: `cognito-user-pools`, `cognito-user-pool-iac`, `cognito-sign-up-and-confirmation`, `cognito-sign-in-and-refresh-tokens`, `cognito-user-groups`, `cognito-role-in-custom-attribute`, `cognito-role-based-route-protection`, `cognito-custom-message-lambda-trigger`, `dynamodb-time-to-live`.
 - **Lições**:
   - Uma recomendação feita antes das skills existirem (Q20) mudou quando elas apareceram, e mudou de novo quando o dono declarou o princípio da fonte da verdade. **Perguntar pelos princípios do dono antes das perguntas de identidade**: "o provedor de identidade pode ser trocado?", "quem é a fonte da verdade?".
   - As skills tendem a recomendar o recurso do provedor (grupos, unicidade do Cognito). Pesar isso contra o acoplamento que o dono aceita.
+  - **Quando a aplicação é a fonte da verdade, o provedor vira uma réplica que pode divergir.** Toda escrita em dois lugares pede uma pergunta de reconciliação: o que sobra no provedor quando o nosso registro some (no Coursary, o usuário `UNCONFIRMED` depois do TTL)? Prever uma limpeza assíncrona e uma correção no caminho síncrono.
+  - Contas não confirmadas que reservam um e-mail são um vetor de bloqueio (alguém cadastra o e-mail de outra pessoa). TTL no registro pendente resolve.
+  - Pedir para os handlers perguntarem por **ação**, não por papel, deixa aberto mover papéis e permissões para dados depois (um painel de admin), sem mudar os handlers.
 
 ## Etapas seguintes (ainda não percorridas)
 
