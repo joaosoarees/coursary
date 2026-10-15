@@ -179,7 +179,7 @@ Tabela `MainTable` com `PK` e `SK`, e dois índices globais sobrecarregados, `GS
 | Entidade | PK | SK | GSI1PK / GSI1SK | GSI2PK / GSI2SK |
 |---|---|---|---|---|
 | Account | `ACCOUNT#<accountId>` | `ACCOUNT#<accountId>` | `ROLE#<role>` / `ACCOUNT#<accountId>` | `EMAIL#<email>` / `ACCOUNT#<accountId>` |
-| RoleChange | `ACCOUNT#<accountId>` | `ROLE_CHANGE#<changeId>` | | |
+| RoleChange | `ACCOUNT#<accountId>` | `ROLE_CHANGE#<changeId>` (KSUID) | | |
 | Course | `COURSE#<courseId>` | `COURSE#<courseId>` | `INSTRUCTOR#<instructorId>` / `COURSE#<courseId>` | só publicados: `CATALOG` / `<publishedAt>#<courseId>` |
 | Module | `COURSE#<courseId>` | `MODULE#<moduleId>` | | |
 | Lesson (sumário) | `COURSE#<courseId>` | `MODULE#<moduleId>#LESSON#<lessonId>` | | |
@@ -198,6 +198,7 @@ Tabela `MainTable` com `PK` e `SK`, e dois índices globais sobrecarregados, `GS
 ### Regras de escrita
 
 - Toda escrita que toca mais de um item é uma transação (Q71).
+- A troca de papel atualiza `role` e `GSI1PK` da Account, só com a conta `ACTIVE` e ainda no papel de origem, e grava o `RoleChange` na mesma transação (Q173); o primeiro admin tem `changedBy = bootstrap`.
 - A posição de módulos e aulas é atributo; o padrão 6 ordena no código. Mover aula de módulo é delete + put em transação.
 - Criações usam `attribute_not_exists(PK)` (aula concluída uma vez, uma avaliação por par, unicidade do e-mail).
 - O e-mail é normalizado (trim, minúsculas) antes de entrar em qualquer chave.

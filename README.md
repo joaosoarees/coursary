@@ -99,7 +99,7 @@ A role do CI confia no assunto imutável do OIDC deste repositório (`repo:<dono
 
 ## Deploy
 
-O merge na `develop` roda o job `deploy-dev` do CI depois das checagens. Ele assume a `coursary-api-deployer` por OIDC (a role só aceita a `develop` deste repositório) e roda `pnpm deploy:dev`. Ainda não há deploy de `prod` por CI.
+O merge na `develop` roda o job `deploy-dev` do CI depois das checagens. Ele roda no Environment `dev` do GitHub (que só aceita a `develop` e guarda os valores do stage: domínio da API, zona do Route 53, remetente e identidade do SES), assume a `coursary-api-deployer` por OIDC (a role só aceita o `sub` `environment:dev` deste repositório) e roda `pnpm deploy:dev`. Ainda não há deploy de `prod` por CI.
 
 Da sua máquina, com o perfil `coursary`:
 
@@ -109,6 +109,16 @@ pnpm remove:dev
 ```
 
 Só o stage `dev` existe por enquanto. O `prod` está declarado, com proteção contra exclusão e PITR, mas não é deployado (Q116).
+
+## Primeiro admin
+
+Toda conta nasce `student`. O primeiro admin é promovido por uma função interna, sem rota HTTP (Q172), a partir de uma conta já confirmada:
+
+```bash
+AWS_PROFILE=coursary pnpm exec sls invoke -f promoteAdmin --stage dev --data '{"email":"<e-mail da conta>"}'
+```
+
+A resposta traz `changed: true` quando a conta foi promovida e `false` quando já era admin. O papel chega ao access token no próximo sign-in ou refresh (até 1 h). A troca fica registrada num `RoleChange` com `changedBy: bootstrap`.
 
 ## Comandos
 
@@ -120,3 +130,4 @@ Só o stage `dev` existe por enquanto. O `prod` está declarado, com proteção 
 | `pnpm format` | Formata com o Prettier |
 | `pnpm test` | Roda os testes |
 | `pnpm sls:package` | Gera o template de `dev` sem deployar |
+| `pnpm check:bundles` | Empacota e carrega cada handler como a Lambda (precisa de credencial AWS) |
