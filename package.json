@@ -22,6 +22,7 @@
     "format:check": "prettier --check .",
     "prepare": "lefthook install",
     "sls:package": "sls package --stage dev",
+    "check:bundles": "node scripts/check-bundles.js",
     "deploy:dev": "sls deploy --stage dev",
     "remove:dev": "sls remove --stage dev",
     "test": "vitest run",

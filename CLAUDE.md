@@ -28,4 +28,5 @@ pnpm install
 pnpm typecheck
 pnpm lint
 pnpm format
+pnpm check:bundles   # empacota e carrega cada handler como a Lambda (precisa de credencial AWS)
 ```
