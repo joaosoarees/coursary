@@ -178,6 +178,13 @@ Cada achado:
 - **O que aconteceu**: aplicado como está; aqui, além disso, o código só é pedido para conta `ACTIVE` no banco da aplicação (Q162).
 - **Sugestão**: nenhuma.
 
+### `cognito-api-gateway-jwt-authorizer` (1.8)
+
+#### 2026-10-15 · 1.8.a · acerto
+- **A skill diz**: o authorizer aceita o id token e o access token, a menos que a rota exija o escopo `aws.cognito.signin.user.admin`; ele não consulta o Cognito, então um token de conta desativada passa até expirar.
+- **O que aconteceu**: as rotas privadas exigem o escopo (Q163), e as de `/me` conferem a conta no banco (Q165), que já leem de qualquer forma.
+- **Sugestão**: nenhuma.
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |
