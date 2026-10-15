@@ -11,6 +11,10 @@ export interface AuthGateway {
 
   signOutEverywhere(email: string): Promise<void>;
 
+  disableUser(email: string): Promise<void>;
+
+  enableUser(email: string): Promise<void>;
+
   confirmSignUp(email: string, code: string): Promise<void>;
 
   resendConfirmationCode(email: string): Promise<void>;

@@ -2,6 +2,8 @@ import { createHmac } from 'node:crypto';
 
 import {
   AdminDeleteUserCommand,
+  AdminDisableUserCommand,
+  AdminEnableUserCommand,
   AdminGetUserCommand,
   AdminUserGlobalSignOutCommand,
   type AuthenticationResultType,
@@ -207,6 +209,24 @@ export class CognitoAuthGateway implements AuthGateway {
 
   async signOutEverywhere(email: string): Promise<void> {
     const command = new AdminUserGlobalSignOutCommand({
+      UserPoolId: this.config.cognitoPoolId,
+      Username: email,
+    });
+
+    await cognitoClient.send(command);
+  }
+
+  async disableUser(email: string): Promise<void> {
+    const command = new AdminDisableUserCommand({
+      UserPoolId: this.config.cognitoPoolId,
+      Username: email,
+    });
+
+    await cognitoClient.send(command);
+  }
+
+  async enableUser(email: string): Promise<void> {
+    const command = new AdminEnableUserCommand({
       UserPoolId: this.config.cognitoPoolId,
       Username: email,
     });
