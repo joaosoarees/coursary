@@ -1,4 +1,3 @@
-import type { AccountId } from '@application/entities/AccountId';
 import { expiresAtFromNow, PENDING_TTL_DAYS } from '@infra/database/dynamo/ttl';
 
 export interface EmailClaimItemType {
@@ -16,7 +15,7 @@ export const EmailClaimItem = {
       SK: `EMAIL_CLAIM#${email}`,
     }) as const,
 
-  forPendingAccount(email: string, accountId: AccountId): EmailClaimItemType {
+  forPendingAccount(email: string, accountId: string): EmailClaimItemType {
     return {
       ...EmailClaimItem.getKey(email),
       type: 'EmailClaim',

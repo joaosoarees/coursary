@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
 import { Account, normalizeEmail } from '@application/entities/Account';
-import { isAccountId } from '@application/entities/AccountId';
 
 describe('Account.create', () => {
   it('should start as a pending student', () => {
@@ -15,7 +14,15 @@ describe('Account.create', () => {
   it('should give the account a KSUID', () => {
     const account = Account.create({ name: 'Ana', email: 'ana@example.com' });
 
-    expect(isAccountId(account.id)).toBe(true);
+    expect(account.id).toMatch(/^[0-9A-Za-z]{27}$/);
+  });
+
+  it('should give later accounts ids that sort after earlier ones', async () => {
+    const first = Account.create({ name: 'Ana', email: 'ana@example.com' });
+    await new Promise((resolve) => setTimeout(resolve, 1100));
+    const second = Account.create({ name: 'Bia', email: 'bia@example.com' });
+
+    expect(first.id < second.id).toBe(true);
   });
 
   it('should trim the name and normalize the e-mail', () => {

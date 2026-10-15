@@ -3,7 +3,6 @@ import {
   type AccountRole,
   type AccountStatus,
 } from '@application/entities/Account';
-import { type AccountId, toAccountId } from '@application/entities/AccountId';
 import { expiresAtFromNow, PENDING_TTL_DAYS } from '@infra/database/dynamo/ttl';
 
 export interface AccountItemType {
@@ -25,8 +24,8 @@ export interface AccountItemType {
 }
 
 export const AccountItem = {
-  getPK: (id: AccountId) => `ACCOUNT#${id}` as const,
-  getSK: (id: AccountId) => `ACCOUNT#${id}` as const,
+  getPK: (id: string) => `ACCOUNT#${id}` as const,
+  getSK: (id: string) => `ACCOUNT#${id}` as const,
 
   fromEntity(account: Account): AccountItemType {
     return {
@@ -52,7 +51,7 @@ export const AccountItem = {
 
   toEntity(item: AccountItemType): Account {
     return new Account({
-      id: toAccountId(item.id),
+      id: item.id,
       externalId: item.externalId,
       email: item.email,
       name: item.name,

@@ -1,4 +1,4 @@
-import { type AccountId, newAccountId } from '@application/entities/AccountId';
+import KSUID from 'ksuid';
 
 export const accountRoles = {
   Student: 'student',
@@ -18,7 +18,7 @@ export type AccountStatus =
   (typeof accountStatuses)[keyof typeof accountStatuses];
 
 export interface AccountAttributes {
-  id: AccountId;
+  id: string;
   externalId: string | undefined;
   email: string;
   name: string;
@@ -32,7 +32,7 @@ export function normalizeEmail(email: string): string {
 }
 
 export class Account {
-  readonly id: AccountId;
+  readonly id: string;
   externalId: string | undefined;
   readonly email: string;
   name: string;
@@ -52,7 +52,7 @@ export class Account {
 
   static create({ name, email }: { name: string; email: string }): Account {
     return new Account({
-      id: newAccountId(),
+      id: KSUID.randomSync().string,
       externalId: undefined,
       email,
       name: name.trim(),
