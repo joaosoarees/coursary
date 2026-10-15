@@ -132,6 +132,12 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q75 | Catálogo | Uma partição `CATALOG` no `GSI2`. Dividir em `CATALOG#0..n` fica como evolução (candidata da fase 7). |
 | Q76 | Lista de usuários | Sempre por papel (abas); status por `FilterExpression`. |
 | Q77 | Chave no S3 | `<ownerType>/<ownerId>/<purpose>/<fileId>/original`, montada só pelo servidor; o trigger deriva a PK/SK do `FILE` dela. |
+| Q79 | Projeção dos índices | `ALL` no `GSI1` e no `GSI2` (índices genéricos, compartilhados). |
+| Q80 | Minhas matrículas | Query nas matrículas + `BatchGet` dos cursos. Título, capa e total de aulas ficam como referência, não como cópia. |
+| Q81 | Nome do aluno | `studentName` copiado na matrícula e na avaliação. Renomear atualiza as cópias na mesma requisição, em transações de até 100 itens (todas na partição `ACCOUNT#a`). |
+| Q82 | Dados do catálogo no curso | `instructorName` (propagado como na Q81, pelos cursos do instrutor no `GSI1`), `coverVariants` (gravado pelo processador de imagem), `ratingSum` e `ratingCount`. Algolia recebe pelo stream. |
+| Q83 | Contadores | `Course.enrollmentCount`, `Course.lessonCount`, `Course.ratingSum`/`ratingCount`, `Enrollment.completedLessons`: sempre `ADD` na mesma transação da escrita que os muda; refazer quando a transação é cancelada por conflito. Percentual e média só na leitura. Nenhum contador depende do stream. |
+| Q84 | Retratos | Nota e comentário da avaliação, `fromRole`/`toRole`, `enrolledAt`, arquivo de exportação: nunca acompanham o original. Cada atributo copiado é classificado no modelo (exibição, retrato, contador, índice, referência) com seu dono. |
 
 #### Fases (Q27)
 
