@@ -35,6 +35,25 @@ Resources:
               StringLike:
                 token.actions.githubusercontent.com:sub: repo:joaosoarees@59843125/coursary-api@1416276221:*
 
+  Boundary:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: coursary-api-boundary
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              - logs:TagResource
+            Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/coursary-api-*
+          - Effect: Allow
+            Action: dynamodb:*
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/coursary-api-*
+
   DeployerRole:
     Type: AWS::IAM::Role
     Properties:
@@ -76,8 +95,78 @@ Resources:
                 Action: ssm:GetParameter
                 Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/serverless-framework/*
 
+        - PolicyName: deploy-1-2
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: lambda:*
+                Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:coursary-api-*
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:DeleteLogGroup
+                  - logs:PutRetentionPolicy
+                  - logs:DeleteRetentionPolicy
+                  - logs:TagResource
+                  - logs:UntagResource
+                  - logs:ListTagsForResource
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/coursary-api-*
+              - Effect: Allow
+                Action: logs:DescribeLogGroups
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - apigateway:GET
+                  - apigateway:POST
+                  - apigateway:PUT
+                  - apigateway:PATCH
+                  - apigateway:DELETE
+                Resource:
+                  - !Sub arn:aws:apigateway:${AWS::Region}::/apis
+                  - !Sub arn:aws:apigateway:${AWS::Region}::/apis/*
+                  - !Sub arn:aws:apigateway:${AWS::Region}::/tags/*
+              - Effect: Allow
+                Action:
+                  - iam:CreateRole
+                  - iam:PutRolePolicy
+                  - iam:DeleteRolePolicy
+                  - iam:AttachRolePolicy
+                  - iam:DetachRolePolicy
+                  - iam:PutRolePermissionsBoundary
+                Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/coursary-api-*
+                Condition:
+                  StringEquals:
+                    iam:PermissionsBoundary: !Ref Boundary
+              - Effect: Allow
+                Action:
+                  - iam:GetRole
+                  - iam:GetRolePolicy
+                  - iam:ListRolePolicies
+                  - iam:ListAttachedRolePolicies
+                  - iam:TagRole
+                  - iam:UntagRole
+                  - iam:DeleteRole
+                Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/coursary-api-*
+              - Effect: Allow
+                Action: iam:PassRole
+                Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/coursary-api-*
+                Condition:
+                  StringEquals:
+                    iam:PassedToService: lambda.amazonaws.com
+              - Effect: Deny
+                Action: iam:DeleteRolePermissionsBoundary
+                Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/coursary-api-*
+              - Effect: Deny
+                Action: iam:*
+                Resource:
+                  - !Sub arn:aws:iam::${AWS::AccountId}:role/coursary-api-deployer
+                  - !Sub arn:aws:iam::${AWS::AccountId}:role/coursary-api-ci
+
 Outputs:
   CiRoleArn:
     Value: !GetAtt CiRole.Arn
   DeployerRoleArn:
     Value: !GetAtt DeployerRole.Arn
+  BoundaryArn:
+    Value: !Ref Boundary

@@ -4,3 +4,6 @@ runtime: nodejs24.x
 architecture: arm64
 deploymentBucket:
   name: ${self:custom.deploymentBucket}
+iam:
+  role:
+    permissionsBoundary: !Sub arn:aws:iam::${AWS::AccountId}:policy/coursary-api-boundary
