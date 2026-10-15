@@ -118,6 +118,25 @@ Cada achado:
 - **O que aconteceu**: nada cobre o sign-up gravado em duas fontes (banco e Cognito) quando a aplicação é a fonte da verdade: o usuário órfão `UNCONFIRMED` é apagado e o `SignUp` repetido; um usuário confirmado sem reserva nunca é apagado e vira 409 com log de inconsistência (Q41, Q130); cada passo anterior é compensado.
 - **Sugestão**: uma seção sobre sign-up com o banco da aplicação, órfãos e compensações.
 
+### `cognito-sign-up-and-confirmation` (1.5)
+
+#### 2026-10-15 · 1.5.b · acerto
+- **A skill diz**: um só 400 para código errado, expirado, usuário inexistente e já confirmado; o reenvio responde 204 em todo caso; o código é texto.
+- **O que aconteceu**: aplicado como está (Q141), com `TooManyFailedAttemptsException` junto dos limites.
+- **Sugestão**: nenhuma.
+
+#### 2026-10-15 · 1.5.c · lacuna
+- **A skill diz**: a confirmação é só o `ConfirmSignUp`.
+- **O que aconteceu**: com o banco da aplicação como fonte da verdade, faltou: conferir a conta pendente antes de chamar o Cognito (senão um órfão vira usuário confirmado sem conta, Q138); a ordem Cognito → banco e o reparo quando o banco falha depois do Cognito confirmar (a nova tentativa recebe `NotAuthorizedException`; `AdminGetUser` diz se o usuário já está `CONFIRMED`, Q139); e não chamar o `ResendConfirmationCode` sem conta pendente, para não gastar a cota do e-mail padrão (Q140).
+- **Sugestão**: a mesma seção sugerida na 1.4.d (sign-up em duas fontes) cobrindo a confirmação e o reenvio.
+
+### `dynamodb-time-to-live`, `dynamodb-read-consistency`
+
+#### 2026-10-15 · 1.5.a · acerto
+- **A skill diz**: para manter um item, `REMOVE` do atributo com condição; um `Get` não filtra, então o vencido é tratado como ausente no código (`getLive`).
+- **O que aconteceu**: a ativação remove o `expiresAt` da conta e da reserva numa transação condicionada a `PENDING`; a leitura pela reserva usa `getLive` com `ConsistentRead: true` (Q142). Um teste com a reserva vencida e a conta ainda viva confirmou o filtro (mutação: sem ele, o teste falha).
+- **Sugestão**: nenhuma.
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |
