@@ -1,34 +1,54 @@
 import type { APIGatewayProxyEventV2 } from 'aws-lambda';
 import { describe, expect, it, vi } from 'vitest';
+import { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
+import { EmailInUse } from '@application/errors/EmailInUse';
+import { Schema } from '@kernel/decorators/Schema';
 import { lambdaHttpAdapter } from '@main/adapters/lambdaHttpAdapter';
 
-const event = {
-  requestContext: { requestId: 'request-1' },
-} as APIGatewayProxyEventV2;
+const makeEvent = (body?: string) =>
+  ({
+    body,
+    requestContext: { requestId: 'request-1' },
+  }) as APIGatewayProxyEventV2;
 
-class OkController extends Controller<{ status: string }> {
-  handle() {
+const parseBody = (body: string | undefined): unknown => JSON.parse(body ?? '');
+
+class OkController extends Controller<'public', { status: string }> {
+  protected handle() {
     return Promise.resolve({ statusCode: 200, body: { status: 'ok' } });
   }
 }
 
-class NoContentController extends Controller {
-  handle() {
+class NoContentController extends Controller<'public'> {
+  protected handle() {
     return Promise.resolve({ statusCode: 204 });
   }
 }
 
-class FailingController extends Controller {
-  handle(): Promise<never> {
+class FailingController extends Controller<'public'> {
+  protected handle(): Promise<never> {
     return Promise.reject(new Error('table is gone'));
+  }
+}
+
+class EmailInUseController extends Controller<'public'> {
+  protected handle(): Promise<never> {
+    return Promise.reject(new EmailInUse());
+  }
+}
+
+@Schema({ body: z.object({ name: z.string().min(1) }) })
+class EchoController extends Controller<'public', { name: string }> {
+  protected handle(request: Controller.Request<'public', { name: string }>) {
+    return Promise.resolve({ statusCode: 200, body: request.body });
   }
 }
 
 describe('lambdaHttpAdapter', () => {
   it('should return the status code and the body as JSON', async () => {
-    const response = await lambdaHttpAdapter(new OkController())(event);
+    const response = await lambdaHttpAdapter(new OkController())(makeEvent());
 
     expect(response).toEqual({
       statusCode: 200,
@@ -38,19 +58,67 @@ describe('lambdaHttpAdapter', () => {
   });
 
   it('should leave the body out when the controller returns none', async () => {
-    const response = await lambdaHttpAdapter(new NoContentController())(event);
+    const response = await lambdaHttpAdapter(new NoContentController())(
+      makeEvent(),
+    );
 
     expect(response.statusCode).toBe(204);
     expect(response.body).toBeUndefined();
   });
 
+  it('should pass the parsed and validated body to the controller', async () => {
+    const response = await lambdaHttpAdapter(new EchoController())(
+      makeEvent('{"name":"Ana","extra":true}'),
+    );
+
+    expect(parseBody(response.body)).toEqual({ name: 'Ana' });
+  });
+
+  it('should answer 400 VALIDATION with the failing fields', async () => {
+    const response = await lambdaHttpAdapter(new EchoController())(
+      makeEvent('{"name":""}'),
+    );
+
+    expect(response.statusCode).toBe(400);
+    expect(parseBody(response.body)).toMatchObject({
+      error: { code: 'VALIDATION', details: [{ field: 'name' }] },
+    });
+  });
+
+  it('should answer 400 BAD_REQUEST when the body is not JSON', async () => {
+    const response = await lambdaHttpAdapter(new EchoController())(
+      makeEvent('{name'),
+    );
+
+    expect(response.statusCode).toBe(400);
+    expect(parseBody(response.body)).toMatchObject({
+      error: { code: 'BAD_REQUEST' },
+    });
+  });
+
+  it('should answer an application error with its own status and code', async () => {
+    const response = await lambdaHttpAdapter(new EmailInUseController())(
+      makeEvent(),
+    );
+
+    expect(response.statusCode).toBe(409);
+    expect(parseBody(response.body)).toEqual({
+      error: {
+        code: 'EMAIL_IN_USE',
+        message: 'This e-mail address is already registered.',
+      },
+    });
+  });
+
   it('should answer 500 without the error message when the controller throws', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
-    const response = await lambdaHttpAdapter(new FailingController())(event);
+    const response = await lambdaHttpAdapter(new FailingController())(
+      makeEvent(),
+    );
 
     expect(response.statusCode).toBe(500);
-    expect(JSON.parse(response.body ?? '')).toEqual({
+    expect(parseBody(response.body)).toEqual({
       error: {
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Internal server error.',
@@ -61,7 +129,7 @@ describe('lambdaHttpAdapter', () => {
   it('should log the request id and the error when the controller throws', async () => {
     const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
-    await lambdaHttpAdapter(new FailingController())(event);
+    await lambdaHttpAdapter(new FailingController())(makeEvent());
 
     const entry = JSON.parse(String(log.mock.calls[0]?.[0])) as {
       requestId: string;
