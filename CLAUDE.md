@@ -13,7 +13,7 @@ API serverless de uma plataforma de cursos (Lambda + DynamoDB single-table). O p
 ## Como trabalhar
 
 - **"Começar tarefa X.X"**: atualizar a `main`, criar `feat/X.X-<slug>`, propor as sub-imp e só implementar depois do acordo.
-- **Commits pequenos**, um por passo coeso, em Conventional Commits e em inglês. **Nunca dar push sem o comando do João**; com o comando, push da branch e PR para a `main` (merge sem squash).
+- **Commits pequenos**, um por passo coeso, em Conventional Commits e em inglês. Branch, commit, push e PR são livres; **o merge na `main` só com a autorização do João** (merge sem squash). Deploys pedem o ok dele (Q117).
 - **Necessidade → implementação** (Q112): nenhuma abstração, operação, índice ou permissão antes da história que a usa.
 - **A aplicação é a fonte da verdade** (Q38): serviços externos ficam atrás de portas.
 - **Comentários só quando muito úteis.**
