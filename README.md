@@ -47,7 +47,7 @@ O `aws/bootstrap.yml` cria o acesso do projeto:
 Ele é aplicado por um usuário administrador da conta, com o perfil dele na AWS CLI. É o único uso desse usuário no projeto:
 
 ```bash
-AWS_PROFILE=<perfil-admin> aws cloudformation deploy --region sa-east-1 --stack-name coursary-api-bootstrap --template-file aws/bootstrap.yml --capabilities CAPABILITY_NAMED_IAM --parameter-overrides OwnerUserName=<usuário-admin>
+AWS_PROFILE=<perfil-admin> aws cloudformation deploy --region sa-east-1 --stack-name coursary-api-bootstrap --template-file aws/bootstrap.yml --capabilities CAPABILITY_NAMED_IAM --parameter-overrides OwnerUserName=<usuário-admin> HostedZoneId=<id-da-zona-do-route53>
 ```
 
 Reaplique sempre que o `aws/bootstrap.yml` mudar, por exemplo quando um deploy falhar com `is not authorized to perform` numa ação que falta.

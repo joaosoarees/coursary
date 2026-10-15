@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-15. Estado: **Épico 0 fechado; histórias 1.0 a 1.6 na `develop` e em `dev` (conferidas com chamadas reais); em andamento: troca do Registry por fábricas e um zip por função (Q151 a Q155); depois: 1.7 (recuperação de senha), ainda sem sub-imp**.
+Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.6 na `develop` e em `dev`; fábricas e um zip por função concluídos (Q151 a Q156); em andamento: domínio da API (Q157 a Q160); depois: 1.7 com e-mails pelo SES (Q161, Q162)**.
 
 ## Como retomar
 
@@ -210,6 +210,12 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q154 | Portas como `interface` | `AccountRepository` e `AuthGateway` deixam de ser classes abstratas (eram tokens do container); implementações e fakes usam `implements`. |
 | Q155 | Conferência automática dos bundles | `pnpm check:bundles`: `sls package` e import de cada handler num `node` separado (método da Q135), no CI antes do deploy. |
 | Q156 | Peso do zod | Medido em `dev`: `health` ~100 ms de init, trigger sem zod ~290 ms, rotas HTTP ~230 a 340 ms. O peso é o SDK; o zod soma ~30 a 50 ms. Fica como está. |
+| Q157 | Domínio da API e remetente (revê a linha "não trazer o domínio pessoal" do foodiary) | Domínio próprio já, antes da 1.7, em `sls/resources/api-gateway/CustomDomain.yml` como no foodiary: certificado ACM validado por DNS, `DomainName`, `ApiMapping` e, diferente do foodiary, o registro `A` alias no Route 53 pelo template. `dev`: `api-dev.coursary.joaodevdude.com`; `prod`: `api.coursary.joaodevdude.com`. E-mails: `no-reply@coursary.joaodevdude.com` pela identidade `joaodevdude.com` do SES, sem Reply-To. |
+| Q158 | Valores por stage | Secrets de um Environment do GitHub por stage (`dev` agora): `COGNITO_EMAILS_FROM`, `SES_ARN`, `API_DOMAIN_NAME`, `ROUTE53_HOSTED_ZONE_ID`, `DISABLE_DEFAULT_APIGW_ENDPOINT`. Template com as condições `${env:…, ''}` do foodiary: sem os valores (CI de PR, `sls package` local) nada do domínio é criado. Como o job com `environment: dev` apresenta `sub = …:environment:dev` no OIDC, a role de deploy passa a confiar nesse `sub`, e o Environment `dev` só aceita a branch `develop`. |
+| Q159 | Endpoint padrão do API Gateway | Desligado em `dev` e `prod`, mas só num segundo deploy, depois de conferir o domínio. |
+| Q160 | Ordem | PR do domínio primeiro (bootstrap, aplicado pelo autor com o perfil administrador; `CustomDomain.yml`; CI; Yaak), conferido em `dev`; depois a 1.7. |
+| Q161 | E-mails da 1.7 | Pool com `EmailSendingAccount: DEVELOPER` (todo e-mail sai do SES; fim do `COGNITO_DEFAULT` da Q126). Trigger de custom message com React Email renderizado no trigger, como no foodiary (revê a Q17 só por haver exemplo, não skill): templates da confirmação/reenvio e da recuperação de senha, em português, só o código, sem nome e sem link. Os outros `triggerSource` ficam com o texto padrão. Duração do trigger medida em `dev` (limite de 5 s do Cognito). |
+| Q162 | Recuperação de senha | `POST /auth/forgot-password` `{ email }` → 204 sempre; só chama o `ForgotPassword` com conta `ACTIVE` (reserva e conta, leitura forte), o resto é logado. `POST /auth/reset-password` `{ email, code, newPassword }` → 204; política da Q125; código e estados → `400 INVALID_CODE`; depois, `AdminUserGlobalSignOut` (falha logada como `SessionsNotRevoked`, sem falhar a rota). |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)

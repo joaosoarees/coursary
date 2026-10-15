@@ -2,6 +2,8 @@ name: aws
 region: sa-east-1
 runtime: nodejs24.x
 architecture: arm64
+httpApi:
+  disableDefaultEndpoint: ${strToBool(${env:DISABLE_DEFAULT_APIGW_ENDPOINT, 'false'})}
 deploymentBucket:
   name: ${self:custom.deploymentBucket}
 iam:
