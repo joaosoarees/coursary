@@ -1,0 +1,3 @@
+allowBuilds:
+  lefthook: false
+saveExact: true
