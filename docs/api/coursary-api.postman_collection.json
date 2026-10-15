@@ -1,13 +1,13 @@
 {
   "info": {
     "name": "Coursary API",
-    "description": "Rotas da coursary-api. Importe no Yaak (Import > Postman) e preencha baseUrl com o endpoint do stage, mostrado no fim de `pnpm deploy:dev`.",
+    "description": "Rotas da coursary-api. Importe no Yaak (Import > Postman) e o baseUrl aponta para o domínio de `dev`; em `prod`, use https://api.coursary.joaodevdude.com.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
       "key": "baseUrl",
-      "value": "https://<api-id>.execute-api.sa-east-1.amazonaws.com"
+      "value": "https://api-dev.coursary.joaodevdude.com"
     }
   ],
   "item": [
