@@ -12,4 +12,6 @@ export interface AccountRepository {
   findByEmail(email: string): Promise<Account | null>;
 
   activate(account: Account): Promise<void>;
+
+  updateName(id: string, name: string): Promise<Account>;
 }

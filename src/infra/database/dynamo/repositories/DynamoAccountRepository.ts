@@ -165,6 +165,22 @@ export class DynamoAccountRepository implements AccountRepository {
     );
   }
 
+  async updateName(id: string, name: string): Promise<Account> {
+    const { Attributes } = await dynamoClient.send(
+      new UpdateCommand({
+        TableName: this.config.mainTableName,
+        Key: { PK: AccountItem.getPK(id), SK: AccountItem.getSK(id) },
+        UpdateExpression: 'SET #name = :name',
+        ConditionExpression: 'attribute_exists(PK)',
+        ExpressionAttributeNames: { '#name': 'name' },
+        ExpressionAttributeValues: { ':name': name },
+        ReturnValues: 'ALL_NEW',
+      }),
+    );
+
+    return AccountItem.toEntity(Attributes as AccountItem.ItemType);
+  }
+
   private async getLive<TItem extends { expiresAt?: number }>(
     Key: Record<string, string>,
   ): Promise<TItem | null> {

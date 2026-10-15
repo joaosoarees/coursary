@@ -253,3 +253,26 @@ describe('DynamoAccountRepository.findById', () => {
     await expect(repository.findById(account.id)).resolves.toBeNull();
   });
 });
+
+describe('DynamoAccountRepository.updateName', () => {
+  test('changes the name and returns the account as stored', async () => {
+    const account = Account.create({ name: 'Ana', email: uniqueEmail() });
+    await repository.create(account);
+
+    const updated = await repository.updateName(account.id, 'Ana Souza');
+
+    expect(updated).toMatchObject({
+      id: account.id,
+      name: 'Ana Souza',
+      email: account.email,
+    });
+    expect(await getItem(`ACCOUNT#${account.id}`)).toMatchObject({
+      name: 'Ana Souza',
+    });
+  });
+
+  test('refuses an account that does not exist', async () => {
+    await expect(repository.updateName('missing', 'Ana')).rejects.toThrow();
+    expect(await getItem('ACCOUNT#missing')).toBeUndefined();
+  });
+});

@@ -71,4 +71,16 @@ export class InMemoryAccountRepository implements AccountRepository {
 
     return Promise.resolve();
   }
+
+  updateName(id: string, name: string): Promise<Account> {
+    const account = this.accounts.get(id);
+
+    if (!account) {
+      return Promise.reject(new Error(`Account ${id} does not exist.`));
+    }
+
+    account.name = name;
+
+    return Promise.resolve(account);
+  }
 }
