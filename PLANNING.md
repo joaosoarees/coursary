@@ -93,6 +93,13 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q29 | Template das tarefas | História = entrega visível pela API. Sub-imp por camada (`*Item` e chaves, repositório/query, use case, controller e rota, IaC, testes). Campos: fase, padrões de acesso, skills (uma label por skill), critério de pronto. Toda sub-imp tem a seção "Achados sobre a skill". Um épico por fase, com vínculos "bloqueia" entre histórias. |
 | Q30 | Padrões do projeto | Viram a história PLAN-6 (decisão) e a história 1.0 (esqueleto do repositório, primeira da fase 1). |
 | Q31 | Registro | Toda decisão fechada entra neste arquivo em um commit pequeno. |
+| Q38 | **Princípio: a aplicação é a fonte da verdade** | Identidade, unicidade e regras vivem na aplicação e no DynamoDB. Serviços externos (Cognito, SES, Algolia) ficam atrás de portas e podem ser trocados sem mudar o domínio. Toda decisão passa por este filtro. |
+| Q32 | Identidade | `internalId` próprio (KSUID), gravado como `custom:internalId` no Cognito e posto no access token pelo trigger de pre token. O `sub` fica só como `externalId`. |
+| Q18 | Unicidade de e-mail (confirmada pela Q38) | Item `EMAIL#<email>` com `attribute_not_exists`, na mesma transação do Account. A unicidade do Cognito é uma segunda barreira, não a regra. |
+| Q34 | Quando nasce o Account | Na rota de sign-up, gravado pela aplicação. Ordem e confirmação: ver Q39. |
+| Q35 | Confirmação do cadastro | Código por e-mail em todos os stages, sem auto-confirmação. |
+| Q36 | Duração dos tokens | Access e id de 1 h; refresh de 30 dias com rotação. |
+| Q37 | E-mails de autenticação | SES via Cognito, texto pelo trigger de custom message. O Resend talvez nem entre (a fase 3 decide). |
 
 #### Fases (Q27)
 
@@ -100,7 +107,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 |---|---|
 | 1 | Tabela, CRUD de curso/módulo/aula, auth completa com grupos, rotas de admin |
 | 2 | Matrícula, progresso, avaliações (relações, índices, contadores) |
-| 3 | Stream → SQS → Algolia e e-mail com Resend (idempotência, DLQ, redrive) |
+| 3 | Stream → SQS → Algolia e e-mails do domínio (idempotência, DLQ, redrive; Resend a confirmar) |
 | 4 | Capa do curso com S3 e sharp, consistência do upload com TTL, CSV de alunos |
 | 5 | Frontend `web` em S3 + CloudFront |
 | 6 | Evolução de schema |
@@ -121,36 +128,13 @@ Histórias de decisão, antes de qualquer código. Ordem de dependência: PLAN-2
 
 As histórias das fases 1 a 6 só são criadas depois da PLAN-3.
 
-## Rodada em aberto (PLAN-2, rodada 1)
+## Rodada em aberto (PLAN-2, rodada 2)
 
-Perguntas feitas em 2026-10-14, aguardando resposta. A recomendação de cada uma vem depois da seta.
+Abertas por causa da Q38.
 
-- **Q20 Onde vive o papel**: grupos do Cognito, `role` no Account copiado pelo trigger de pre token, ou `role` lido do Dynamo a cada requisição. → Grupos `instructors` e `admins` declarados no `serverless.yml`; aluno = sem grupo; hierarquia escrita no código. Troca a recomendação (b) anterior, conforme `cognito-user-groups` e `cognito-role-based-route-protection`.
-- **Q32 Identidade**: KSUID próprio em `custom:internalId` mais trigger de pre token (como no foodiary), ou o `sub` do Cognito. → `sub` como id do Account: sem atributo customizado, sem trigger, sem mapeamento interno/externo; `createdAt` cobre a ordenação.
-- **Q34 Quando nasce o Account e o item `EMAIL#`**: (i) a rota de sign-up grava com compensação, (ii) trigger de post confirmation, (iii) primeiro `GET /me`. → (ii), idempotente com `attribute_not_exists`, sem item `EMAIL#` (o Cognito garante a unicidade, `UsernameExistsException` → 409). Revoga a Q18.
-- **Q35 Confirmação do cadastro**: código por e-mail ou auto-confirmação no pre sign-up. → Código em todos os stages.
-- **Q36 Duração dos tokens**: → access e id de 1 h, refresh de 30 dias com rotação.
-- **Q37 E-mails de autenticação**: SES via Cognito com trigger de custom message, SES com React Email, ou e-mail padrão do Cognito. → SES via Cognito com `cognito-custom-message-lambda-trigger`; Resend só para e-mails do domínio.
-
-### Proposta paralela: registro do processo para uma skill de "projeto novo"
-
-O João quer transformar o processo deste planejamento em uma skill própria. Proposta: `PLANNING.md` guarda as decisões do coursary; um registro separado guarda o método (etapa, objetivo, pré-requisitos, perguntas genéricas com o exemplo do coursary, skills que alimentam a etapa, quando pular ou adaptar, lições). Roteiro até aqui: objetivo/domínio/superfície → escopo cruzado com as skills instaladas → fases → onde ficam as tarefas e template → identidade e papéis → modelagem → arquitetura de execução → padrões do projeto → criar as tarefas. Lições: ler as skills antes de recomendar; não criar tarefas antes da modelagem; discutir antes de criar. Em aberto: onde fica o registro (`docs/process-log.md` aqui ou direto no dev-skills) e se começa já, retroativo às etapas 1 a 4.
-
-## Decisão em aberto
-
-### Q20: onde vive o papel do usuário
-
-**Adiada pelo João**: ele vai transformar outros cursos em skills de Cognito antes de decidir, para que a decisão siga essas skills.
-
-Opções que estavam na mesa:
-
-- (a) Grupos do Cognito: o claim `cognito:groups` já vem no access token; promover é `AdminAddUserToGroup`.
-- (b) Atributo `role` no item `Account`, copiado para o token pelo trigger de pre token generation (que passaria a ler o Dynamo), com o access token encurtado de 12 h para 1 h.
-- (c) Atributo `role` no item `Account`, lido do Dynamo a cada requisição que exige papel.
-
-Recomendação dada na hora: (b). Motivo: o Dynamo fica como fonte da verdade (permite listar instrutores por índice), o controller recebe o papel sem leitura extra, e o papel desatualizado dura no máximo uma hora.
-
-Depende desta decisão: como o controller verifica papel, a duração do token, o desenho do padrão de acesso 2 (filtrar usuários por papel) e a rota de promoção do admin.
+- **Q20 Onde vive o papel (reaberta)**: a rodada 1 recomendou grupos do Cognito, mas pela Q38 a fonte da verdade é a aplicação. Opções: (a) grupos do Cognito; (b) `role` no Account, copiado para o token pelo trigger de pre token, que já existe por causa da Q32 e passaria a ler o Dynamo; (c) `role` no Account, lido do Dynamo a cada requisição que exige papel. → (b): o Account é a fonte, o trigger já existe, o papel fica no máximo 1 h desatualizado (Q36), o padrão 2 sai de um índice próprio, e as rotas de admin que mudam papel leem do Dynamo na hora (`cognito-role-based-route-protection`, "stale roles").
+- **Q39 Ordem do sign-up e conta não confirmada**: → (1) transação no Dynamo com Account `PENDING` e `EMAIL#`, ambos com TTL; (2) `SignUp` no Cognito com `custom:internalId`; se falhar, apagar os dois itens. (3) A confirmação marca o Account como `ACTIVE` e remove o TTL. Uma conta nunca confirmada expira sozinha e libera o e-mail (`dynamodb-time-to-live`).
+- **Q40 Quem marca a confirmação**: a própria rota de confirmação, depois do `ConfirmSignUp`, ou um trigger de post confirmation. → A rota: a regra fica na aplicação e não depende de um trigger do Cognito (Q38).
 
 ## Próximas perguntas (fronteira ainda não percorrida)
 
