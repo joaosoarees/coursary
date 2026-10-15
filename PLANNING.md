@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.9 na `develop` e em `dev` (conferidas com chamadas reais); a conta de teste do autor é o admin de `dev`; 1.10 (rotas de admin) com 1.10.a a 1.10.e prontas e a 1.10.f em PR para a `develop`; faltam o merge e as chamadas reais em `dev`**.
+Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.10 na `develop` e em `dev` (conferidas com chamadas reais); a conta de teste do autor é o admin de `dev` e há uma conta de aluno de teste; próxima: 1.11 (desativar e reativar conta), ainda sem sub-imp**.
 
 ## Como retomar
 
@@ -11,7 +11,7 @@ Abra o Claude Code e diga:
 Ao retomar, o assistente deve:
 
 1. Ver no estado acima e na tabela "Fase 1: histórias" qual história é a próxima.
-2. Para a 1.10: reler as decisões Q20, Q43, Q44, Q56, Q67, Q79, Q170, Q171, Q173 e Q175 e as skills `cognito-role-based-route-protection`, `dynamodb-queries`, `dynamodb-query-pagination`, `dynamodb-index-overloading`, `dynamodb-secondary-indexes`, `typescript-literal-types-and-const-assertions` e `typescript-satisfies` antes de propor as sub-imp. Entram o `GSI1` (papel), o módulo de permissões (Q171) e a troca de papel pela rota, reaproveitando o `changeRole` da 1.9. Seguir o estilo da Q175 e olhar como o foodiary resolve antes de propor.
+2. Para a 1.11: reler as decisões Q44, Q56, Q146, Q165, Q178, Q181 e Q192 e as skills `cognito-user-pools` e `dynamodb-item-operations` antes de propor as sub-imp. Entram `AdminDisableUser`/`AdminEnableUser` (com as ações IAM), a conta `DISABLED` e a compensação entre Dynamo e Cognito; as permissões novas (`users:disable`) entram no módulo da 1.10.
 3. Seguir o "Começar tarefa X.X" do `CLAUDE.md`: branch a partir da `develop`, sub-imp propostas e discutidas antes de codar.
 4. Não refazer perguntas já fechadas.
 
@@ -245,6 +245,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q189 | `GSI1` nos testes | Repetido à mão no `__tests__/dynamodb/globalSetup.ts`; a chamada real em `dev` pega divergência com o `MainTable.yml`. Lacuna: nenhuma skill cobre manter a tabela local igual à IaC. |
 | Q190 | Sub-imp da 1.10 | a. `GSI1` no `MainTable.yml` e no setup, `dynamodb:Query` na tabela e em `…/index/GSI1`; b. permissões, `Controller` e adapter, teste de auditoria; c. `DynamoPagination` e `InvalidCursor`; d. troca de papel (`ConditionCheck` do chamador, erros, use case, teste da corrida); e. queries e use cases de leitura; f. controllers, funções, Yaak e chamadas reais em `dev` depois do merge (feliz e um erro por rota, incluindo 403 com conta de aluno). |
 | Q191 | Ajustes da implementação da 1.10 (revê a forma da Q183 e da Q187) | O ESLint (`no-extraneous-class`) recusa classe só com estáticos: `Permissions` é objeto literal com `allows` (a chamada não muda) e `DynamoPagination` é instância com o schema da chave (`new DynamoPagination(keySchema)` por query). `Controller.execute` é `async`, para o `Forbidden` sair como rejeição. A lista de usuários também ignora contas `PENDING` vencidas (Q39). O teste de auditoria (Q94) lê os `sls/functions/*.yml` (devDependency `yaml`) e chama cada rota `/admin` com token de aluno, esperando 403. |
+| Q192 | Lições da 1.10 em `dev` | Toda operação nova do DynamoDB entra com a sua ação IAM no mesmo commit (o `ConditionCheck` sem `dynamodb:ConditionCheckItem` deu 500 em `dev`; o DynamoDB Local não confere IAM). Índice novo vai num deploy antes do código que o consulta, conferido `ACTIVE` (`dynamodb-secondary-indexes`); vale para o `GSI2` da 1.14. A conta de aluno de teste do autor fica em `dev` como `student` `ACTIVE`. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)

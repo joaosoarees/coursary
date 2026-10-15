@@ -227,6 +227,20 @@ Cada achado:
 - **O que aconteceu**: o `AccountItem` gravava `GSI1PK`/`GSI1SK` desde a 1.3, então o `GSI1` nasceu preenchido no deploy; o cursor da lista de usuários valida `GSI1PK` como o papel pedido.
 - **Sugestão**: nenhuma.
 
+### `serverless-resources-and-iam` (1.10)
+
+#### 2026-10-15 · 1.10.f · lacuna
+- **A skill diz**: cada função recebe só as ações de que precisa.
+- **O que aconteceu**: o `ConditionCheck` da troca de papel exige `dynamodb:ConditionCheckItem`, que a role compartilhada não tinha; a primeira troca real em `dev` respondeu 500 (`AccessDeniedException`) e nada foi gravado. Os testes passaram porque o DynamoDB Local não confere IAM. Corrigido no PR #23.
+- **Sugestão**: listar a ação IAM de cada operação de `TransactWriteItems` (`Put` → `PutItem`, `Update` → `UpdateItem`, `Delete` → `DeleteItem`, `ConditionCheck` → `ConditionCheckItem`) e lembrar que só a chamada real pega a falta.
+
+### `dynamodb-secondary-indexes` (1.10)
+
+#### 2026-10-15 · 1.10.f · acerto
+- **A skill diz** (`changing-indexes.md`): o CloudFormation conclui o deploy sem esperar o backfill; suba o índice antes do código que o consulta.
+- **O que aconteceu**: o `GSI1` e as rotas que o consultam foram no mesmo deploy, e o índice ficou em `CREATING` por mais de cinco minutos depois do deploy concluído. As chamadas só começaram com o índice `ACTIVE`, então nada falhou, mas a ordem da skill não foi seguida. O `GSI2` (1.14) vai num deploy antes do código.
+- **Sugestão**: nenhuma.
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |
