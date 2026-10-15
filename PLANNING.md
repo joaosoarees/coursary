@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.8 na `develop` e em `dev` (conferidas com chamadas reais); próxima: 1.9 (script do primeiro admin e módulo de permissões), ainda sem sub-imp**.
+Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.9 na `develop` e em `dev` (conferidas com chamadas reais); a conta de teste do autor é o admin de `dev`; próxima: 1.10 (rotas de admin), ainda sem sub-imp**.
 
 ## Como retomar
 
@@ -11,7 +11,7 @@ Abra o Claude Code e diga:
 Ao retomar, o assistente deve:
 
 1. Ver no estado acima e na tabela "Fase 1: histórias" qual história é a próxima.
-2. Para a 1.9: reler as decisões Q21, Q43, Q44, Q20 e Q145 e as skills `cognito-role-based-route-protection` e `structuring-use-cases` antes de propor as sub-imp. O papel vive no Account e chega ao access token pelo trigger de pre token; a 1.9 cria o primeiro admin por script e o módulo papel → ações. Há um usuário de teste confirmado em `dev` (endereço do autor, fora do repositório).
+2. Para a 1.10: reler as decisões Q20, Q43, Q44, Q56, Q67, Q79, Q170, Q171, Q173 e Q175 e as skills `cognito-role-based-route-protection`, `dynamodb-queries`, `dynamodb-query-pagination`, `dynamodb-index-overloading`, `dynamodb-secondary-indexes`, `typescript-literal-types-and-const-assertions` e `typescript-satisfies` antes de propor as sub-imp. Entram o `GSI1` (papel), o módulo de permissões (Q171) e a troca de papel pela rota, reaproveitando o `changeRole` da 1.9. Seguir o estilo da Q175 e olhar como o foodiary resolve antes de propor.
 3. Seguir o "Começar tarefa X.X" do `CLAUDE.md`: branch a partir da `develop`, sub-imp propostas e discutidas antes de codar.
 4. Não refazer perguntas já fechadas.
 
