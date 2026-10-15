@@ -1,5 +1,3 @@
-import { Injectable } from '@kernel/decorators/Injectable';
-
 function requiredEnv(name: string): string {
   const value = process.env[name];
 
@@ -10,7 +8,6 @@ function requiredEnv(name: string): string {
   return value;
 }
 
-@Injectable()
 export class AppConfig {
   get mainTableName(): string {
     return requiredEnv('MAIN_TABLE_NAME');

@@ -15,10 +15,8 @@ import { AccountRepository } from '@application/repositories/AccountRepository';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { AccountItem } from '@infra/database/dynamo/items/AccountItem';
 import { EmailClaimItem } from '@infra/database/dynamo/items/EmailClaimItem';
-import { Injectable } from '@kernel/decorators/Injectable';
 import { AppConfig } from '@shared/config/AppConfig';
 
-@Injectable()
 export class DynamoAccountRepository extends AccountRepository {
   constructor(private readonly config: AppConfig) {
     super();

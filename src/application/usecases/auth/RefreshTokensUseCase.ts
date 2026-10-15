@@ -1,7 +1,5 @@
 import { AuthGateway } from '@application/gateways/AuthGateway';
-import { Injectable } from '@kernel/decorators/Injectable';
 
-@Injectable()
 export class RefreshTokensUseCase {
   constructor(private readonly authGateway: AuthGateway) {}
 

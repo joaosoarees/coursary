@@ -3,7 +3,6 @@ import { z } from 'zod';
 import { Controller } from '@application/contracts/Controller';
 import { emailSchema } from '@application/controllers/auth/emailSchema';
 import { SignUpUseCase } from '@application/usecases/auth/SignUpUseCase';
-import { Injectable } from '@kernel/decorators/Injectable';
 import { Schema } from '@kernel/decorators/Schema';
 
 export const signUpSchema = z.object({
@@ -17,7 +16,6 @@ export const signUpSchema = z.object({
     .regex(/[0-9]/, 'Must contain a number.'),
 });
 
-@Injectable()
 @Schema({ body: signUpSchema })
 export class SignUpController extends Controller<
   'public',

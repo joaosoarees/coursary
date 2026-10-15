@@ -3,9 +3,7 @@ import { AuthUserNotPending } from '@application/errors/AuthUserNotPending';
 import { InvalidCode } from '@application/errors/InvalidCode';
 import { AuthGateway } from '@application/gateways/AuthGateway';
 import { AccountRepository } from '@application/repositories/AccountRepository';
-import { Injectable } from '@kernel/decorators/Injectable';
 
-@Injectable()
 export class ConfirmSignUpUseCase {
   constructor(
     private readonly accountsRepository: AccountRepository,

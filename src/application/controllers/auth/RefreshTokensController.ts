@@ -3,7 +3,6 @@ import { z } from 'zod';
 import { Controller } from '@application/contracts/Controller';
 import type { AuthGateway } from '@application/gateways/AuthGateway';
 import { RefreshTokensUseCase } from '@application/usecases/auth/RefreshTokensUseCase';
-import { Injectable } from '@kernel/decorators/Injectable';
 import { Schema } from '@kernel/decorators/Schema';
 
 export const refreshTokensSchema = z.object({
@@ -13,7 +12,6 @@ export const refreshTokensSchema = z.object({
     .regex(/^[A-Za-z0-9\-_=.]+$/),
 });
 
-@Injectable()
 @Schema({ body: refreshTokensSchema })
 export class RefreshTokensController extends Controller<
   'public',

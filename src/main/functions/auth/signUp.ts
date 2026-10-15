@@ -1,9 +1,4 @@
-import '@main/bindings';
-
-import { SignUpController } from '@application/controllers/auth/SignUpController';
-import { Registry } from '@kernel/di/Registry';
 import { lambdaHttpAdapter } from '@main/adapters/lambdaHttpAdapter';
+import { makeSignUpController } from '@main/factories/auth/makeSignUpController';
 
-export const handler = lambdaHttpAdapter(
-  Registry.getInstance().resolve(SignUpController),
-);
+export const handler = lambdaHttpAdapter(makeSignUpController());

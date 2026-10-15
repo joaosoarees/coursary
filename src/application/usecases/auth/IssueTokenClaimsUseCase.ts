@@ -1,9 +1,7 @@
 import { type Account, accountStatuses } from '@application/entities/Account';
 import { AccountUnavailable } from '@application/errors/AccountUnavailable';
 import { AccountRepository } from '@application/repositories/AccountRepository';
-import { Injectable } from '@kernel/decorators/Injectable';
 
-@Injectable()
 export class IssueTokenClaimsUseCase {
   constructor(private readonly accountsRepository: AccountRepository) {}
 
