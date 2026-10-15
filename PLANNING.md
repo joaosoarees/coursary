@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.10 na `develop` e em `dev` (conferidas com chamadas reais); a conta de teste do autor é o admin de `dev` e há uma conta de aluno de teste; 1.11 (desativar e reativar conta) em grilling na `feat/1.11-disable-account`, decisões Q193 a Q198**.
+Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.10 na `develop` e em `dev` (conferidas com chamadas reais); a conta de teste do autor é o admin de `dev` e há uma conta de aluno de teste; 1.11 (desativar e reativar conta) em grilling na `feat/1.11-disable-account`, decisões Q193 a Q202, sub-imp 1.11.a a 1.11.e**.
 
 ## Como retomar
 
@@ -252,6 +252,10 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q196 | Permissão | Uma ação, `users:change-status`, para as duas rotas. |
 | Q197 | **Bloqueio do chamador antes do recurso** (revê a Q180 e absorve a Q165) | A aplicação sempre conhece a versão atual do usuário: o adapter das rotas privadas lê a conta pelo `internalId` antes do controller; inexistente → `401 INVALID_SESSION`; `PENDING`, vencida ou `DISABLED` → `403 ACCOUNT_UNAVAILABLE`. A permissão (Q184) é checada com o papel **do banco**; a claim `role` do token fica só como informação para o front. O token diz quem é; o Dynamo diz o que pode. Lambda authorizer descartado (verificação própria do JWT, uma Lambda a mais, cache devolveria o atraso). O foodiary não tem exemplo disso. |
 | Q198 | Consistência da leitura do chamador | `ConsistentRead` (revê a Q88 nesse ponto): sempre a última versão. O `ConditionCheck` da Q181 continua na transação. |
+| Q199 | Onde entra o bloqueio do chamador | Primeira sub-imp da 1.11 (implícito no acordo da Q202). |
+| Q200 | Resolvedor do chamador | `ResolveCallerUseCase` em `application` (`findById` forte; `null` → `InvalidSession`; não `ACTIVE` → `Account.requireActive`). Handlers privados: `lambdaHttpAdapter(controller, makeResolveCallerUseCase())`; o tipo exige o resolvedor para controller `'private'` por sobrecarga, ou o adapter recusa em runtime (500) e o teste de auditoria cobre toda rota privada (implícito no acordo da Q202). |
+| Q201 | O que o controller recebe | `accountId` e `role` (do banco), não a entidade. `GetMe`/`UpdateMe` mantêm o `Account.requireActive` como defesa própria; a leitura dupla do `/me` fica até haver medida. |
+| Q202 | Sub-imp da 1.11 | a. `ResolveCallerUseCase`, adapter, permissão pelo papel do banco, handlers privados, auditoria de toda rota privada; b. `changeStatus` no repositório com `ConditionCheck` do chamador e teste da corrida; c. `AuthGateway.disableUser`/`enableUser` com `AdminDisableUser`/`AdminEnableUser` na role no mesmo commit (Q192); d. `ChangeStatusUseCase` com o reparo e `users:change-status`; e. controllers, funções, Yaak e chamadas reais em `dev` (aluno desativado: 403 no `/me` na hora, refresh falha, Cognito desativado; reativar; desativar a si mesmo 403). |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
