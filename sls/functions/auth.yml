@@ -5,9 +5,6 @@ signUp:
     COGNITO_POOL_ID: !Ref UserPool
     COGNITO_CLIENT_ID: !Ref UserPoolClient
     COGNITO_CLIENT_SECRET: !GetAtt UserPoolClient.ClientSecret
-  iam:
-    role:
-      statements: ${file(./sls/iam.yml):signUp}
   events:
     - httpApi:
         method: POST
@@ -20,9 +17,6 @@ confirmSignUp:
     COGNITO_POOL_ID: !Ref UserPool
     COGNITO_CLIENT_ID: !Ref UserPoolClient
     COGNITO_CLIENT_SECRET: !GetAtt UserPoolClient.ClientSecret
-  iam:
-    role:
-      statements: ${file(./sls/iam.yml):confirmSignUp}
   events:
     - httpApi:
         method: POST
@@ -34,9 +28,6 @@ resendConfirmationCode:
     MAIN_TABLE_NAME: !Ref MainTable
     COGNITO_CLIENT_ID: !Ref UserPoolClient
     COGNITO_CLIENT_SECRET: !GetAtt UserPoolClient.ClientSecret
-  iam:
-    role:
-      statements: ${file(./sls/iam.yml):resendConfirmationCode}
   events:
     - httpApi:
         method: POST
@@ -49,7 +40,11 @@ preTokenGeneration:
     MAIN_TABLE_NAME: !Ref MainTable
   iam:
     role:
-      statements: ${file(./sls/iam.yml):preTokenGeneration}
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+          Resource: !GetAtt MainTable.Arn
 
 signIn:
   handler: src/main/functions/auth/signIn.handler
@@ -74,6 +69,9 @@ refreshTokens:
 customMessage:
   handler: src/main/functions/auth/customMessage.handler
   timeout: 5
+  iam:
+    role:
+      statements: []
 
 forgotPassword:
   handler: src/main/functions/auth/forgotPassword.handler
@@ -81,9 +79,6 @@ forgotPassword:
     MAIN_TABLE_NAME: !Ref MainTable
     COGNITO_CLIENT_ID: !Ref UserPoolClient
     COGNITO_CLIENT_SECRET: !GetAtt UserPoolClient.ClientSecret
-  iam:
-    role:
-      statements: ${file(./sls/iam.yml):forgotPassword}
   events:
     - httpApi:
         method: POST
@@ -95,9 +90,6 @@ resetPassword:
     COGNITO_POOL_ID: !Ref UserPool
     COGNITO_CLIENT_ID: !Ref UserPoolClient
     COGNITO_CLIENT_SECRET: !GetAtt UserPoolClient.ClientSecret
-  iam:
-    role:
-      statements: ${file(./sls/iam.yml):resetPassword}
   events:
     - httpApi:
         method: POST
