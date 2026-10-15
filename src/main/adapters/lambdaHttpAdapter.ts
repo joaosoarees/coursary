@@ -102,11 +102,15 @@ async function lambdaCaller(
     throw new Error('A private route needs a caller resolver.');
   }
 
-  const { internalId } = event.requestContext.authorizer.jwt.claims;
+  const { internalId, jti } = event.requestContext.authorizer.jwt.claims;
 
-  if (typeof internalId !== 'string' || internalId === '') {
+  if (
+    typeof internalId !== 'string' ||
+    internalId === '' ||
+    typeof jti !== 'string'
+  ) {
     throw new InvalidSession();
   }
 
-  return resolveCaller.execute({ accountId: internalId });
+  return resolveCaller.execute({ accountId: internalId, accessJti: jti });
 }

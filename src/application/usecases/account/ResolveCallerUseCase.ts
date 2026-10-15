@@ -7,6 +7,7 @@ export class ResolveCallerUseCase {
 
   async execute({
     accountId,
+    accessJti,
   }: ResolveCallerUseCase.Input): Promise<ResolveCallerUseCase.Output> {
     const account = await this.accountsRepository.findById(accountId, {
       consistent: true,
@@ -18,6 +19,10 @@ export class ResolveCallerUseCase {
 
     const activeAccount = Account.requireActive(account);
 
+    if (activeAccount.session?.accessJti !== accessJti) {
+      throw new InvalidSession();
+    }
+
     return { accountId: activeAccount.id, role: activeAccount.role };
   }
 }
@@ -25,6 +30,7 @@ export class ResolveCallerUseCase {
 export namespace ResolveCallerUseCase {
   export interface Input {
     accountId: string;
+    accessJti: string;
   }
 
   export interface Output {

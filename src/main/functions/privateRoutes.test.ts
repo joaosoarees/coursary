@@ -64,12 +64,14 @@ async function loadHandler(handler: string): Promise<Handler> {
   return loaded;
 }
 
-const eventFor = (internalId: string) =>
+const eventFor = (account: Account, jti = `jti-${account.id}`) =>
   ({
     isBase64Encoded: false,
     requestContext: {
       requestId: 'audit',
-      authorizer: { jwt: { claims: { internalId }, scopes: [] } },
+      authorizer: {
+        jwt: { claims: { internalId: account.id, jti }, scopes: [] },
+      },
     },
   }) as unknown as APIGatewayProxyEventV2WithJWTAuthorizer;
 
@@ -80,6 +82,7 @@ async function putAccount(status: Account.Status): Promise<Account> {
   });
   account.status = status;
   account.role = accountRoles.Student;
+  account.session = { accessJti: `jti-${account.id}`, refreshTokenHash: 'h' };
   const command = new PutCommand({
     TableName: new AppConfig().mainTableName,
     Item: AccountItem.fromEntity(account).toItem(),
@@ -107,9 +110,7 @@ describe('private routes', () => {
   it.each(privateRoutes)(
     '$method $path should refuse a disabled account before the resource',
     async ({ handler, authorizer }) => {
-      const response = await (
-        await loadHandler(handler)
-      )(eventFor(disabled.id));
+      const response = await (await loadHandler(handler))(eventFor(disabled));
 
       expect(authorizer).toBe('CognitoAuthorizer');
       expect(response.statusCode).toBe(403);
@@ -117,10 +118,22 @@ describe('private routes', () => {
     },
   );
 
+  it.each(privateRoutes)(
+    '$method $path should refuse a token of an earlier session',
+    async ({ handler }) => {
+      const response = await (
+        await loadHandler(handler)
+      )(eventFor(student, 'jti-earlier'));
+
+      expect(response.statusCode).toBe(401);
+      expect(response.body).toContain('INVALID_SESSION');
+    },
+  );
+
   it.each(adminRoutes)(
     '$method $path should refuse a student',
     async ({ handler }) => {
-      const response = await (await loadHandler(handler))(eventFor(student.id));
+      const response = await (await loadHandler(handler))(eventFor(student));
 
       expect(response.statusCode).toBe(403);
       expect(response.body).toContain('FORBIDDEN');
