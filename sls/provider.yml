@@ -3,4 +3,4 @@ region: sa-east-1
 runtime: nodejs24.x
 architecture: arm64
 deploymentBucket:
-  name: ${ssm:/serverless-framework/deployment/s3-bucket}
+  name: ${self:custom.deploymentBucket}
