@@ -228,6 +228,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q172 | Script do primeiro admin | Lambda interna `promoteAdmin`, sem rota HTTP, chamada por `sls invoke -f promoteAdmin --stage <stage> --data '{"email": "…"}'`; reaproveita repositório, entidade e chaves, e a 1.10 reaproveita a mesma operação. |
 | Q173 | O que a promoção grava | Numa transação: a conta com `role = admin` e `GSI1PK = ROLE#admin`, só se `ACTIVE`; e um `RoleChange` (`ACCOUNT#a` / `ROLE_CHANGE#<id>`) com de/para, quando e `changedBy = bootstrap`. Já admin: nada é gravado. |
 | Q174 | Primeiro admin de `dev` | A conta de teste do autor; o papel chega ao token no próximo sign-in ou refresh (até 1 h, Q20). Comando no README para a `prod`. |
+| Q175 | Estilo do código | Tudo o que é construído vai para uma `const` antes de ser passado (entidades, itens, comandos do SDK, resultados de `await`, o controller do handler). Auxiliares são métodos estáticos da classe que servem, não funções soltas ao lado dela. Regra da entidade fica na entidade: `Account.requireActive(account \| null)` e `Account.normalizeEmail`. `AccountProfile` é classe com `fromAccount` (namespaces só com tipos, Q128). |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
