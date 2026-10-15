@@ -4,6 +4,7 @@ export const permissions = {
   UsersList: 'users:list',
   UsersRead: 'users:read',
   UsersChangeRole: 'users:change-role',
+  UsersChangeStatus: 'users:change-status',
 } as const;
 
 export type Permission = (typeof permissions)[keyof typeof permissions];
@@ -18,6 +19,7 @@ export const rolePermissions = {
     permissions.UsersList,
     permissions.UsersRead,
     permissions.UsersChangeRole,
+    permissions.UsersChangeStatus,
   ],
 } as const satisfies Record<Account.Role, readonly Permission[]>;
 

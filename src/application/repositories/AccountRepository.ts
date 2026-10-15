@@ -23,6 +23,11 @@ export interface AccountRepository {
     roleChange: RoleChange,
     options?: AccountRepository.ChangeRoleOptions,
   ): Promise<void>;
+
+  changeStatus(
+    statusChange: AccountRepository.StatusChange,
+    adminCallerId: string,
+  ): Promise<void>;
 }
 
 export namespace AccountRepository {
@@ -32,5 +37,11 @@ export namespace AccountRepository {
 
   export interface ChangeRoleOptions {
     adminCallerId?: string;
+  }
+
+  export interface StatusChange {
+    accountId: string;
+    fromStatus: Account.Status;
+    toStatus: Account.Status;
   }
 }

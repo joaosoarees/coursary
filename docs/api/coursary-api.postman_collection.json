@@ -314,6 +314,34 @@
             "url": "{{baseUrl}}/admin/users/{{accountId}}/role-changes?limit=20",
             "description": "200 { items: [{ id, fromRole, toRole, changedBy, changedAt }], nextCursor }, mais recentes primeiro. changedBy é o id do admin ou bootstrap. 404 ACCOUNT_NOT_FOUND, 400 INVALID_CURSOR, 401, 403 FORBIDDEN."
           }
+        },
+        {
+          "name": "Disable user",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/admin/users/{{accountId}}/disable",
+            "description": "200 { id, status: DISABLED }; já desativada: 200 sem gravar, repetindo o Cognito. A conta passa a receber 403 ACCOUNT_UNAVAILABLE em toda rota privada na hora, e o refresh falha. 403 CANNOT_CHANGE_OWN_STATUS, 404 ACCOUNT_NOT_FOUND, 409 ACCOUNT_NOT_ACTIVE (conta pendente), 409 CONFLICT (a conta mudou no meio), 403 FORBIDDEN (sem a permissão users:change-status ou deixou de ser admin ativo), 401, 500 se o Cognito falhar (a conta fica no estado pedido; chamar de novo repara o Cognito)."
+          }
+        },
+        {
+          "name": "Enable user",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/admin/users/{{accountId}}/enable",
+            "description": "200 { id, status: ACTIVE }; já ativa: 200 sem gravar, repetindo o Cognito. 403 CANNOT_CHANGE_OWN_STATUS, 404 ACCOUNT_NOT_FOUND, 409 ACCOUNT_NOT_ACTIVE (conta pendente), 409 CONFLICT (a conta mudou no meio), 403 FORBIDDEN (sem a permissão users:change-status ou deixou de ser admin ativo), 401, 500 se o Cognito falhar (a conta fica no estado pedido; chamar de novo repara o Cognito)."
+          }
         }
       ]
     }

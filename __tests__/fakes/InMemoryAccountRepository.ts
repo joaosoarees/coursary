@@ -4,6 +4,7 @@ import {
   accountStatuses,
 } from '@application/entities/Account';
 import type { RoleChange } from '@application/entities/RoleChange';
+import { AccountConflict } from '@application/errors/AccountConflict';
 import { EmailInUse } from '@application/errors/EmailInUse';
 import { Forbidden } from '@application/errors/Forbidden';
 import type { AccountRepository } from '@application/repositories/AccountRepository';
@@ -14,6 +15,8 @@ export class InMemoryAccountRepository implements AccountRepository {
   failOnSaveExternalId: Error | undefined;
   failOnActivate: Error | undefined;
   readonly roleChanges: RoleChange[] = [];
+  readonly statusChanges: AccountRepository.StatusChange[] = [];
+  failOnChangeStatus: Error | undefined;
 
   create(account: Account): Promise<void> {
     if (this.claims.has(account.email)) {
@@ -95,13 +98,7 @@ export class InMemoryAccountRepository implements AccountRepository {
     roleChange: RoleChange,
     { adminCallerId }: AccountRepository.ChangeRoleOptions = {},
   ): Promise<void> {
-    const caller = adminCallerId ? this.accounts.get(adminCallerId) : undefined;
-
-    if (
-      adminCallerId &&
-      (caller?.role !== accountRoles.Admin ||
-        caller.status !== accountStatuses.Active)
-    ) {
+    if (adminCallerId && !this.isActiveAdmin(adminCallerId)) {
       return Promise.reject(new Forbidden());
     }
 
@@ -115,5 +112,38 @@ export class InMemoryAccountRepository implements AccountRepository {
     this.roleChanges.push(roleChange);
 
     return Promise.resolve();
+  }
+
+  changeStatus(
+    { accountId, fromStatus, toStatus }: AccountRepository.StatusChange,
+    adminCallerId: string,
+  ): Promise<void> {
+    if (this.failOnChangeStatus) {
+      return Promise.reject(this.failOnChangeStatus);
+    }
+
+    if (!this.isActiveAdmin(adminCallerId)) {
+      return Promise.reject(new Forbidden());
+    }
+
+    const account = this.accounts.get(accountId);
+
+    if (account?.status !== fromStatus) {
+      return Promise.reject(new AccountConflict());
+    }
+
+    account.status = toStatus;
+    this.statusChanges.push({ accountId, fromStatus, toStatus });
+
+    return Promise.resolve();
+  }
+
+  private isActiveAdmin(accountId: string): boolean {
+    const account = this.accounts.get(accountId);
+
+    return (
+      account?.role === accountRoles.Admin &&
+      account.status === accountStatuses.Active
+    );
   }
 }

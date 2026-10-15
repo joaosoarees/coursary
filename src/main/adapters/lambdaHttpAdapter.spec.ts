@@ -2,12 +2,16 @@ import type {
   APIGatewayProxyEventV2,
   APIGatewayProxyEventV2WithJWTAuthorizer,
 } from 'aws-lambda';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 
+import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
+
 import { Controller } from '@application/contracts/Controller';
+import { Account, accountRoles } from '@application/entities/Account';
 import { EmailInUse } from '@application/errors/EmailInUse';
 import { permissions } from '@application/security/permissions';
+import { ResolveCallerUseCase } from '@application/usecases/account/ResolveCallerUseCase';
 import { lambdaHttpAdapter } from '@main/adapters/lambdaHttpAdapter';
 
 const makeEvent = (body?: string, isBase64Encoded = false) =>
@@ -99,22 +103,50 @@ class PublicWhoAmIController extends Controller<'public', { accountId: null }> {
   }
 }
 
+let accounts: InMemoryAccountRepository;
+let resolveCaller: ResolveCallerUseCase;
+let student: Account;
+
+const addAccount = async (role: Account.Role) => {
+  const account = Account.create({
+    name: 'Ana',
+    email: `${crypto.randomUUID()}@example.com`,
+  });
+  await accounts.create(account);
+  account.activate();
+  account.role = role;
+
+  return account;
+};
+
+beforeEach(async () => {
+  accounts = new InMemoryAccountRepository();
+  resolveCaller = new ResolveCallerUseCase(accounts);
+  student = await addAccount(accountRoles.Student);
+});
+
 describe('lambdaHttpAdapter', () => {
-  it('should give a private route the account id and role from the access token', async () => {
-    const response = await lambdaHttpAdapter(new WhoAmIController())(
-      makePrivateEvent({ internalId: 'acc-1', role: 'admin' }),
-    );
+  it('should give a private route the caller and the role stored on the account', async () => {
+    const admin = await addAccount(accountRoles.Admin);
+
+    const response = await lambdaHttpAdapter(
+      new WhoAmIController(),
+      resolveCaller,
+    )(makePrivateEvent({ internalId: admin.id, role: 'student' }));
 
     expect(parseBody(response.body)).toMatchObject({
-      accountId: 'acc-1',
+      accountId: admin.id,
       role: 'admin',
     });
   });
 
   it('should pass the path and query parameters', async () => {
-    const response = await lambdaHttpAdapter(new WhoAmIController())(
+    const response = await lambdaHttpAdapter(
+      new WhoAmIController(),
+      resolveCaller,
+    )(
       makePrivateEvent(
-        { internalId: 'acc-1', role: 'admin' },
+        { internalId: student.id },
         {
           pathParameters: { id: 'acc-2' },
           queryStringParameters: { role: 'student' },
@@ -128,22 +160,37 @@ describe('lambdaHttpAdapter', () => {
     });
   });
 
-  it('should answer 401 INVALID_SESSION for a token without a known role', async () => {
-    const withoutRole = await lambdaHttpAdapter(new WhoAmIController())(
-      makePrivateEvent({ internalId: 'acc-1' }),
-    );
-    const unknownRole = await lambdaHttpAdapter(new WhoAmIController())(
-      makePrivateEvent({ internalId: 'acc-1', role: 'owner' }),
-    );
+  it('should answer 401 INVALID_SESSION for an account that does not exist', async () => {
+    const response = await lambdaHttpAdapter(
+      new WhoAmIController(),
+      resolveCaller,
+    )(makePrivateEvent({ internalId: 'deleted-account' }));
 
-    expect(withoutRole.statusCode).toBe(401);
-    expect(unknownRole.statusCode).toBe(401);
+    expect(response.statusCode).toBe(401);
+    expect(parseBody(response.body)).toMatchObject({
+      error: { code: 'INVALID_SESSION' },
+    });
   });
 
-  it('should answer 403 FORBIDDEN before reading the body', async () => {
-    const response = await lambdaHttpAdapter(new AdminOnlyController())(
-      makePrivateEvent({ internalId: 'acc-1', role: 'student' }),
-    );
+  it('should answer 403 ACCOUNT_UNAVAILABLE for an account that is no longer active', async () => {
+    student.status = 'DISABLED';
+
+    const response = await lambdaHttpAdapter(
+      new WhoAmIController(),
+      resolveCaller,
+    )(makePrivateEvent({ internalId: student.id }));
+
+    expect(response.statusCode).toBe(403);
+    expect(parseBody(response.body)).toMatchObject({
+      error: { code: 'ACCOUNT_UNAVAILABLE' },
+    });
+  });
+
+  it('should answer 403 FORBIDDEN by the stored role, whatever the token says, before reading the body', async () => {
+    const response = await lambdaHttpAdapter(
+      new AdminOnlyController(),
+      resolveCaller,
+    )(makePrivateEvent({ internalId: student.id, role: 'admin' }));
 
     expect(response.statusCode).toBe(403);
     expect(parseBody(response.body)).toEqual({
@@ -160,9 +207,10 @@ describe('lambdaHttpAdapter', () => {
   });
 
   it('should answer 401 INVALID_SESSION for a token without the internal id', async () => {
-    const response = await lambdaHttpAdapter(new WhoAmIController())(
-      makePrivateEvent({ sub: 'cognito-sub' }),
-    );
+    const response = await lambdaHttpAdapter(
+      new WhoAmIController(),
+      resolveCaller,
+    )(makePrivateEvent({ sub: 'cognito-sub' }));
 
     expect(response.statusCode).toBe(401);
     expect(parseBody(response.body)).toMatchObject({

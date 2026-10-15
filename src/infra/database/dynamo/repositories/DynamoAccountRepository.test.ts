@@ -3,9 +3,9 @@ import { describe, expect, test } from 'vitest';
 
 import { Account, accountRoles } from '@application/entities/Account';
 import { BOOTSTRAP_ACTOR, RoleChange } from '@application/entities/RoleChange';
+import { AccountConflict } from '@application/errors/AccountConflict';
 import { EmailInUse } from '@application/errors/EmailInUse';
 import { Forbidden } from '@application/errors/Forbidden';
-import { RoleChangeConflict } from '@application/errors/RoleChangeConflict';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { DynamoAccountRepository } from '@infra/database/dynamo/repositories/DynamoAccountRepository';
 import { AppConfig } from '@shared/config/AppConfig';
@@ -354,7 +354,7 @@ describe('DynamoAccountRepository.changeRole', () => {
     await repository.changeRole(first);
 
     await expect(repository.changeRole(stale)).rejects.toBeInstanceOf(
-      RoleChangeConflict,
+      AccountConflict,
     );
     expect(await getItem(`ACCOUNT#${account.id}`)).toMatchObject({
       role: 'instructor',
@@ -418,5 +418,87 @@ describe('DynamoAccountRepository.changeRole', () => {
       (await getItem(`ACCOUNT#${bia.id}`))?.role,
     ];
     expect(roles.sort()).toEqual(['admin', 'student']);
+  });
+});
+
+describe('DynamoAccountRepository.changeStatus', () => {
+  const adminAccount = async () => {
+    const account = Account.create({ name: 'Ana', email: uniqueEmail() });
+    await repository.create(account);
+    account.activate();
+    await repository.activate(account);
+    await repository.changeRole(
+      RoleChange.create({
+        account,
+        toRole: accountRoles.Admin,
+        changedBy: BOOTSTRAP_ACTOR,
+      }),
+    );
+    account.role = accountRoles.Admin;
+
+    return account;
+  };
+
+  const disable = (account: Account, caller: Account) =>
+    repository.changeStatus(
+      { accountId: account.id, fromStatus: 'ACTIVE', toStatus: 'DISABLED' },
+      caller.id,
+    );
+
+  test('disables and enables an account', async () => {
+    const admin = await adminAccount();
+    const target = await adminAccount();
+
+    await disable(target, admin);
+    expect(await getItem(`ACCOUNT#${target.id}`)).toMatchObject({
+      status: 'DISABLED',
+    });
+
+    await repository.changeStatus(
+      { accountId: target.id, fromStatus: 'DISABLED', toStatus: 'ACTIVE' },
+      admin.id,
+    );
+    expect(await getItem(`ACCOUNT#${target.id}`)).toMatchObject({
+      status: 'ACTIVE',
+    });
+  });
+
+  test('refuses a change from a status the account no longer has', async () => {
+    const admin = await adminAccount();
+    const target = await adminAccount();
+    await disable(target, admin);
+
+    await expect(disable(target, admin)).rejects.toBeInstanceOf(
+      AccountConflict,
+    );
+  });
+
+  test('refuses a caller who is no longer an active admin', async () => {
+    const ana = await adminAccount();
+    const bia = await adminAccount();
+    const caio = await adminAccount();
+    await disable(bia, ana);
+
+    await expect(disable(caio, bia)).rejects.toBeInstanceOf(Forbidden);
+    expect(await getItem(`ACCOUNT#${caio.id}`)).toMatchObject({
+      status: 'ACTIVE',
+    });
+  });
+
+  test('leaves one active admin when two admins disable each other at the same time', async () => {
+    const ana = await adminAccount();
+    const bia = await adminAccount();
+
+    const results = await Promise.allSettled([
+      disable(bia, ana),
+      disable(ana, bia),
+    ]);
+
+    expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+    const statuses = [
+      (await getItem(`ACCOUNT#${ana.id}`))?.status,
+      (await getItem(`ACCOUNT#${bia.id}`))?.status,
+    ];
+    expect(statuses.sort()).toEqual(['ACTIVE', 'DISABLED']);
   });
 });

@@ -14,6 +14,7 @@ export const ErrorCode = {
   AccountNotFound: 'ACCOUNT_NOT_FOUND',
   AccountNotActive: 'ACCOUNT_NOT_ACTIVE',
   CannotChangeOwnRole: 'CANNOT_CHANGE_OWN_ROLE',
+  CannotChangeOwnStatus: 'CANNOT_CHANGE_OWN_STATUS',
   Conflict: 'CONFLICT',
   TooManyRequests: 'TOO_MANY_REQUESTS',
 } as const;

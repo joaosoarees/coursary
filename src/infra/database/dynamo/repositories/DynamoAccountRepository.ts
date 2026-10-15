@@ -11,9 +11,9 @@ import {
   accountStatuses,
 } from '@application/entities/Account';
 import type { RoleChange } from '@application/entities/RoleChange';
+import { AccountConflict } from '@application/errors/AccountConflict';
 import { EmailInUse } from '@application/errors/EmailInUse';
 import { Forbidden } from '@application/errors/Forbidden';
-import { RoleChangeConflict } from '@application/errors/RoleChangeConflict';
 import type { AccountRepository } from '@application/repositories/AccountRepository';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { AccountItem } from '@infra/database/dynamo/items/AccountItem';
@@ -198,26 +198,7 @@ export class DynamoAccountRepository implements AccountRepository {
     const TableName = this.config.mainTableName;
     const roleChangeItem = RoleChangeItem.fromEntity(roleChange);
     const callerCheck = adminCallerId
-      ? [
-          {
-            ConditionCheck: {
-              TableName,
-              Key: {
-                PK: AccountItem.getPK(adminCallerId),
-                SK: AccountItem.getSK(adminCallerId),
-              },
-              ConditionExpression: '#role = :admin AND #status = :active',
-              ExpressionAttributeNames: {
-                '#role': 'role',
-                '#status': 'status',
-              },
-              ExpressionAttributeValues: {
-                ':admin': accountRoles.Admin,
-                ':active': accountStatuses.Active,
-              },
-            },
-          },
-        ]
+      ? [this.adminCallerCheck(adminCallerId)]
       : [];
 
     const command = new TransactWriteCommand({
@@ -254,6 +235,60 @@ export class DynamoAccountRepository implements AccountRepository {
       ],
     });
 
+    await DynamoAccountRepository.sendAdminChange(command, 2);
+  }
+
+  async changeStatus(
+    { accountId, fromStatus, toStatus }: AccountRepository.StatusChange,
+    adminCallerId: string,
+  ): Promise<void> {
+    const command = new TransactWriteCommand({
+      TransactItems: [
+        {
+          Update: {
+            TableName: this.config.mainTableName,
+            Key: {
+              PK: AccountItem.getPK(accountId),
+              SK: AccountItem.getSK(accountId),
+            },
+            UpdateExpression: 'SET #status = :toStatus',
+            ConditionExpression: '#status = :fromStatus',
+            ExpressionAttributeNames: { '#status': 'status' },
+            ExpressionAttributeValues: {
+              ':toStatus': toStatus,
+              ':fromStatus': fromStatus,
+            },
+          },
+        },
+        this.adminCallerCheck(adminCallerId),
+      ],
+    });
+
+    await DynamoAccountRepository.sendAdminChange(command, 1);
+  }
+
+  private adminCallerCheck(adminCallerId: string) {
+    return {
+      ConditionCheck: {
+        TableName: this.config.mainTableName,
+        Key: {
+          PK: AccountItem.getPK(adminCallerId),
+          SK: AccountItem.getSK(adminCallerId),
+        },
+        ConditionExpression: '#role = :admin AND #status = :active',
+        ExpressionAttributeNames: { '#role': 'role', '#status': 'status' },
+        ExpressionAttributeValues: {
+          ':admin': accountRoles.Admin,
+          ':active': accountStatuses.Active,
+        },
+      },
+    };
+  }
+
+  private static async sendAdminChange(
+    command: TransactWriteCommand,
+    callerCheckIndex: number,
+  ): Promise<void> {
     try {
       await dynamoClient.send(command);
     } catch (error) {
@@ -262,9 +297,10 @@ export class DynamoAccountRepository implements AccountRepository {
       }
 
       const callerFailed =
-        error.CancellationReasons?.[2]?.Code === 'ConditionalCheckFailed';
+        error.CancellationReasons?.[callerCheckIndex]?.Code ===
+        'ConditionalCheckFailed';
 
-      throw callerFailed ? new Forbidden() : new RoleChangeConflict();
+      throw callerFailed ? new Forbidden() : new AccountConflict();
     }
   }
 

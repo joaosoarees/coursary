@@ -241,6 +241,20 @@ Cada achado:
 - **O que aconteceu**: o `GSI1` e as rotas que o consultam foram no mesmo deploy, e o índice ficou em `CREATING` por mais de cinco minutos depois do deploy concluído. As chamadas só começaram com o índice `ACTIVE`, então nada falhou, mas a ordem da skill não foi seguida. O `GSI2` (1.14) vai num deploy antes do código.
 - **Sugestão**: nenhuma.
 
+### `cognito-api-gateway-jwt-authorizer`, `cognito-role-based-route-protection` (1.11)
+
+#### 2026-10-15 · 1.11.a · acerto
+- **A skill diz**: o authorizer só confere assinatura, emissor, audiência e tempo; um token de conta desativada passa até expirar, e a rota em que uma hora é demais precisa perguntar à fonte a cada requisição.
+- **O que aconteceu**: o autor pediu que nenhuma conta que não possa trafegar chegue ao recurso (Q197). O adapter das rotas privadas lê a conta atual no Dynamo com `ConsistentRead` antes do controller, e a permissão passa a usar o papel do banco, não a claim. A skill pergunta ao Cognito (`GetUser`); aqui a fonte é o Dynamo (Q38), o mesmo princípio. Um teste de auditoria chama cada rota privada com uma conta `DISABLED` (403) e cada rota `/admin` com um aluno (403); tirar a checagem de conta ativa fez 5 de 6 rotas falharem.
+- **Sugestão**: mostrar a variante em que a fonte da verdade da conta é o banco da aplicação, no adapter, e o custo medido (uma leitura por requisição).
+
+### `cognito-user-pools` (1.11)
+
+#### 2026-10-15 · 1.11.c · lacuna
+- **A skill diz**: nada sobre desativar e reativar usuários como operação; `AdminDisableUser` só aparece, em outras skills, pelo efeito sobre tokens.
+- **O que aconteceu**: desativar ficou em duas etapas sem `Saga` (Q193): o Dynamo muda primeiro e o Cognito acompanha; se o Cognito falha, a conta fica no estado pedido (já bloqueada pelo adapter e pelo trigger de pre token) e a nova chamada repara o Cognito.
+- **Sugestão**: cobrir `AdminDisableUser`/`AdminEnableUser`, o que cada um faz com sessões e refresh tokens, e a ordem com uma base de dados própria.
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |
