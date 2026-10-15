@@ -11,7 +11,7 @@ Abra o Claude Code e diga:
 Ao retomar, o assistente deve:
 
 1. Ver no estado acima e na tabela "Fase 1: histórias" qual história é a próxima.
-2. Para retomar a 2.1 (matrícula), depois da R.2: a `feat/2.1-enrollment` (local, sem push) tem a quebra da fase 2, as decisões Q238 a Q244 e a 2.1.a, todas anteriores à R.1. Não rebasear: criar a branch de novo a partir da `develop`, trazer os commits de documentação por cherry-pick e reescrever a 2.1.a no domínio `enrollment` (Q259), com erros por `defineError` e testes contra o DynamoDB Local (Q250), usando o commit antigo como referência. Depois, seguir a Q244 (2.1.b a 2.1.d) e estender o `pnpm e2e:dev`.
+2. A 2.1 (matrícula) está na `feat/2.1-enrollment-v2`, criada da `develop` depois da R.2, com a quebra da fase 2 e as decisões Q238 a Q244 trazidas por cherry-pick. A 2.1.a é reescrita no domínio `enrollment` (Q259), com erros por `defineError` e testes contra o DynamoDB Local (Q250); o commit `6cf5dfd` da antiga `feat/2.1-enrollment` (local) serve só de referência. Depois, seguir a Q244 (2.1.b a 2.1.d) e estender o `pnpm e2e:dev`.
 3. Seguir o "Começar tarefa X.X" do `CLAUDE.md`: branch a partir da `develop`, sub-imp propostas e discutidas antes de codar.
 4. Não refazer perguntas já fechadas.
 
@@ -295,6 +295,9 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q239 | Quem se matricula | Qualquer conta ativa, em curso publicado; o dono no próprio curso → `409 OWN_COURSE`; rascunho → `404`; arquivado recusa matrícula nova (`409 COURSE_ARCHIVED`) e mantém as que existem (Q52). |
 | Q240 | Quem abre o conteúdo da aula | Matrícula ativa em curso publicado ou arquivado, ou o dono/admin em qualquer status; os demais pela Q95 (`404` em rascunho, `403` em visível sem matrícula). |
 | Q241 | Permissões de aluno | `courses:enroll`, `courses:learn` (abrir aula, progresso) e `courses:review`; o mapa vira aluno ⊂ instrutor ⊂ admin. |
+| Q242 | Contrato da matrícula | `PUT /courses/{id}/enrollment` → `{ courseId, status, enrolledAt, completedLessons }`, `201` na primeira, `200` na rematrícula e quando já ativa (sem gravar). `DELETE` → `204` (também se já cancelada); nunca matriculado → `404 ENROLLMENT_NOT_FOUND`. Cancelamento lógico (Q49). |
+| Q243 | Escritas da matrícula | Matricular: `Put` condicional (`ACTIVE`, `completedLessons = 0`, `studentName`, chaves do `GSI1`) + `ADD enrollmentCount 1` com curso `PUBLISHED`. Rematricular: `CANCELLED` → `ACTIVE`, regrava o `GSI1` (mesmo `enrolledAt`, Q84) + `ADD 1` com curso `PUBLISHED`. Cancelar: `ACTIVE` → `CANCELLED`, remove o `GSI1` + `ADD -1` com curso existente. Tudo pela `UnitOfWork`; status do curso mudou no meio → `409 CONFLICT`. |
+| Q244 | Sub-imp da 2.1 | a. `Enrollment`, item e repositório de operações (corrida de duas matrículas); b. `Enroll` e `CancelEnrollment` com as permissões de aluno (Q241); c. propagação do nome para as matrículas (Q81); d. rotas, Yaak e `e2e:dev`. |
 | Q245 | Schemas por decorator | Não. O decorator padrão funcionaria sem `reflect-metadata`, mas não tira a duplicação de tipos; o controller fica como está (Q251). |
 | Q246 | Versões das Lambdas | `provider.versionFunctions: false` (nada usa versões); apagar as versões antigas de `dev` uma vez. |
 | Q247 | Uma Lambda por rota | Mantida (Q97); reavaliar se o template passar de 400 recursos (teto de 500 por stack). |
