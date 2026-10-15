@@ -1,2 +1,34 @@
 promoteAdmin:
   handler: src/main/functions/admin/promoteAdmin.handler
+
+listAccounts:
+  handler: src/main/functions/admin/listAccounts.handler
+  events:
+    - httpApi:
+        method: GET
+        path: /admin/users
+        authorizer: CognitoAuthorizer
+
+findAccountByEmail:
+  handler: src/main/functions/admin/findAccountByEmail.handler
+  events:
+    - httpApi:
+        method: GET
+        path: /admin/users/by-email
+        authorizer: CognitoAuthorizer
+
+changeRole:
+  handler: src/main/functions/admin/changeRole.handler
+  events:
+    - httpApi:
+        method: PUT
+        path: /admin/users/{id}/role
+        authorizer: CognitoAuthorizer
+
+listRoleChanges:
+  handler: src/main/functions/admin/listRoleChanges.handler
+  events:
+    - httpApi:
+        method: GET
+        path: /admin/users/{id}/role-changes
+        authorizer: CognitoAuthorizer
