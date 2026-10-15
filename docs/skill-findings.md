@@ -99,10 +99,10 @@ Cada achado:
 - **O que aconteceu**: nenhuma das duas liga uma à outra. O build embutido do Serverless v4 precisou do `esbuild-plugin-tsc` no `configFile` para o container resolver dependências pelos tipos, e de `keepNames` junto com `minify`.
 - **Sugestão**: uma seção "decorators com metadados no build do Serverless" com esse `configFile`.
 
-#### 2026-10-15 · 1.4.b · ambíguo
-- **A skill diz**: uma dependência CommonJS embutida num bundle ESM falha na partida com `Dynamic require of "…" is not supported`; a saída é o banner com `createRequire`.
-- **O que aconteceu**: o `ksuid` faz `require('crypto')` e `require('util')` e funcionou na Lambda, sem banner (handler descartável, Q113). A causa não foi confirmada: pode ser o `esbuild-plugin-tsc` ou algo do build do v4.
-- **Sugestão**: investigar e dizer quando o erro de fato acontece.
+#### 2026-10-15 · 1.4.b · acerto
+- **A skill diz**: uma dependência CommonJS embutida num bundle ESM falha na partida com `Dynamic require of "…" is not supported`; a saída é o banner com `createRequire`. O Vitest e o `node -e` escondem a falha; confira importando o handler empacotado de um `.mjs` num processo `node` separado.
+- **O que aconteceu**: a conferência da 1.4.b com um handler descartável não seguiu esse método e concluiu que o `ksuid` funcionava. Na primeira chamada real em `dev`, o sign-up caiu na partida com `Dynamic require of "crypto" is not supported`. Com o banner, o zip do `sls package` carregou num processo `node` separado; sem ele, o mesmo teste reproduziu o erro.
+- **Sugestão**: nenhuma na regra. Talvez trazer o banner para o `configFile` de exemplo de todo projeto ESM, já que quase todo projeto tem alguma dependência CommonJS.
 
 ### `wiring-dependencies`, `injecting-dependencies`
 
