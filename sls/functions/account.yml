@@ -1,0 +1,19 @@
+getMe:
+  handler: src/main/functions/account/getMe.handler
+  environment:
+    MAIN_TABLE_NAME: !Ref MainTable
+  events:
+    - httpApi:
+        method: GET
+        path: /me
+        authorizer: CognitoAuthorizer
+
+updateMe:
+  handler: src/main/functions/account/updateMe.handler
+  environment:
+    MAIN_TABLE_NAME: !Ref MainTable
+  events:
+    - httpApi:
+        method: PATCH
+        path: /me
+        authorizer: CognitoAuthorizer

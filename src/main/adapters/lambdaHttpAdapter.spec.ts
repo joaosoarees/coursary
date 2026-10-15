@@ -1,4 +1,7 @@
-import type { APIGatewayProxyEventV2 } from 'aws-lambda';
+import type {
+  APIGatewayProxyEventV2,
+  APIGatewayProxyEventV2WithJWTAuthorizer,
+} from 'aws-lambda';
 import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 
@@ -12,6 +15,15 @@ const makeEvent = (body?: string, isBase64Encoded = false) =>
     isBase64Encoded,
     requestContext: { requestId: 'request-1' },
   }) as APIGatewayProxyEventV2;
+
+const makePrivateEvent = (claims: Record<string, string>) =>
+  ({
+    isBase64Encoded: false,
+    requestContext: {
+      requestId: 'request-1',
+      authorizer: { jwt: { claims, scopes: [] } },
+    },
+  }) as unknown as APIGatewayProxyEventV2WithJWTAuthorizer;
 
 const parseBody = (body: string | undefined): unknown => JSON.parse(body ?? '');
 
@@ -49,7 +61,52 @@ class EchoController extends Controller<'public', { name: string }> {
   }
 }
 
+class WhoAmIController extends Controller<'private', { accountId: string }> {
+  protected handle(request: Controller.Request<'private'>) {
+    return Promise.resolve({
+      statusCode: 200,
+      body: { accountId: request.accountId },
+    });
+  }
+}
+
+class PublicWhoAmIController extends Controller<'public', { accountId: null }> {
+  protected handle(request: Controller.Request<'public'>) {
+    return Promise.resolve({
+      statusCode: 200,
+      body: { accountId: request.accountId },
+    });
+  }
+}
+
 describe('lambdaHttpAdapter', () => {
+  it('should give a private route the account id from the access token', async () => {
+    const response = await lambdaHttpAdapter(new WhoAmIController())(
+      makePrivateEvent({ internalId: 'acc-1' }),
+    );
+
+    expect(parseBody(response.body)).toEqual({ accountId: 'acc-1' });
+  });
+
+  it('should give a public route no account id', async () => {
+    const response = await lambdaHttpAdapter(new PublicWhoAmIController())(
+      makeEvent(),
+    );
+
+    expect(parseBody(response.body)).toEqual({ accountId: null });
+  });
+
+  it('should answer 401 INVALID_SESSION for a token without the internal id', async () => {
+    const response = await lambdaHttpAdapter(new WhoAmIController())(
+      makePrivateEvent({ sub: 'cognito-sub' }),
+    );
+
+    expect(response.statusCode).toBe(401);
+    expect(parseBody(response.body)).toMatchObject({
+      error: { code: 'INVALID_SESSION' },
+    });
+  });
+
   it('should return the status code and the body as JSON', async () => {
     const response = await lambdaHttpAdapter(new OkController())(makeEvent());
 

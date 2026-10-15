@@ -7,9 +7,20 @@ export interface AccountRepository {
 
   saveExternalId(account: Account): Promise<void>;
 
-  findById(id: string): Promise<Account | null>;
+  findById(
+    id: string,
+    options?: AccountRepository.ReadOptions,
+  ): Promise<Account | null>;
 
   findByEmail(email: string): Promise<Account | null>;
 
   activate(account: Account): Promise<void>;
+
+  updateName(id: string, name: string): Promise<Account>;
+}
+
+export namespace AccountRepository {
+  export interface ReadOptions {
+    consistent?: boolean;
+  }
 }

@@ -23,7 +23,7 @@ export abstract class Controller<
 }
 
 export namespace Controller {
-  export type RouteType = 'public';
+  export type RouteType = 'public' | 'private';
 
   interface BaseRequest<TBody> {
     body: TBody;
@@ -32,7 +32,9 @@ export namespace Controller {
   export type Request<
     TType extends RouteType,
     TBody = Record<string, unknown>,
-  > = TType extends 'public' ? BaseRequest<TBody> : never;
+  > = BaseRequest<TBody> & {
+    accountId: TType extends 'private' ? string : null;
+  };
 
   export interface Response<TBody> {
     statusCode: number;

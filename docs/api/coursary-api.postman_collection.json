@@ -8,6 +8,10 @@
     {
       "key": "baseUrl",
       "value": "https://api-dev.coursary.joaodevdude.com"
+    },
+    {
+      "key": "accessToken",
+      "value": "<accessToken do sign-in>"
     }
   ],
   "item": [
@@ -185,6 +189,52 @@
             },
             "url": "{{baseUrl}}/auth/reset-password",
             "description": "204, e todas as sessões anteriores são encerradas. 400 INVALID_CODE, 400 INVALID_PASSWORD, 400 VALIDATION, 429 TOO_MANY_REQUESTS."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Account",
+      "item": [
+        {
+          "name": "Get me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/me",
+            "description": "200 { id, name, email, role, createdAt }. 401 sem token ou token inválido (API Gateway), 403 com o id token (escopo) ou conta indisponível (ACCOUNT_UNAVAILABLE)."
+          }
+        },
+        {
+          "name": "Update me",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ana Souza\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/me",
+            "description": "200 com o perfil atualizado. 400 VALIDATION, 401, 403 como no Get me."
           }
         }
       ]
