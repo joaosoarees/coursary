@@ -1,20 +1,20 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-12. Estado: **pausado na rodada 3, aguardando as skills de Cognito**.
+Última atualização: 2026-10-14. Estado: **rodada 4 do grilling, história PLAN-2 (identidade e papéis)**. As skills de Cognito e TypeScript já existem.
 
 ## Como retomar
 
 Abra o Claude Code e diga:
 
-> Leia `/home/joao/projects/coursary/PLANNING.md` e continue o grilling (`/mattpocock-skills:grill-me`) do ponto em que paramos.
+> Leia `/home/joao/projects/coursary/PLANNING.md` e continue o grilling (`/mattpocock-skills:grilling`) do ponto em que paramos.
 
 Ao retomar, o assistente deve:
 
-1. Verificar se já existem skills de Cognito instaladas e lê-las.
-2. Reabrir a Q20 (e revisar Q17 e Q18 à luz dessas skills).
-3. Seguir para a fronteira listada em "Próximas perguntas".
+1. Ler a seção "Épico 0" e ver qual história de planejamento está aberta.
+2. Ler as skills que essa história cita antes de perguntar.
+3. Não refazer perguntas já fechadas.
 
-Nada foi implementado ainda. Este arquivo é o único artefato do projeto.
+Nada foi implementado ainda. Cada decisão fechada entra neste arquivo em um commit pequeno.
 
 ## O projeto em uma frase
 
@@ -28,9 +28,9 @@ Uma API serverless de plataforma de cursos (Lambda + DynamoDB single-table), cuj
 |---|---|---|
 | Q1 | Objetivo | Campo de prova das skills, com aprendizado prático de DynamoDB. Achados sobre as skills retroalimentam o repositório de skills. |
 | Q2 | Domínio | Plataforma de cursos. E-commerce descartado por ser o exemplo provável das próprias skills. |
-| Q3 | Superfície | Só backend (API HTTP em Lambda, Serverless Framework). Um frontend pode vir depois. |
+| Q3 | Superfície | Backend (API HTTP em Lambda, Serverless Framework) primeiro. *O frontend `web` entrou como fase 5 na Q27.* |
 | Q4 | Onde roda | Deploy real na AWS, on-demand. Sem API rodando local. |
-| Q5 | Tamanho | Algumas semanas, em fases entregáveis sozinhas: tabela e CRUD → relações e índices → streams e Algolia → evolução de schema. |
+| Q5 | Tamanho | Algumas semanas, em fases entregáveis sozinhas. *A lista de fases foi substituída pela Q27.* |
 | Q6 | Autenticação | Sim, autenticação de verdade, com o foodiary como modelo. |
 
 ### Domínio
@@ -41,7 +41,7 @@ Uma API serverless de plataforma de cursos (Lambda + DynamoDB single-table), cuj
 | Q8 | Hierarquia | Curso → Módulo → Aula (sort key hierárquica; curso inteiro em uma query). |
 | Q9 | Progresso | Um item por aula concluída + contador de aulas concluídas na matrícula. Create único com `attribute_not_exists`, `ADD` atômico, os dois em transação. |
 | Q10 | Ciclo de vida do curso | Rascunho → publicado → arquivado. Catálogo como índice esparso (só publicados têm a chave do GSI). O filtro do stream só indexa publicados e remove ao arquivar. |
-| Q11 | Extras | Só avaliações (nota e comentário, com média e contagem precomputadas no curso), na fase de desnormalização. Fora: certificado, pagamento, upload. |
+| Q11 | Extras | Só avaliações (nota e comentário, com média e contagem precomputadas no curso), na fase de desnormalização. Fora: certificado, pagamento. *Upload entrou na Q27 (capa do curso na fase 4, vídeo como opcional).* |
 | Q12 | Busca | Só Algolia (plano gratuito), alimentado pelo stream da tabela. Sem fase de busca dentro do DynamoDB. |
 | Q21 | Papéis na prática | Todo mundo nasce aluno. O admin promove a instrutor, lista usuários e arquiva qualquer curso. O primeiro admin é criado por script. |
 | Q23 | Cancelar matrícula | Apaga a matrícula e o progresso e decrementa o contador de alunos, em transação. A avaliação fica. |
@@ -83,6 +83,43 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q18 | Unicidade de e-mail | Item `EMAIL#<email>` gravado na mesma transação do sign-up com `attribute_not_exists`; erro de duplicidade do Cognito mapeado para 409. |
 | Q25 | Infra AWS | Mesma conta e região do foodiary (`sa-east-1`), reaproveitando a identidade SES. Sem domínio customizado no início; trazer o `CustomDomain.yml` condicional para ligar depois. |
 | Q26 | Nome e local | `coursary`, em `/home/joao/projects/coursary/api` (espaço para um `web` ao lado). |
+
+### Sessão de 2026-10-14
+
+| # | Decisão | Resposta |
+|---|---|---|
+| Q27 | Escopo e fases (história PLAN-1) | Todas as propostas das novas skills entram, nas fases abaixo. |
+| Q28 | Onde ficam as tarefas | Em uma página do claude.ai com banco de dados próprio, no formato do Jira (épico → história → sub-imp). Não no Jira nem no Notion. |
+| Q29 | Template das tarefas | História = entrega visível pela API. Sub-imp por camada (`*Item` e chaves, repositório/query, use case, controller e rota, IaC, testes). Campos: fase, padrões de acesso, skills (uma label por skill), critério de pronto. Toda sub-imp tem a seção "Achados sobre a skill". Um épico por fase, com vínculos "bloqueia" entre histórias. |
+| Q30 | Padrões do projeto | Viram a história PLAN-6 (decisão) e a história 1.0 (esqueleto do repositório, primeira da fase 1). |
+| Q31 | Registro | Toda decisão fechada entra neste arquivo em um commit pequeno. |
+
+#### Fases (Q27)
+
+| Fase | Conteúdo |
+|---|---|
+| 1 | Tabela, CRUD de curso/módulo/aula, auth completa com grupos, rotas de admin |
+| 2 | Matrícula, progresso, avaliações (relações, índices, contadores) |
+| 3 | Stream → SQS → Algolia e e-mail com Resend (idempotência, DLQ, redrive) |
+| 4 | Capa do curso com S3 e sharp, consistência do upload com TTL, CSV de alunos |
+| 5 | Frontend `web` em S3 + CloudFront |
+| 6 | Evolução de schema |
+| Opcional | Vídeo da aula com multipart, Google sign-in, material privado da aula |
+
+## Épico 0: planejamento e design
+
+Histórias de decisão, antes de qualquer código. Ordem de dependência: PLAN-2 → PLAN-3 → PLAN-4. PLAN-6 corre em paralelo e fecha antes do primeiro commit de código.
+
+| História | Conteúdo | Skills | Estado |
+|---|---|---|---|
+| PLAN-1 | Escopo e fases | | Feita (Q27) |
+| PLAN-2 | Identidade e papéis: Q20, revisão de Q17 e Q18, e-mails (Cognito ou Resend) | `cognito-*` | **Aberta** |
+| PLAN-3 | Modelagem de dados: ERD → lista de padrões de acesso → quadro de entidades (PK/SK) → GSIs → desnormalização e contadores → validação percorrendo a lista | `designing-data-models`, `modeling-entity-relationships`, `defining-access-patterns`, `dynamodb-*` | A fazer |
+| PLAN-4 | Arquitetura de execução: unidade de trabalho, consistência, paginação, stream → SQS, rotas, autorização | `dynamodb-*`, `sqs-*`, `serverless-*`, DI | A fazer |
+| PLAN-5 | Registro de achados e critério de pronto das fases | | A fazer |
+| PLAN-6 | Padrões do projeto: gerenciador de pacotes, versões fixadas, monorepo ou não, tsconfig, ESLint e Prettier, commitlint e hooks, scripts, CI, documentação | `typescript-*`, `vitest-setup`, `serverless-typescript-esbuild` (nenhuma skill cobre lint ou commitlint: anotar como skill que falta) | A fazer |
+
+As histórias das fases 1 a 6 só são criadas depois da PLAN-3.
 
 ## Decisão em aberto
 
