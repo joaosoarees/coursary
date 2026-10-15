@@ -7,7 +7,7 @@ import { Schema } from '@kernel/decorators/Schema';
 
 export const signUpSchema = z.object({
   name: z.string().trim().min(1).max(100),
-  email: z.email().max(254),
+  email: z.string().trim().pipe(z.email().max(254)),
   password: z
     .string()
     .min(8)

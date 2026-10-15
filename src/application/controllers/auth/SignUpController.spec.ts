@@ -9,6 +9,12 @@ describe('signUpSchema', () => {
     expect(signUpSchema.parse(valid)).toEqual(valid);
   });
 
+  it('should trim the e-mail before validating it', () => {
+    expect(
+      signUpSchema.parse({ ...valid, email: ' ana@example.com ' }).email,
+    ).toBe('ana@example.com');
+  });
+
   it.each([
     ['a short password', { password: 'abc1' }],
     ['a password without a number', { password: 'secretpass' }],
