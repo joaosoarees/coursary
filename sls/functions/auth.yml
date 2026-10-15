@@ -98,3 +98,7 @@ refreshTokens:
     - httpApi:
         method: POST
         path: /auth/refresh
+
+customMessage:
+  handler: src/main/functions/auth/customMessage.handler
+  timeout: 5
