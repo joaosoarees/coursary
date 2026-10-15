@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.10 na `develop` e em `dev` (conferidas com chamadas reais); a conta de teste do autor é o admin de `dev` e há uma conta de aluno de teste; 1.11 (desativar e reativar conta) em grilling na `feat/1.11-disable-account`, decisões Q193 a Q202, sub-imp 1.11.a a 1.11.e**.
+Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.10 na `develop` e em `dev` (conferidas com chamadas reais); a conta de teste do autor é o admin de `dev` e há uma conta de aluno de teste; 1.11 (desativar e reativar conta) com 1.11.a a 1.11.d prontas e a 1.11.e em PR para a `develop`; faltam o merge e as chamadas reais em `dev`**.
 
 ## Como retomar
 
