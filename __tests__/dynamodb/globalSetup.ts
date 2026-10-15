@@ -66,6 +66,8 @@ export default async function setup(): Promise<() => Promise<void>> {
         { AttributeName: 'SK', AttributeType: 'S' },
         { AttributeName: 'GSI1PK', AttributeType: 'S' },
         { AttributeName: 'GSI1SK', AttributeType: 'S' },
+        { AttributeName: 'GSI2PK', AttributeType: 'S' },
+        { AttributeName: 'GSI2SK', AttributeType: 'S' },
       ],
       KeySchema: [
         { AttributeName: 'PK', KeyType: 'HASH' },
@@ -77,6 +79,14 @@ export default async function setup(): Promise<() => Promise<void>> {
           KeySchema: [
             { AttributeName: 'GSI1PK', KeyType: 'HASH' },
             { AttributeName: 'GSI1SK', KeyType: 'RANGE' },
+          ],
+          Projection: { ProjectionType: 'ALL' },
+        },
+        {
+          IndexName: 'GSI2',
+          KeySchema: [
+            { AttributeName: 'GSI2PK', KeyType: 'HASH' },
+            { AttributeName: 'GSI2SK', KeyType: 'RANGE' },
           ],
           Projection: { ProjectionType: 'ALL' },
         },

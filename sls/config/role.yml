@@ -10,6 +10,7 @@ statements:
     Resource:
       - !GetAtt MainTable.Arn
       - !Join ['/', [!GetAtt MainTable.Arn, 'index', 'GSI1']]
+      - !Join ['/', [!GetAtt MainTable.Arn, 'index', 'GSI2']]
   - Effect: Allow
     Action:
       - cognito-idp:AdminGetUser
