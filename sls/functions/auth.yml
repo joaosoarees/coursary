@@ -65,3 +65,16 @@ resendConfirmationCode:
     - httpApi:
         method: POST
         path: /auth/resend-code
+
+preTokenGeneration:
+  handler: src/main/functions/auth/preTokenGeneration.handler
+  timeout: 5
+  environment:
+    MAIN_TABLE_NAME: !Ref MainTable
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+          Resource: !GetAtt MainTable.Arn

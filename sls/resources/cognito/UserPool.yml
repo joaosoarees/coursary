@@ -3,6 +3,11 @@ Resources:
     Type: AWS::Cognito::UserPool
     Properties:
       UserPoolName: ${self:service}-${sls:stage}
+      UserPoolTier: ESSENTIALS
+      LambdaConfig:
+        PreTokenGenerationConfig:
+          LambdaArn: !GetAtt PreTokenGenerationLambdaFunction.Arn
+          LambdaVersion: V2_0
       DeletionProtection: ${self:custom.stages.${sls:stage}.poolDeletionProtection, 'INACTIVE'}
       UsernameAttributes:
         - email
@@ -36,6 +41,15 @@ Resources:
           StringAttributeConstraints:
             MinLength: '27'
             MaxLength: '27'
+
+  PreTokenGenerationInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt PreTokenGenerationLambdaFunction.Arn
+      Principal: cognito-idp.amazonaws.com
+      SourceArn: !GetAtt UserPool.Arn
+      SourceAccount: !Ref AWS::AccountId
 
   UserPoolClient:
     Type: AWS::Cognito::UserPoolClient
