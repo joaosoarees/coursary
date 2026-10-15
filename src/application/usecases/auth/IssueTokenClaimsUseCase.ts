@@ -1,4 +1,4 @@
-import { type Account, accountStatuses } from '@application/entities/Account';
+import { Account, accountStatuses } from '@application/entities/Account';
 import { AccountUnavailable } from '@application/errors/AccountUnavailable';
 import type { AccountRepository } from '@application/repositories/AccountRepository';
 
@@ -8,7 +8,9 @@ export class IssueTokenClaimsUseCase {
   async execute({
     internalId,
   }: IssueTokenClaimsUseCase.Input): Promise<IssueTokenClaimsUseCase.Output> {
-    const account = await this.accountsRepository.findById(internalId);
+    const account = Account.isId(internalId)
+      ? await this.accountsRepository.findById(internalId)
+      : null;
 
     if (account?.status !== accountStatuses.Active) {
       throw new AccountUnavailable();

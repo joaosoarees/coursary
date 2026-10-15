@@ -1,10 +1,11 @@
 import { PutCommand } from '@aws-sdk/lib-dynamodb';
-import KSUID from 'ksuid';
 import { describe, expect, test } from 'vitest';
+
+import { anAccountId } from '@tests/ids';
 
 import type { Page } from '@application/contracts/Page';
 import { Account, accountRoles } from '@application/entities/Account';
-import { RoleChange } from '@application/entities/RoleChange';
+import { BOOTSTRAP_ACTOR, RoleChange } from '@application/entities/RoleChange';
 import { InvalidCursor } from '@application/errors/InvalidCursor';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { AccountItem } from '@infra/database/dynamo/items/AccountItem';
@@ -22,7 +23,7 @@ async function putAccount(
   overrides: Partial<AccountItem.ItemType> = {},
 ) {
   const account = new Account({
-    id: KSUID.randomSync().string,
+    id: anAccountId(),
     externalId: undefined,
     email: `user-${crypto.randomUUID()}@example.com`,
     name: 'Ana',
@@ -72,7 +73,7 @@ describe('DynamoListAccountsByRoleQuery', () => {
     const ids = new Set(created.map((account) => account.id));
 
     const listed = (await readAll(instructors(), 2)).filter((item) =>
-      ids.has(item.id),
+      ids.has(Account.toId(item.id)),
     );
 
     expect(listed.map((item) => item.id)).toEqual(newestFirst(ids));
@@ -126,7 +127,11 @@ describe('DynamoListRoleChangesQuery', () => {
     const changes = [];
 
     for (const toRole of ['admin', 'student', 'instructor'] as const) {
-      const change = RoleChange.create({ account, toRole, changedBy: 'x' });
+      const change = RoleChange.create({
+        account,
+        toRole,
+        changedBy: BOOTSTRAP_ACTOR,
+      });
       account.role = toRole;
       changes.push(change);
       await dynamoClient.send(
@@ -149,7 +154,7 @@ describe('DynamoListRoleChangesQuery', () => {
       expect.objectContaining({
         fromRole: 'student',
         toRole: 'instructor',
-        changedBy: 'x',
+        changedBy: 'bootstrap',
       }),
     );
   });

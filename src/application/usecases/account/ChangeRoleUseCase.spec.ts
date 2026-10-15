@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
+import { anAccountId } from '@tests/ids';
 
 import { Account, accountRoles } from '@application/entities/Account';
 import { AccountNotActive } from '@application/errors/AccountNotActive';
@@ -70,7 +71,7 @@ describe('ChangeRoleUseCase', () => {
     await expect(
       changeRole.execute({
         callerId: admin.id,
-        accountId: 'missing',
+        accountId: anAccountId(),
         role: accountRoles.Admin,
       }),
     ).rejects.toBeInstanceOf(AccountNotFound);

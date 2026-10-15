@@ -1,6 +1,8 @@
 import { GetCommand, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { describe, expect, test } from 'vitest';
 
+import { anAccountId } from '@tests/ids';
+
 import { Account, accountRoles } from '@application/entities/Account';
 import { BOOTSTRAP_ACTOR, RoleChange } from '@application/entities/RoleChange';
 import { AccountConflict } from '@application/errors/AccountConflict';
@@ -237,7 +239,7 @@ describe('DynamoAccountRepository.findById', () => {
   });
 
   test('finds nothing for an unknown id', async () => {
-    await expect(repository.findById('missing')).resolves.toBeNull();
+    await expect(repository.findById(anAccountId())).resolves.toBeNull();
   });
 
   test('finds nothing once the account has expired', async () => {
@@ -276,7 +278,7 @@ describe('DynamoAccountRepository.updateName', () => {
   });
 
   test('refuses an account that does not exist', async () => {
-    await expect(repository.updateName('missing', 'Ana')).rejects.toThrow();
+    await expect(repository.updateName(anAccountId(), 'Ana')).rejects.toThrow();
     expect(await getItem('ACCOUNT#missing')).toBeUndefined();
   });
 });

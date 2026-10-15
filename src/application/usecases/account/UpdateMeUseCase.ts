@@ -22,7 +22,7 @@ export class UpdateMeUseCase {
 
 export namespace UpdateMeUseCase {
   export interface Input {
-    accountId: string;
+    accountId: Account.Id;
     name: string;
   }
 }

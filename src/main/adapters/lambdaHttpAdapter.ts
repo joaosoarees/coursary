@@ -88,7 +88,8 @@ export function lambdaHttpAdapter(
 }
 
 type Caller =
-  { accountId: string; role: Account.Role } | { accountId: null; role: null };
+  | { accountId: Account.Id; role: Account.Role }
+  | { accountId: null; role: null };
 
 async function lambdaCaller(
   event: Event,

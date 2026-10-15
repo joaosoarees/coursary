@@ -1,4 +1,5 @@
 import type { Page } from '@application/contracts/Page';
+import type { Account } from '@application/entities/Account';
 import { AccountNotFound } from '@application/errors/AccountNotFound';
 import type { ListRoleChangesQuery } from '@application/queries/ListRoleChangesQuery';
 import type { RoleChangeSummary } from '@application/queries/RoleChangeSummary';
@@ -32,6 +33,6 @@ export class ListRoleChangesUseCase {
 
 export namespace ListRoleChangesUseCase {
   export interface Input extends Page.Options {
-    accountId: string;
+    accountId: Account.Id;
   }
 }

@@ -39,7 +39,7 @@ export class RoleChangeItem {
     });
   }
 
-  static getPK(accountId: string): RoleChangeItem.Keys['PK'] {
+  static getPK(accountId: Account.Id): RoleChangeItem.Keys['PK'] {
     return `ACCOUNT#${accountId}`;
   }
 
@@ -56,8 +56,8 @@ export namespace RoleChangeItem {
 
   export interface Attributes {
     id: string;
-    accountId: string;
-    changedBy: string;
+    accountId: Account.Id;
+    changedBy: RoleChange.Actor;
     fromRole: Account.Role;
     toRole: Account.Role;
     changedAt: string;

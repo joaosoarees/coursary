@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
+import { anAccountId } from '@tests/ids';
 
 import { Account, accountStatuses } from '@application/entities/Account';
 import { AccountUnavailable } from '@application/errors/AccountUnavailable';
@@ -43,7 +44,7 @@ describe('GetMeUseCase', () => {
 
   it('should refuse an account that no longer exists', async () => {
     await expect(
-      new GetMeUseCase(accounts).execute({ accountId: 'missing' }),
+      new GetMeUseCase(accounts).execute({ accountId: anAccountId() }),
     ).rejects.toBeInstanceOf(AccountUnavailable);
   });
 });

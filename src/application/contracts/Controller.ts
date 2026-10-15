@@ -73,7 +73,7 @@ export namespace Controller {
     TQueryParams = Record<string, unknown>,
   > = BaseRequest<TBody, TParams, TQueryParams> &
     (TType extends 'private'
-      ? { accountId: string; role: Account.Role }
+      ? { accountId: Account.Id; role: Account.Role }
       : { accountId: null; role: null });
 
   export interface Response<TBody> {

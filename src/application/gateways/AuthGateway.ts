@@ -1,3 +1,5 @@
+import type { Account } from '@application/entities/Account';
+
 export interface AuthGateway {
   signUp(params: AuthGateway.SignUpParams): Promise<AuthGateway.SignUpResult>;
 
@@ -50,7 +52,7 @@ export namespace AuthGateway {
 
   export interface Issued {
     tokens: Tokens;
-    accountId: string;
+    accountId: Account.Id;
     accessJti: string;
   }
 

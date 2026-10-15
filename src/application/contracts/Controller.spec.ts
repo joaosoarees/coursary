@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { z, ZodError } from 'zod';
 
+import { anAccountId } from '@tests/ids';
+
 import { Controller } from '@application/contracts/Controller';
 import { accountRoles } from '@application/entities/Account';
 import { Forbidden } from '@application/errors/Forbidden';
@@ -25,7 +27,7 @@ class ListUsersController extends Controller<'private', unknown> {
 const makeRequest = (
   overrides: Partial<Controller.Request<'private'>> = {},
 ): Controller.Request<'private'> => ({
-  accountId: 'acc-1',
+  accountId: anAccountId(),
   role: accountRoles.Admin,
   params: { id: 'acc-2' },
   queryParams: { limit: '20' },

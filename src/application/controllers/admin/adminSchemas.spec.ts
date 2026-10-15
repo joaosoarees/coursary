@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { accountIdParamsSchema } from '@application/controllers/admin/accountIdParamsSchema';
 import { changeRoleSchema } from '@application/controllers/admin/ChangeRoleController';
 import { listAccountsSchema } from '@application/controllers/admin/ListAccountsController';
 
@@ -32,5 +33,17 @@ describe('changeRoleSchema', () => {
       true,
     );
     expect(changeRoleSchema.safeParse({ role: 'owner' }).success).toBe(false);
+  });
+});
+
+describe('accountIdParamsSchema', () => {
+  it('should accept a KSUID and refuse a malformed id', () => {
+    expect(
+      accountIdParamsSchema.safeParse({ id: '2Wk1zbcTqPHEuTXoAXZRDcjYKKK' })
+        .success,
+    ).toBe(true);
+    expect(accountIdParamsSchema.safeParse({ id: 'missing' }).success).toBe(
+      false,
+    );
   });
 });

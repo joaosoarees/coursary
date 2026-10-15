@@ -17,6 +17,6 @@ export class GetMeUseCase {
 
 export namespace GetMeUseCase {
   export interface Input {
-    accountId: string;
+    accountId: Account.Id;
   }
 }
