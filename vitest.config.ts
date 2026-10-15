@@ -6,9 +6,6 @@ const src = (folder: string) =>
   path.resolve(import.meta.dirname, 'src', folder);
 
 export default defineConfig({
-  test: {
-    clearMocks: true,
-  },
   resolve: {
     alias: {
       '@application': src('application'),
@@ -17,5 +14,22 @@ export default defineConfig({
       '@main': src('main'),
       '@shared': src('shared'),
     },
+  },
+  test: {
+    clearMocks: true,
+    projects: [
+      {
+        extends: true,
+        test: { name: 'unit', include: ['src/**/*.spec.ts'] },
+      },
+      {
+        extends: true,
+        test: {
+          name: 'integration',
+          include: ['src/**/*.test.ts'],
+          globalSetup: ['./__tests__/dynamodb/globalSetup.ts'],
+        },
+      },
+    ],
   },
 });

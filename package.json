@@ -25,7 +25,9 @@
     "deploy:dev": "sls deploy --stage dev",
     "remove:dev": "sls remove --stage dev",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest --project unit",
+    "test:unit": "vitest run --project unit",
+    "test:integration": "vitest run --project integration"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.3",
