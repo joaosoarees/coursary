@@ -32,3 +32,19 @@ listRoleChanges:
         method: GET
         path: /admin/users/{id}/role-changes
         authorizer: CognitoAuthorizer
+
+disableAccount:
+  handler: src/main/functions/admin/disableAccount.handler
+  events:
+    - httpApi:
+        method: POST
+        path: /admin/users/{id}/disable
+        authorizer: CognitoAuthorizer
+
+enableAccount:
+  handler: src/main/functions/admin/enableAccount.handler
+  events:
+    - httpApi:
+        method: POST
+        path: /admin/users/{id}/enable
+        authorizer: CognitoAuthorizer
