@@ -75,3 +75,13 @@ describe('Account.activate', () => {
     expect(account.status).toBe('ACTIVE');
   });
 });
+
+describe('Account.hashRefreshToken', () => {
+  it('should give the same hex digest for the same token and another for another', () => {
+    const hash = Account.hashRefreshToken('token-1');
+
+    expect(hash).toMatch(/^[0-9a-f]{64}$/);
+    expect(Account.hashRefreshToken('token-1')).toBe(hash);
+    expect(Account.hashRefreshToken('token-2')).not.toBe(hash);
+  });
+});

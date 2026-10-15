@@ -24,6 +24,16 @@ export interface AccountRepository {
     options?: AccountRepository.ChangeRoleOptions,
   ): Promise<void>;
 
+  saveSession(accountId: string, session: Account.Session): Promise<void>;
+
+  rotateSession(
+    accountId: string,
+    previousRefreshTokenHash: string,
+    session: Account.Session,
+  ): Promise<void>;
+
+  clearSession(accountId: string): Promise<void>;
+
   changeStatus(
     statusChange: AccountRepository.StatusChange,
     adminCallerId: string,

@@ -29,6 +29,7 @@ async function putAccount(
     role: accountRoles.Instructor,
     status,
     createdAt: new Date(),
+    session: undefined,
   });
   const Item = { ...AccountItem.fromEntity(account).toItem(), ...overrides };
 

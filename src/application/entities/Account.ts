@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 import KSUID from 'ksuid';
 
 import { AccountUnavailable } from '@application/errors/AccountUnavailable';
@@ -22,6 +24,7 @@ export class Account {
   role: Account.Role;
   status: Account.Status;
   readonly createdAt: Date;
+  session: Account.Session | undefined;
 
   constructor(attributes: Account.Attributes) {
     this.id = attributes.id;
@@ -31,10 +34,15 @@ export class Account {
     this.role = attributes.role;
     this.status = attributes.status;
     this.createdAt = attributes.createdAt;
+    this.session = attributes.session;
   }
 
   activate(): void {
     this.status = accountStatuses.Active;
+  }
+
+  static hashRefreshToken(refreshToken: string): string {
+    return createHash('sha256').update(refreshToken).digest('hex');
   }
 
   static normalizeEmail(email: string): string {
@@ -58,6 +66,7 @@ export class Account {
       role: accountRoles.Student,
       status: accountStatuses.Pending,
       createdAt: new Date(),
+      session: undefined,
     });
   }
 }
@@ -75,5 +84,11 @@ export namespace Account {
     role: Role;
     status: Status;
     createdAt: Date;
+    session: Session | undefined;
+  }
+
+  export interface Session {
+    accessJti: string;
+    refreshTokenHash: string;
   }
 }
