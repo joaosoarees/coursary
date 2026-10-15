@@ -3,7 +3,6 @@ import { z } from 'zod';
 import { Controller } from '@application/contracts/Controller';
 import type { AuthGateway } from '@application/gateways/AuthGateway';
 import { RefreshTokensUseCase } from '@application/usecases/auth/RefreshTokensUseCase';
-import { Schema } from '@kernel/decorators/Schema';
 
 export const refreshTokensSchema = z.object({
   refreshToken: z
@@ -12,11 +11,12 @@ export const refreshTokensSchema = z.object({
     .regex(/^[A-Za-z0-9\-_=.]+$/),
 });
 
-@Schema({ body: refreshTokensSchema })
 export class RefreshTokensController extends Controller<
   'public',
   AuthGateway.Tokens
 > {
+  protected override readonly bodySchema = refreshTokensSchema;
+
   constructor(private readonly refreshTokens: RefreshTokensUseCase) {
     super();
   }

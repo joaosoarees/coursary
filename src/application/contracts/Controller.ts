@@ -1,9 +1,11 @@
-import { getSchema } from '@kernel/decorators/Schema';
+import type { ZodType } from 'zod';
 
 export abstract class Controller<
   TType extends Controller.RouteType,
   TResponse = undefined,
 > {
+  protected readonly bodySchema: ZodType | undefined = undefined;
+
   protected abstract handle(
     request: Controller.Request<TType>,
   ): Promise<Controller.Response<TResponse>>;
@@ -11,12 +13,10 @@ export abstract class Controller<
   execute(
     request: Controller.Request<TType>,
   ): Promise<Controller.Response<TResponse>> {
-    const schema = getSchema(this);
-
     return this.handle({
       ...request,
-      body: (schema?.body
-        ? schema.body.parse(request.body)
+      body: (this.bodySchema
+        ? this.bodySchema.parse(request.body)
         : request.body) as Controller.Request<TType>['body'],
     });
   }

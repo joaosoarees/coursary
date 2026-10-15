@@ -3,7 +3,6 @@ import { z } from 'zod';
 import { Controller } from '@application/contracts/Controller';
 import { emailSchema } from '@application/controllers/auth/emailSchema';
 import { SignUpUseCase } from '@application/usecases/auth/SignUpUseCase';
-import { Schema } from '@kernel/decorators/Schema';
 
 export const signUpSchema = z.object({
   name: z.string().trim().min(1).max(100),
@@ -16,11 +15,12 @@ export const signUpSchema = z.object({
     .regex(/[0-9]/, 'Must contain a number.'),
 });
 
-@Schema({ body: signUpSchema })
 export class SignUpController extends Controller<
   'public',
   SignUpController.Response
 > {
+  protected override readonly bodySchema = signUpSchema;
+
   constructor(private readonly signUp: SignUpUseCase) {
     super();
   }
