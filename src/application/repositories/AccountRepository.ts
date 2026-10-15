@@ -9,7 +9,7 @@ export interface AccountRepository {
 
   findById(id: string): Promise<Account | null>;
 
-  findPendingByEmail(email: string): Promise<Account | null>;
+  findByEmail(email: string): Promise<Account | null>;
 
   activate(account: Account): Promise<void>;
 }

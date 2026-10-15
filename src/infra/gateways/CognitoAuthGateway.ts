@@ -3,10 +3,13 @@ import { createHmac } from 'node:crypto';
 import {
   AdminDeleteUserCommand,
   AdminGetUserCommand,
+  AdminUserGlobalSignOutCommand,
   type AuthenticationResultType,
   CodeMismatchException,
+  ConfirmForgotPasswordCommand,
   ConfirmSignUpCommand,
   ExpiredCodeException,
+  ForgotPasswordCommand,
   GetTokensFromRefreshTokenCommand,
   InitiateAuthCommand,
   InvalidParameterException,
@@ -136,6 +139,74 @@ export class CognitoAuthGateway implements AuthGateway {
 
       throw translateLimits(translateTokenRefusal(error));
     }
+  }
+
+  async forgotPassword(email: string): Promise<void> {
+    try {
+      await cognitoClient.send(
+        new ForgotPasswordCommand({
+          ClientId: this.config.cognitoClientId,
+          Username: email,
+          SecretHash: this.secretHash(email),
+        }),
+      );
+    } catch (error) {
+      if (
+        error instanceof UserNotFoundException ||
+        error instanceof InvalidParameterException ||
+        error instanceof NotAuthorizedException
+      ) {
+        console.warn(
+          JSON.stringify({ event: 'ResetCodeNotSent', reason: error.name }),
+        );
+        return;
+      }
+
+      throw translateLimits(error);
+    }
+  }
+
+  async resetPassword({
+    email,
+    code,
+    newPassword,
+  }: AuthGateway.ResetPasswordParams): Promise<void> {
+    try {
+      await cognitoClient.send(
+        new ConfirmForgotPasswordCommand({
+          ClientId: this.config.cognitoClientId,
+          Username: email,
+          ConfirmationCode: code,
+          Password: newPassword,
+          SecretHash: this.secretHash(email),
+        }),
+      );
+    } catch (error) {
+      if (
+        error instanceof CodeMismatchException ||
+        error instanceof ExpiredCodeException ||
+        error instanceof UserNotFoundException ||
+        error instanceof UserNotConfirmedException ||
+        error instanceof NotAuthorizedException
+      ) {
+        throw new InvalidCode();
+      }
+
+      if (error instanceof InvalidPasswordException) {
+        throw new InvalidPassword();
+      }
+
+      throw translateLimits(error);
+    }
+  }
+
+  async signOutEverywhere(email: string): Promise<void> {
+    await cognitoClient.send(
+      new AdminUserGlobalSignOutCommand({
+        UserPoolId: this.config.cognitoPoolId,
+        Username: email,
+      }),
+    );
   }
 
   async confirmSignUp(email: string, code: string): Promise<void> {

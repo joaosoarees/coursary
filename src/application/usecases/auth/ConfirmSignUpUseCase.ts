@@ -1,4 +1,4 @@
-import type { Account } from '@application/entities/Account';
+import { type Account, accountStatuses } from '@application/entities/Account';
 import { AuthUserNotPending } from '@application/errors/AuthUserNotPending';
 import { InvalidCode } from '@application/errors/InvalidCode';
 import type { AuthGateway } from '@application/gateways/AuthGateway';
@@ -11,9 +11,9 @@ export class ConfirmSignUpUseCase {
   ) {}
 
   async execute({ email, code }: ConfirmSignUpUseCase.Input): Promise<void> {
-    const account = await this.accountsRepository.findPendingByEmail(email);
+    const account = await this.accountsRepository.findByEmail(email);
 
-    if (!account) {
+    if (account?.status !== accountStatuses.Pending) {
       throw new InvalidCode();
     }
 

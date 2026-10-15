@@ -1,8 +1,4 @@
-import {
-  Account,
-  accountStatuses,
-  normalizeEmail,
-} from '@application/entities/Account';
+import { Account, normalizeEmail } from '@application/entities/Account';
 import { EmailInUse } from '@application/errors/EmailInUse';
 import type { AccountRepository } from '@application/repositories/AccountRepository';
 
@@ -47,12 +43,12 @@ export class InMemoryAccountRepository implements AccountRepository {
     return Promise.resolve(this.accounts.get(id) ?? null);
   }
 
-  findPendingByEmail(email: string): Promise<Account | null> {
+  findByEmail(email: string): Promise<Account | null> {
     const accountId = this.claims.get(normalizeEmail(email));
     const account = accountId ? this.accounts.get(accountId) : undefined;
 
     return Promise.resolve(
-      account?.status === accountStatuses.Pending
+      account
         ? new Account({
             id: account.id,
             externalId: account.externalId,

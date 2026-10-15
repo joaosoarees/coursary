@@ -13,7 +13,7 @@ const forbiddenImports = {
 
 const layerRules = Object.entries(forbiddenImports).map(
   ([layer, forbidden]) => ({
-    files: [`src/${layer}/**/*.ts`],
+    files: [`src/${layer}/**/*.{ts,tsx}`],
     rules: {
       'no-restricted-imports': [
         'error',

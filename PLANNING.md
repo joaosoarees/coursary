@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.6 na `develop` e em `dev`; fábricas e um zip por função concluídos (Q151 a Q156); em andamento: domínio da API (Q157 a Q160); depois: 1.7 com e-mails pelo SES (Q161, Q162)**.
+Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.6 na `develop` e em `dev`; domínio da API em `dev` (`api-dev.coursary.joaodevdude.com`, endpoint padrão desligado); 1.7 (recuperação de senha e e-mails pelo SES) em PR**.
 
 ## Como retomar
 

@@ -2,17 +2,13 @@ import { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
 import { emailSchema } from '@application/controllers/auth/emailSchema';
+import { passwordSchema } from '@application/controllers/auth/passwordSchema';
 import { SignUpUseCase } from '@application/usecases/auth/SignUpUseCase';
 
 export const signUpSchema = z.object({
   name: z.string().trim().min(1).max(100),
   email: emailSchema,
-  password: z
-    .string()
-    .min(8)
-    .max(256)
-    .regex(/[a-z]/, 'Must contain a lowercase letter.')
-    .regex(/[0-9]/, 'Must contain a number.'),
+  password: passwordSchema,
 });
 
 export class SignUpController extends Controller<

@@ -1,3 +1,4 @@
+import { accountStatuses } from '@application/entities/Account';
 import type { AuthGateway } from '@application/gateways/AuthGateway';
 import type { AccountRepository } from '@application/repositories/AccountRepository';
 
@@ -8,9 +9,9 @@ export class ResendConfirmationCodeUseCase {
   ) {}
 
   async execute({ email }: ResendConfirmationCodeUseCase.Input): Promise<void> {
-    const account = await this.accountsRepository.findPendingByEmail(email);
+    const account = await this.accountsRepository.findByEmail(email);
 
-    if (!account) {
+    if (account?.status !== accountStatuses.Pending) {
       return;
     }
 

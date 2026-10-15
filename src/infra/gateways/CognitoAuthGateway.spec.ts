@@ -3,9 +3,12 @@ import { createHmac } from 'node:crypto';
 import {
   AdminDeleteUserCommand,
   AdminGetUserCommand,
+  AdminUserGlobalSignOutCommand,
   CodeMismatchException,
+  ConfirmForgotPasswordCommand,
   ConfirmSignUpCommand,
   ExpiredCodeException,
+  ForgotPasswordCommand,
   GetTokensFromRefreshTokenCommand,
   InitiateAuthCommand,
   InvalidParameterException,
@@ -329,5 +332,97 @@ describe('CognitoAuthGateway.refreshTokens', () => {
     await expect(gateway.refreshTokens('old-refresh')).rejects.toBeInstanceOf(
       expected,
     );
+  });
+});
+
+describe('CognitoAuthGateway.forgotPassword', () => {
+  it('should ask for a reset code with the secret hash', async () => {
+    const spy = send().mockResolvedValue({} as never);
+
+    await gateway.forgotPassword('ana@example.com');
+
+    const command = spy.mock.calls[0]?.[0] as ForgotPasswordCommand;
+    expect(command).toBeInstanceOf(ForgotPasswordCommand);
+    expect(command.input).toEqual({
+      ClientId: 'client-id',
+      Username: 'ana@example.com',
+      SecretHash: secretHashOf('ana@example.com'),
+    });
+  });
+
+  it.each([
+    new UserNotFoundException(metadata),
+    new InvalidParameterException(metadata),
+    new NotAuthorizedException(metadata),
+  ])('should answer like a success on %s', async (cognitoError) => {
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    send().mockRejectedValue(cognitoError);
+
+    await expect(
+      gateway.forgotPassword('ana@example.com'),
+    ).resolves.toBeUndefined();
+  });
+
+  it('should translate the service limits', async () => {
+    send().mockRejectedValue(new LimitExceededException(metadata));
+
+    await expect(
+      gateway.forgotPassword('ana@example.com'),
+    ).rejects.toBeInstanceOf(TooManyRequests);
+  });
+});
+
+describe('CognitoAuthGateway.resetPassword', () => {
+  const params = {
+    email: 'ana@example.com',
+    code: '012345',
+    newPassword: 'newsecret1',
+  };
+
+  it('should set the new password with the code and the secret hash', async () => {
+    const spy = send().mockResolvedValue({} as never);
+
+    await gateway.resetPassword(params);
+
+    const command = spy.mock.calls[0]?.[0] as ConfirmForgotPasswordCommand;
+    expect(command).toBeInstanceOf(ConfirmForgotPasswordCommand);
+    expect(command.input).toEqual({
+      ClientId: 'client-id',
+      Username: 'ana@example.com',
+      ConfirmationCode: '012345',
+      Password: 'newsecret1',
+      SecretHash: secretHashOf('ana@example.com'),
+    });
+  });
+
+  it.each([
+    [new CodeMismatchException(metadata), InvalidCode],
+    [new ExpiredCodeException(metadata), InvalidCode],
+    [new UserNotFoundException(metadata), InvalidCode],
+    [new UserNotConfirmedException(metadata), InvalidCode],
+    [new NotAuthorizedException(metadata), InvalidCode],
+    [new InvalidPasswordException(metadata), InvalidPassword],
+    [new TooManyFailedAttemptsException(metadata), TooManyRequests],
+  ])('should translate %s', async (cognitoError, expected) => {
+    send().mockRejectedValue(cognitoError);
+
+    await expect(gateway.resetPassword(params)).rejects.toBeInstanceOf(
+      expected,
+    );
+  });
+});
+
+describe('CognitoAuthGateway.signOutEverywhere', () => {
+  it('should revoke every session of the user', async () => {
+    const spy = send().mockResolvedValue({} as never);
+
+    await gateway.signOutEverywhere('ana@example.com');
+
+    const command = spy.mock.calls[0]?.[0] as AdminUserGlobalSignOutCommand;
+    expect(command).toBeInstanceOf(AdminUserGlobalSignOutCommand);
+    expect(command.input).toEqual({
+      UserPoolId: 'sa-east-1_pool',
+      Username: 'ana@example.com',
+    });
   });
 });

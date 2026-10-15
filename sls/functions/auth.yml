@@ -98,3 +98,43 @@ refreshTokens:
     - httpApi:
         method: POST
         path: /auth/refresh
+
+customMessage:
+  handler: src/main/functions/auth/customMessage.handler
+  timeout: 5
+
+forgotPassword:
+  handler: src/main/functions/auth/forgotPassword.handler
+  environment:
+    MAIN_TABLE_NAME: !Ref MainTable
+    COGNITO_CLIENT_ID: !Ref UserPoolClient
+    COGNITO_CLIENT_SECRET: !GetAtt UserPoolClient.ClientSecret
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+          Resource: !GetAtt MainTable.Arn
+  events:
+    - httpApi:
+        method: POST
+        path: /auth/forgot-password
+
+resetPassword:
+  handler: src/main/functions/auth/resetPassword.handler
+  environment:
+    COGNITO_POOL_ID: !Ref UserPool
+    COGNITO_CLIENT_ID: !Ref UserPoolClient
+    COGNITO_CLIENT_SECRET: !GetAtt UserPoolClient.ClientSecret
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - cognito-idp:AdminUserGlobalSignOut
+          Resource: !GetAtt UserPool.Arn
+  events:
+    - httpApi:
+        method: POST
+        path: /auth/reset-password

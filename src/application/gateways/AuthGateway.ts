@@ -5,6 +5,12 @@ export interface AuthGateway {
 
   refreshTokens(refreshToken: string): Promise<AuthGateway.Tokens>;
 
+  forgotPassword(email: string): Promise<void>;
+
+  resetPassword(params: AuthGateway.ResetPasswordParams): Promise<void>;
+
+  signOutEverywhere(email: string): Promise<void>;
+
   confirmSignUp(email: string, code: string): Promise<void>;
 
   resendConfirmationCode(email: string): Promise<void>;
@@ -30,6 +36,12 @@ export namespace AuthGateway {
   export interface SignInParams {
     email: string;
     password: string;
+  }
+
+  export interface ResetPasswordParams {
+    email: string;
+    code: string;
+    newPassword: string;
   }
 
   export interface Tokens {

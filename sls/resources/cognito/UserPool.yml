@@ -1,3 +1,14 @@
+Conditions:
+  ShouldSendEmailsThroughSES: !And
+    - !Not
+      - !Equals
+        - ${env:COGNITO_EMAILS_FROM, ''}
+        - ''
+    - !Not
+      - !Equals
+        - ${env:SES_ARN, ''}
+        - ''
+
 Resources:
   UserPool:
     Type: AWS::Cognito::UserPool
@@ -8,6 +19,16 @@ Resources:
         PreTokenGenerationConfig:
           LambdaArn: !GetAtt PreTokenGenerationLambdaFunction.Arn
           LambdaVersion: V2_0
+        CustomMessage: !If
+          - ShouldSendEmailsThroughSES
+          - !GetAtt CustomMessageLambdaFunction.Arn
+          - !Ref AWS::NoValue
+      EmailConfiguration: !If
+        - ShouldSendEmailsThroughSES
+        - EmailSendingAccount: DEVELOPER
+          From: Coursary <${env:COGNITO_EMAILS_FROM, ''}>
+          SourceArn: ${env:SES_ARN, ''}
+        - EmailSendingAccount: COGNITO_DEFAULT
       DeletionProtection: ${self:custom.stages.${sls:stage}.poolDeletionProtection, 'INACTIVE'}
       UsernameAttributes:
         - email
@@ -47,6 +68,16 @@ Resources:
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !GetAtt PreTokenGenerationLambdaFunction.Arn
+      Principal: cognito-idp.amazonaws.com
+      SourceArn: !GetAtt UserPool.Arn
+      SourceAccount: !Ref AWS::AccountId
+
+  CustomMessageInvokePermission:
+    Condition: ShouldSendEmailsThroughSES
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt CustomMessageLambdaFunction.Arn
       Principal: cognito-idp.amazonaws.com
       SourceArn: !GetAtt UserPool.Arn
       SourceAccount: !Ref AWS::AccountId

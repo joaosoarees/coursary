@@ -161,6 +161,23 @@ Cada achado:
 - **O que aconteceu**: em Lambda, um arquivo único de bindings importado por todo handler faz cada função carregar todas as implementações (o `signIn` levava o repositório do DynamoDB, o trigger levava o gateway do Cognito), e o container exigiu metadados de decorator no build (`esbuild-plugin-tsc`, `keepNames`). Com os testes recebendo fakes pelo construtor, o container não pagava esse custo; o projeto trocou por fábricas à mão por função.
 - **Sugestão**: na `typescript-di-container`, dizer quando não usar um container (uma função por rota, bundles por função) e mostrar a composição por função da `wiring-dependencies` como alternativa.
 
+### `cognito-custom-message-lambda-trigger`, `cognito-password-reset`, `cognito-user-pools` (1.7)
+
+#### 2026-10-15 · 1.7.b · acerto
+- **A skill diz**: o trigger só vale com o pool no SES (`DEVELOPER`); com o envio padrão, o Cognito recusa a resposta e todo e-mail falha. O trigger não pode ter variável nem permissão que cite o pool.
+- **O que aconteceu**: por isso o pool só passa para o SES e só ganha o trigger quando o stage traz o remetente e a identidade (`Fn::If` na mesma condição); sem os valores, nada muda. O trigger ficou sem variáveis e com a role padrão.
+- **Sugestão**: mostrar essa forma condicional, que deixa o `sls package` de PR e o local funcionando sem os valores do stage.
+
+#### 2026-10-15 · 1.7.a · lacuna
+- **A skill diz**: qualquer motor de template serve; 20.000 caracteres é o limite, acima do qual o Cognito manda o texto padrão sem erro.
+- **O que aconteceu**: com React Email e Tailwind renderizados no trigger, cada e-mail deu ~4.500 caracteres, e o zip do trigger 804 KB. Um teste guarda o marcador `{####}` e o limite. Não há skill de React Email; o projeto seguiu o exemplo do foodiary.
+- **Sugestão**: na skill do trigger, o teste do marcador e do tamanho como receita; e uma skill de React Email (templates, Tailwind, render no Lambda e o custo no cold start).
+
+#### 2026-10-15 · 1.7.d · acerto
+- **A skill diz**: o "esqueci a senha" responde 204 sempre; depois da redefinição, `AdminUserGlobalSignOut`, cuja falha não derruba a rota.
+- **O que aconteceu**: aplicado como está; aqui, além disso, o código só é pedido para conta `ACTIVE` no banco da aplicação (Q162).
+- **Sugestão**: nenhuma.
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |
@@ -171,3 +188,6 @@ Cada achado:
 | Vídeo em streaming adaptativo (HLS, MediaConvert) | Q54 |
 | Permissões mínimas para deployar com o Serverless (role de deploy por projeto, permissions boundary para as roles que o deploy cria, role por função com o boundary) | Q118, Q121, 1.4.g |
 | Role da AWS para GitHub Actions por OIDC (inclui o `sub` imutável `repo:<owner>@<id>/<repo>@<id>:…`, padrão neste repositório) | 1.1.c |
+| Domínio próprio no API Gateway HTTP API (ACM por DNS, `DomainName`, `ApiMapping`, registro alias, desligar o endpoint padrão) | Q157 |
+| GitHub Environments com OIDC da AWS (o `sub` vira `environment:<nome>`; a trust policy e a restrição de branch do Environment) | Q158 |
+| React Email em Lambda (templates, Tailwind, render no trigger, tamanho do bundle) | Q161 |

@@ -146,23 +146,19 @@ describe('DynamoAccountRepository.saveExternalId', () => {
   });
 });
 
-describe('DynamoAccountRepository.findPendingByEmail', () => {
+describe('DynamoAccountRepository.findByEmail', () => {
   test('finds a pending account through the claim on its e-mail', async () => {
     const email = uniqueEmail();
     const account = Account.create({ name: 'Ana', email });
     await repository.create(account);
 
-    const found = await repository.findPendingByEmail(
-      ` ${email.toUpperCase()} `,
-    );
+    const found = await repository.findByEmail(` ${email.toUpperCase()} `);
 
     expect(found).toMatchObject({ id: account.id, email, status: 'PENDING' });
   });
 
   test('finds nothing for an unknown e-mail', async () => {
-    await expect(
-      repository.findPendingByEmail(uniqueEmail()),
-    ).resolves.toBeNull();
+    await expect(repository.findByEmail(uniqueEmail())).resolves.toBeNull();
   });
 
   test('finds nothing once the claim has expired', async () => {
@@ -182,20 +178,19 @@ describe('DynamoAccountRepository.findPendingByEmail', () => {
       }),
     );
 
-    await expect(
-      repository.findPendingByEmail(account.email),
-    ).resolves.toBeNull();
+    await expect(repository.findByEmail(account.email)).resolves.toBeNull();
   });
 
-  test('finds nothing for an account that is already active', async () => {
+  test('finds an active account as well', async () => {
     const account = Account.create({ name: 'Ana', email: uniqueEmail() });
     await repository.create(account);
     account.activate();
     await repository.activate(account);
 
-    await expect(
-      repository.findPendingByEmail(account.email),
-    ).resolves.toBeNull();
+    await expect(repository.findByEmail(account.email)).resolves.toMatchObject({
+      id: account.id,
+      status: 'ACTIVE',
+    });
   });
 });
 

@@ -11,6 +11,11 @@ export class FakeAuthGateway implements AuthGateway {
   failOnSignUp: Error | undefined;
   failOnResend: Error | undefined;
   failOnTokens: Error | undefined;
+  failOnSignOut: Error | undefined;
+  failOnReset: Error | undefined;
+  readonly resetCodesSent: string[] = [];
+  readonly passwordResets: AuthGateway.ResetPasswordParams[] = [];
+  readonly signedOut: string[] = [];
   readonly refreshTokensIssued: string[] = [];
 
   signUp(params: AuthGateway.SignUpParams): Promise<AuthGateway.SignUpResult> {
@@ -96,5 +101,31 @@ export class FakeAuthGateway implements AuthGateway {
       refreshToken,
       expiresIn: 3600,
     });
+  }
+
+  forgotPassword(email: string): Promise<void> {
+    this.resetCodesSent.push(email);
+
+    return Promise.resolve();
+  }
+
+  resetPassword(params: AuthGateway.ResetPasswordParams): Promise<void> {
+    if (this.failOnReset) {
+      return Promise.reject(this.failOnReset);
+    }
+
+    this.passwordResets.push(params);
+
+    return Promise.resolve();
+  }
+
+  signOutEverywhere(email: string): Promise<void> {
+    if (this.failOnSignOut) {
+      return Promise.reject(this.failOnSignOut);
+    }
+
+    this.signedOut.push(email);
+
+    return Promise.resolve();
   }
 }

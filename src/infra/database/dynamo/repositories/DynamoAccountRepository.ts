@@ -116,27 +116,14 @@ export class DynamoAccountRepository implements AccountRepository {
     return item ? AccountItem.toEntity(item) : null;
   }
 
-  async findPendingByEmail(email: string): Promise<Account | null> {
+  async findByEmail(email: string): Promise<Account | null> {
     const normalized = normalizeEmail(email);
     const claim = await this.getLive<EmailClaimItem.ItemType>({
       PK: EmailClaimItem.getPK(normalized),
       SK: EmailClaimItem.getSK(normalized),
     });
 
-    if (!claim) {
-      return null;
-    }
-
-    const accountItem = await this.getLive<AccountItem.ItemType>({
-      PK: AccountItem.getPK(claim.accountId),
-      SK: AccountItem.getSK(claim.accountId),
-    });
-
-    if (accountItem?.status !== accountStatuses.Pending) {
-      return null;
-    }
-
-    return AccountItem.toEntity(accountItem);
+    return claim ? this.findById(claim.accountId) : null;
   }
 
   async activate(account: Account): Promise<void> {

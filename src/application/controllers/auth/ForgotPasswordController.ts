@@ -1,0 +1,27 @@
+import { z } from 'zod';
+
+import { Controller } from '@application/contracts/Controller';
+import { emailSchema } from '@application/controllers/auth/emailSchema';
+import type { ForgotPasswordUseCase } from '@application/usecases/auth/ForgotPasswordUseCase';
+
+export const forgotPasswordSchema = z.object({ email: emailSchema });
+
+export class ForgotPasswordController extends Controller<'public'> {
+  protected override readonly bodySchema = forgotPasswordSchema;
+
+  constructor(private readonly forgotPassword: ForgotPasswordUseCase) {
+    super();
+  }
+
+  protected async handle(
+    request: Controller.Request<'public', ForgotPasswordController.Body>,
+  ): Promise<Controller.Response<undefined>> {
+    await this.forgotPassword.execute(request.body);
+
+    return { statusCode: 204 };
+  }
+}
+
+export namespace ForgotPasswordController {
+  export type Body = z.infer<typeof forgotPasswordSchema>;
+}
