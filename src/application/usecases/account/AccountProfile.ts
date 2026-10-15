@@ -1,19 +1,27 @@
 import type { Account } from '@application/entities/Account';
 
-export interface AccountProfile {
-  id: string;
-  name: string;
-  email: string;
-  role: Account.Role;
-  createdAt: string;
-}
+export class AccountProfile {
+  readonly id: string;
+  readonly name: string;
+  readonly email: string;
+  readonly role: Account.Role;
+  readonly createdAt: string;
 
-export function toAccountProfile(account: Account): AccountProfile {
-  return {
-    id: account.id,
-    name: account.name,
-    email: account.email,
-    role: account.role,
-    createdAt: account.createdAt.toISOString(),
-  };
+  constructor(attributes: AccountProfile) {
+    this.id = attributes.id;
+    this.name = attributes.name;
+    this.email = attributes.email;
+    this.role = attributes.role;
+    this.createdAt = attributes.createdAt;
+  }
+
+  static fromAccount(account: Account): AccountProfile {
+    return new AccountProfile({
+      id: account.id,
+      name: account.name,
+      email: account.email,
+      role: account.role,
+      createdAt: account.createdAt.toISOString(),
+    });
+  }
 }

@@ -5,11 +5,7 @@ import {
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 
-import {
-  type Account,
-  accountStatuses,
-  normalizeEmail,
-} from '@application/entities/Account';
+import { Account, accountStatuses } from '@application/entities/Account';
 import type { RoleChange } from '@application/entities/RoleChange';
 import { EmailInUse } from '@application/errors/EmailInUse';
 import type { AccountRepository } from '@application/repositories/AccountRepository';
@@ -122,7 +118,7 @@ export class DynamoAccountRepository implements AccountRepository {
   }
 
   async findByEmail(email: string): Promise<Account | null> {
-    const normalized = normalizeEmail(email);
+    const normalized = Account.normalizeEmail(email);
     const claim = await this.getLive<EmailClaimItem.ItemType>({
       PK: EmailClaimItem.getPK(normalized),
       SK: EmailClaimItem.getSK(normalized),

@@ -1,7 +1,6 @@
-import { accountRoles } from '@application/entities/Account';
+import { Account, accountRoles } from '@application/entities/Account';
 import { BOOTSTRAP_ACTOR, RoleChange } from '@application/entities/RoleChange';
 import type { AccountRepository } from '@application/repositories/AccountRepository';
-import { requireActive } from '@application/usecases/account/requireActive';
 
 export class PromoteFirstAdminUseCase {
   constructor(private readonly accountsRepository: AccountRepository) {}
@@ -9,21 +8,20 @@ export class PromoteFirstAdminUseCase {
   async execute({
     email,
   }: PromoteFirstAdminUseCase.Input): Promise<PromoteFirstAdminUseCase.Output> {
-    const account = requireActive(
-      await this.accountsRepository.findByEmail(email),
-    );
+    const found = await this.accountsRepository.findByEmail(email);
+    const account = Account.requireActive(found);
 
     if (account.role === accountRoles.Admin) {
       return { accountId: account.id, changed: false };
     }
 
-    await this.accountsRepository.changeRole(
-      RoleChange.create({
-        account,
-        toRole: accountRoles.Admin,
-        changedBy: BOOTSTRAP_ACTOR,
-      }),
-    );
+    const roleChange = RoleChange.create({
+      account,
+      toRole: accountRoles.Admin,
+      changedBy: BOOTSTRAP_ACTOR,
+    });
+
+    await this.accountsRepository.changeRole(roleChange);
 
     return { accountId: account.id, changed: true };
   }

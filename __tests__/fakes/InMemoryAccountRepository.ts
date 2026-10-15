@@ -1,4 +1,4 @@
-import { Account, normalizeEmail } from '@application/entities/Account';
+import { Account } from '@application/entities/Account';
 import type { RoleChange } from '@application/entities/RoleChange';
 import { EmailInUse } from '@application/errors/EmailInUse';
 import type { AccountRepository } from '@application/repositories/AccountRepository';
@@ -46,7 +46,7 @@ export class InMemoryAccountRepository implements AccountRepository {
   }
 
   findByEmail(email: string): Promise<Account | null> {
-    const accountId = this.claims.get(normalizeEmail(email));
+    const accountId = this.claims.get(Account.normalizeEmail(email));
     const account = accountId ? this.accounts.get(accountId) : undefined;
 
     return Promise.resolve(
