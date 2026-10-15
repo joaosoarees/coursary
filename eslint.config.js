@@ -44,7 +44,17 @@ export default defineConfig([
     },
     plugins: { 'simple-import-sort': simpleImportSort },
     rules: {
-      'simple-import-sort/imports': 'error',
+      'simple-import-sort/imports': [
+        'error',
+        {
+          groups: [
+            ['^node:'],
+            ['^@?\\w'],
+            ['^@(application|infra|kernel|main|shared)/'],
+            ['^\\.'],
+          ],
+        },
+      ],
       'simple-import-sort/exports': 'error',
       eqeqeq: ['error', 'always'],
       curly: ['error', 'all'],
