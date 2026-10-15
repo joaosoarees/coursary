@@ -1,0 +1,5 @@
+stages:
+  dev:
+    protected: false
+  prod:
+    protected: true
