@@ -1,0 +1,40 @@
+getMe:
+  handler: src/main/functions/account/getMe.handler
+  environment:
+    MAIN_TABLE_NAME: !Ref MainTable
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+          Resource: !GetAtt MainTable.Arn
+  events:
+    - httpApi:
+        method: GET
+        path: /me
+        authorizer:
+          name: cognito
+          scopes:
+            - aws.cognito.signin.user.admin
+
+updateMe:
+  handler: src/main/functions/account/updateMe.handler
+  environment:
+    MAIN_TABLE_NAME: !Ref MainTable
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:UpdateItem
+          Resource: !GetAtt MainTable.Arn
+  events:
+    - httpApi:
+        method: PATCH
+        path: /me
+        authorizer:
+          name: cognito
+          scopes:
+            - aws.cognito.signin.user.admin
