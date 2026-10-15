@@ -243,7 +243,8 @@ Cada valor duplicado tem um tipo e um dono (`dynamodb-denormalization`; Q80 a Q8
 |---|---|---|---|
 | `studentName` | Enrollment, Review | exibição | A rota que renomeia a conta: query em `ACCOUNT#a`, transações de até 100 itens |
 | `instructorName` | Course | exibição | A rota que renomeia a conta: cursos do instrutor pelo `GSI1` |
-| `coverVariants` | Course | exibição | O processador de imagem, quando a capa fica `PROCESSED` |
+| `cover` (`fileId`, `variants`) | Course | exibição | O processador de imagem, na transação que marca o `FILE` como `PROCESSED` (Q85) |
+| `avatar` (`fileId`, `variants`) | Account | exibição | O mesmo, para o avatar (Q85) |
 | `enrollmentCount` | Course | contador | Matricular, cancelar, rematricular (`ADD` na transação) |
 | `lessonCount` | Course | contador | Acrescentar e apagar aula (`ADD` na transação) |
 | `ratingSum`, `ratingCount` | Course | contador | Criar avaliação; editar soma a diferença (`ADD` na transação) |
@@ -256,3 +257,26 @@ Cada valor duplicado tem um tipo e um dono (`dynamodb-denormalization`; Q80 a Q8
 | entradas de `GSI1` e `GSI2` | índices | índice | O DynamoDB, a cada escrita |
 
 Percentual de progresso e média de avaliação são calculados na leitura, nunca gravados. Contadores nunca dependem do stream; o stream só alimenta cópias externas (Algolia, limpeza do Cognito).
+
+### Formato da cópia de imagem (Q85)
+
+```json
+"avatar": {
+  "fileId": "2Pz91m",
+  "variants": {
+    "64": "account/2NxK8q/avatar/2Pz91m/64-a1b2c3.webp",
+    "256": "account/2NxK8q/avatar/2Pz91m/256-d4e5f6.webp"
+  }
+}
+```
+
+Guarda chaves do S3, não URLs: o controller monta a URL com o domínio da CDN. Trocar a imagem é uma transação que marca o `FILE` novo como `PROCESSED`, aponta a cópia para ele e apaga o `FILE` antigo, com a condição "o `fileId` atual ainda é o antigo".
+
+## 6. Validação
+
+Lista percorrida contra o quadro de entidades em 2026-10-14:
+
+- Os 22 padrões de leitura saem por Get ou Query; nenhum Scan. Filtros só no status da lista de usuários (Q76) e nas matrículas ativas (Q74).
+- Regras de negócio em transações com condição: matricular exige curso `PUBLISHED` (condição no update do contador do curso); concluir aula e avaliar exigem matrícula `ACTIVE` (`ConditionCheck`).
+- Operações com mais de 100 itens (apagar curso em rascunho) são feitas em duas etapas: transação que marca `DELETING` e job idempotente em lotes (Q86).
+- Para a PLAN-4: a limpeza do Cognito (Q41) lê o `externalId` da conta apagada pelo TTL, então o stream precisa de `NEW_AND_OLD_IMAGES`.
