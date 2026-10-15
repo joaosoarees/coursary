@@ -112,8 +112,25 @@ Atualizado ao fim de cada história do Épico 0.
   - **O dono traz preferências de implementação** (enums, manter o `Saga`). Comparar com a skill e mostrar o código das duas formas; a preferência de fundo (constantes nomeadas) cabe no desenho que a skill recomenda.
   - **O ritmo de implementação é decisão do dono**: no Coursary, tarefas pequenas, uma de cada vez, com operações e permissões liberadas conforme o uso. Perguntar isso antes de criar as tarefas.
 
+## Etapa 10: registro de achados e critério de pronto
+
+- **Objetivo**: decidir como o projeto mede o próprio critério de sucesso e quando uma história ou fase está pronta.
+- **Perguntas**: onde e em que formato se anota o que cada skill acertou, errou ou não cobriu? O que uma história precisa para estar pronta? E uma fase? Qual mudança real exercita a evolução de schema?
+  - *Coursary*: Q99 a Q101; `docs/skill-findings.md` criado já com os achados do planejamento.
+- **Lição**: os achados começam no planejamento, não na implementação. Registrar desde a primeira rodada (recomendação da skill contrariada por um princípio, limite de serviço que mudou a topologia).
+
+## Etapa 11: padrões do projeto
+
+- **Objetivo**: fixar ferramentas e convenções antes do primeiro commit de código.
+- **Pré-requisitos**: nenhum do modelo; precisa fechar antes da primeira história de implementação.
+- **Como**: levantar os fatos antes (ferramental do projeto de referência, versões que as skills testaram, versões instaladas na máquina) e só então perguntar.
+- **Perguntas**: monorepo ou repositórios separados? Quais versões ficam fixadas? Qual versão da linguagem, e há risco de compatibilidade? Lint e formatação? Fluxo de git (branch, PR, merge)? Onde fica a documentação? `tsconfig`? Padrão de commit e hooks? CI e deploy?
+  - *Coursary*: Q102 a Q111.
+- **Lições**:
+  - **Um risco de compatibilidade que nenhuma skill responde vira um teste medido na primeira tarefa**, não uma aposta (TypeScript 7 com metadados de decorators, Q104).
+  - **O dono pode preferir simplicidade operacional à conveniência** (repositórios separados para não acoplar deploys, Q102). Perguntar pelo deploy futuro antes de propor monorepo.
+  - Regras de arquitetura viram regras de lint sempre que possível (`no-restricted-imports` por camada).
+
 ## Etapas seguintes (ainda não percorridas)
 
-10. Registro de achados e critério de pronto.
-11. Padrões do projeto.
 12. Criar as tarefas.
