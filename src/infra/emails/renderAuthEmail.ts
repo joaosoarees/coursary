@@ -21,16 +21,18 @@ export async function renderAuthEmail(
 ): Promise<AuthEmail | null> {
   switch (triggerSource) {
     case 'CustomMessage_SignUp':
-    case 'CustomMessage_ResendCode':
-      return {
-        subject: confirmEmailSubject,
-        html: await render(ConfirmEmail({ code })),
-      };
-    case 'CustomMessage_ForgotPassword':
-      return {
-        subject: forgotPasswordSubject,
-        html: await render(ForgotPassword({ code })),
-      };
+    case 'CustomMessage_ResendCode': {
+      const email = ConfirmEmail({ code });
+      const html = await render(email);
+
+      return { subject: confirmEmailSubject, html };
+    }
+    case 'CustomMessage_ForgotPassword': {
+      const email = ForgotPassword({ code });
+      const html = await render(email);
+
+      return { subject: forgotPasswordSubject, html };
+    }
     default:
       return null;
   }

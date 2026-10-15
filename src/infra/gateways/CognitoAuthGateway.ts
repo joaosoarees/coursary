@@ -51,18 +51,18 @@ export class CognitoAuthGateway implements AuthGateway {
     internalId,
   }: AuthGateway.SignUpParams): Promise<AuthGateway.SignUpResult> {
     try {
-      const { UserSub } = await cognitoClient.send(
-        new SignUpCommand({
-          ClientId: this.config.cognitoClientId,
-          SecretHash: this.secretHash(email),
-          Username: email,
-          Password: password,
-          UserAttributes: [
-            { Name: 'email', Value: email },
-            { Name: 'custom:internalId', Value: internalId },
-          ],
-        }),
-      );
+      const command = new SignUpCommand({
+        ClientId: this.config.cognitoClientId,
+        SecretHash: this.secretHash(email),
+        Username: email,
+        Password: password,
+        UserAttributes: [
+          { Name: 'email', Value: email },
+          { Name: 'custom:internalId', Value: internalId },
+        ],
+      });
+
+      const { UserSub } = await cognitoClient.send(command);
 
       if (!UserSub) {
         throw new Error('Cognito signed the user up without returning a sub.');
@@ -78,7 +78,7 @@ export class CognitoAuthGateway implements AuthGateway {
         throw new InvalidPassword();
       }
 
-      throw translateLimits(error);
+      throw CognitoAuthGateway.translateLimits(error);
     }
   }
 
@@ -87,19 +87,20 @@ export class CognitoAuthGateway implements AuthGateway {
     password,
   }: AuthGateway.SignInParams): Promise<AuthGateway.Tokens> {
     try {
-      const { AuthenticationResult, ChallengeName } = await cognitoClient.send(
-        new InitiateAuthCommand({
-          ClientId: this.config.cognitoClientId,
-          AuthFlow: 'USER_PASSWORD_AUTH',
-          AuthParameters: {
-            USERNAME: email,
-            PASSWORD: password,
-            SECRET_HASH: this.secretHash(email),
-          },
-        }),
-      );
+      const command = new InitiateAuthCommand({
+        ClientId: this.config.cognitoClientId,
+        AuthFlow: 'USER_PASSWORD_AUTH',
+        AuthParameters: {
+          USERNAME: email,
+          PASSWORD: password,
+          SECRET_HASH: this.secretHash(email),
+        },
+      });
 
-      return toTokens(AuthenticationResult, ChallengeName);
+      const { AuthenticationResult, ChallengeName } =
+        await cognitoClient.send(command);
+
+      return CognitoAuthGateway.toTokens(AuthenticationResult, ChallengeName);
     } catch (error) {
       if (
         error instanceof NotAuthorizedException ||
@@ -113,21 +114,23 @@ export class CognitoAuthGateway implements AuthGateway {
         throw new EmailNotConfirmed();
       }
 
-      throw translateLimits(translateTokenRefusal(error));
+      const refusal = CognitoAuthGateway.translateTokenRefusal(error);
+
+      throw CognitoAuthGateway.translateLimits(refusal);
     }
   }
 
   async refreshTokens(refreshToken: string): Promise<AuthGateway.Tokens> {
     try {
-      const { AuthenticationResult } = await cognitoClient.send(
-        new GetTokensFromRefreshTokenCommand({
-          ClientId: this.config.cognitoClientId,
-          ClientSecret: this.config.cognitoClientSecret,
-          RefreshToken: refreshToken,
-        }),
-      );
+      const command = new GetTokensFromRefreshTokenCommand({
+        ClientId: this.config.cognitoClientId,
+        ClientSecret: this.config.cognitoClientSecret,
+        RefreshToken: refreshToken,
+      });
 
-      return toTokens(AuthenticationResult);
+      const { AuthenticationResult } = await cognitoClient.send(command);
+
+      return CognitoAuthGateway.toTokens(AuthenticationResult);
     } catch (error) {
       if (
         error instanceof NotAuthorizedException ||
@@ -137,19 +140,21 @@ export class CognitoAuthGateway implements AuthGateway {
         throw new InvalidSession();
       }
 
-      throw translateLimits(translateTokenRefusal(error));
+      const refusal = CognitoAuthGateway.translateTokenRefusal(error);
+
+      throw CognitoAuthGateway.translateLimits(refusal);
     }
   }
 
   async forgotPassword(email: string): Promise<void> {
     try {
-      await cognitoClient.send(
-        new ForgotPasswordCommand({
-          ClientId: this.config.cognitoClientId,
-          Username: email,
-          SecretHash: this.secretHash(email),
-        }),
-      );
+      const command = new ForgotPasswordCommand({
+        ClientId: this.config.cognitoClientId,
+        Username: email,
+        SecretHash: this.secretHash(email),
+      });
+
+      await cognitoClient.send(command);
     } catch (error) {
       if (
         error instanceof UserNotFoundException ||
@@ -162,7 +167,7 @@ export class CognitoAuthGateway implements AuthGateway {
         return;
       }
 
-      throw translateLimits(error);
+      throw CognitoAuthGateway.translateLimits(error);
     }
   }
 
@@ -172,15 +177,15 @@ export class CognitoAuthGateway implements AuthGateway {
     newPassword,
   }: AuthGateway.ResetPasswordParams): Promise<void> {
     try {
-      await cognitoClient.send(
-        new ConfirmForgotPasswordCommand({
-          ClientId: this.config.cognitoClientId,
-          Username: email,
-          ConfirmationCode: code,
-          Password: newPassword,
-          SecretHash: this.secretHash(email),
-        }),
-      );
+      const command = new ConfirmForgotPasswordCommand({
+        ClientId: this.config.cognitoClientId,
+        Username: email,
+        ConfirmationCode: code,
+        Password: newPassword,
+        SecretHash: this.secretHash(email),
+      });
+
+      await cognitoClient.send(command);
     } catch (error) {
       if (
         error instanceof CodeMismatchException ||
@@ -196,29 +201,29 @@ export class CognitoAuthGateway implements AuthGateway {
         throw new InvalidPassword();
       }
 
-      throw translateLimits(error);
+      throw CognitoAuthGateway.translateLimits(error);
     }
   }
 
   async signOutEverywhere(email: string): Promise<void> {
-    await cognitoClient.send(
-      new AdminUserGlobalSignOutCommand({
-        UserPoolId: this.config.cognitoPoolId,
-        Username: email,
-      }),
-    );
+    const command = new AdminUserGlobalSignOutCommand({
+      UserPoolId: this.config.cognitoPoolId,
+      Username: email,
+    });
+
+    await cognitoClient.send(command);
   }
 
   async confirmSignUp(email: string, code: string): Promise<void> {
     try {
-      await cognitoClient.send(
-        new ConfirmSignUpCommand({
-          ClientId: this.config.cognitoClientId,
-          Username: email,
-          ConfirmationCode: code,
-          SecretHash: this.secretHash(email),
-        }),
-      );
+      const command = new ConfirmSignUpCommand({
+        ClientId: this.config.cognitoClientId,
+        Username: email,
+        ConfirmationCode: code,
+        SecretHash: this.secretHash(email),
+      });
+
+      await cognitoClient.send(command);
     } catch (error) {
       if (
         error instanceof CodeMismatchException ||
@@ -232,19 +237,19 @@ export class CognitoAuthGateway implements AuthGateway {
         throw new AuthUserNotPending(email);
       }
 
-      throw translateLimits(error);
+      throw CognitoAuthGateway.translateLimits(error);
     }
   }
 
   async resendConfirmationCode(email: string): Promise<void> {
     try {
-      await cognitoClient.send(
-        new ResendConfirmationCodeCommand({
-          ClientId: this.config.cognitoClientId,
-          Username: email,
-          SecretHash: this.secretHash(email),
-        }),
-      );
+      const command = new ResendConfirmationCodeCommand({
+        ClientId: this.config.cognitoClientId,
+        Username: email,
+        SecretHash: this.secretHash(email),
+      });
+
+      await cognitoClient.send(command);
     } catch (error) {
       if (
         error instanceof UserNotFoundException ||
@@ -256,18 +261,18 @@ export class CognitoAuthGateway implements AuthGateway {
         return;
       }
 
-      throw translateLimits(error);
+      throw CognitoAuthGateway.translateLimits(error);
     }
   }
 
   async isUserConfirmed(email: string): Promise<boolean> {
     try {
-      const { UserStatus } = await cognitoClient.send(
-        new AdminGetUserCommand({
-          UserPoolId: this.config.cognitoPoolId,
-          Username: email,
-        }),
-      );
+      const command = new AdminGetUserCommand({
+        UserPoolId: this.config.cognitoPoolId,
+        Username: email,
+      });
+
+      const { UserStatus } = await cognitoClient.send(command);
 
       return UserStatus === 'CONFIRMED';
     } catch (error) {
@@ -285,17 +290,23 @@ export class CognitoAuthGateway implements AuthGateway {
     const UserPoolId = this.config.cognitoPoolId;
 
     try {
-      const { UserStatus } = await cognitoClient.send(
-        new AdminGetUserCommand({ UserPoolId, Username: email }),
-      );
+      const getUserCommand = new AdminGetUserCommand({
+        UserPoolId,
+        Username: email,
+      });
+
+      const { UserStatus } = await cognitoClient.send(getUserCommand);
 
       if (UserStatus !== 'UNCONFIRMED') {
         return 'confirmed';
       }
 
-      await cognitoClient.send(
-        new AdminDeleteUserCommand({ UserPoolId, Username: email }),
-      );
+      const deleteUserCommand = new AdminDeleteUserCommand({
+        UserPoolId,
+        Username: email,
+      });
+
+      await cognitoClient.send(deleteUserCommand);
 
       return 'deleted';
     } catch (error) {
@@ -312,44 +323,44 @@ export class CognitoAuthGateway implements AuthGateway {
       .update(username + this.config.cognitoClientId)
       .digest('base64');
   }
-}
 
-function translateLimits(error: unknown): unknown {
-  if (
-    error instanceof TooManyRequestsException ||
-    error instanceof LimitExceededException ||
-    error instanceof TooManyFailedAttemptsException
-  ) {
-    return new TooManyRequests();
+  private static translateLimits(error: unknown): unknown {
+    if (
+      error instanceof TooManyRequestsException ||
+      error instanceof LimitExceededException ||
+      error instanceof TooManyFailedAttemptsException
+    ) {
+      return new TooManyRequests();
+    }
+
+    return error;
   }
 
-  return error;
-}
+  private static toTokens(
+    result: AuthenticationResultType | undefined,
+    challenge?: string,
+  ): AuthGateway.Tokens {
+    if (!result?.AccessToken || !result.RefreshToken || !result.ExpiresIn) {
+      throw new Error(
+        `Cognito issued no tokens${challenge ? ` (challenge ${challenge})` : ''}.`,
+      );
+    }
 
-function toTokens(
-  result: AuthenticationResultType | undefined,
-  challenge?: string,
-): AuthGateway.Tokens {
-  if (!result?.AccessToken || !result.RefreshToken || !result.ExpiresIn) {
-    throw new Error(
-      `Cognito issued no tokens${challenge ? ` (challenge ${challenge})` : ''}.`,
-    );
+    return {
+      accessToken: result.AccessToken,
+      refreshToken: result.RefreshToken,
+      expiresIn: result.ExpiresIn,
+    };
   }
 
-  return {
-    accessToken: result.AccessToken,
-    refreshToken: result.RefreshToken,
-    expiresIn: result.ExpiresIn,
-  };
-}
+  private static translateTokenRefusal(error: unknown): unknown {
+    if (
+      error instanceof UserLambdaValidationException &&
+      error.message.includes(ErrorCode.AccountUnavailable)
+    ) {
+      return new AccountUnavailable();
+    }
 
-function translateTokenRefusal(error: unknown): unknown {
-  if (
-    error instanceof UserLambdaValidationException &&
-    error.message.includes(ErrorCode.AccountUnavailable)
-  ) {
-    return new AccountUnavailable();
+    return error;
   }
-
-  return error;
 }
