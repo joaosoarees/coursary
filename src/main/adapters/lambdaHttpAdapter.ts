@@ -6,21 +6,32 @@ import type {
 import { ZodError } from 'zod';
 
 import type { Controller } from '@application/contracts/Controller';
-import { Account } from '@application/entities/Account';
+import type { Account } from '@application/entities/Account';
 import { ApplicationError } from '@application/errors/ApplicationError';
 import { ErrorCode } from '@application/errors/ErrorCode';
 import { InvalidSession } from '@application/errors/InvalidSession';
+import type { ResolveCallerUseCase } from '@application/usecases/account/ResolveCallerUseCase';
 import { lambdaBodyParser } from '@main/utils/lambdaBodyParser';
 import { lambdaErrorResponse } from '@main/utils/lambdaErrorResponse';
 
 type Event = APIGatewayProxyEventV2 | APIGatewayProxyEventV2WithJWTAuthorizer;
 
+type Handler = (event: Event) => Promise<APIGatewayProxyStructuredResultV2>;
+
+export function lambdaHttpAdapter(
+  controller: Controller<'public', unknown>,
+): Handler;
+export function lambdaHttpAdapter(
+  controller: Controller<'private', unknown>,
+  resolveCaller: ResolveCallerUseCase,
+): Handler;
 export function lambdaHttpAdapter(
   controller: Controller<Controller.RouteType, unknown>,
-) {
-  return async (event: Event): Promise<APIGatewayProxyStructuredResultV2> => {
+  resolveCaller?: ResolveCallerUseCase,
+): Handler {
+  return async (event) => {
     try {
-      const caller = lambdaCaller(event);
+      const caller = await lambdaCaller(event, resolveCaller);
       const body = lambdaBodyParser(
         event.body,
         event.isBase64Encoded,
@@ -79,20 +90,23 @@ export function lambdaHttpAdapter(
 type Caller =
   { accountId: string; role: Account.Role } | { accountId: null; role: null };
 
-function lambdaCaller(event: Event): Caller {
+async function lambdaCaller(
+  event: Event,
+  resolveCaller: ResolveCallerUseCase | undefined,
+): Promise<Caller> {
   if (!('authorizer' in event.requestContext)) {
     return { accountId: null, role: null };
   }
 
-  const { internalId, role } = event.requestContext.authorizer.jwt.claims;
+  if (!resolveCaller) {
+    throw new Error('A private route needs a caller resolver.');
+  }
+
+  const { internalId } = event.requestContext.authorizer.jwt.claims;
 
   if (typeof internalId !== 'string' || internalId === '') {
     throw new InvalidSession();
   }
 
-  if (!Account.isRole(role)) {
-    throw new InvalidSession();
-  }
-
-  return { accountId: internalId, role };
+  return resolveCaller.execute({ accountId: internalId });
 }
