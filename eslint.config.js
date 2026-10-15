@@ -30,7 +30,7 @@ const layerRules = Object.entries(forbiddenImports).map(
 );
 
 export default defineConfig([
-  { ignores: ['node_modules/'] },
+  { ignores: ['node_modules/', '.serverless/'] },
   js.configs.recommended,
   tseslint.configs.strictTypeChecked,
   tseslint.configs.stylisticTypeChecked,
@@ -48,6 +48,7 @@ export default defineConfig([
         'error',
         {
           groups: [
+            ['^\\u0000'],
             ['^node:'],
             ['^@?\\w'],
             ['^@(application|infra|kernel|main|shared)/'],
