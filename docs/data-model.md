@@ -165,8 +165,63 @@ Revisão da Q22 com o escopo atual (Q65 a Q68). As colunas de índice, chaves e 
 | 19 | Materiais de uma aula | em ordem de posição | aluno ativo | média |
 | 20 | Arquivo por id | atualizar o status pelo trigger do S3 | sistema | média |
 | 21 | Exportações de um curso; exportação por id | mais recentes primeiro | instrutor | baixa |
+| 22 | Abrir uma aula | conteúdo, vídeo e materiais; só matrícula ativa | aluno | alta |
 | — | Conta `PENDING` vencida, upload `PENDING` abandonado | TTL, sem query | sistema | — |
 
 Fora do DynamoDB, de propósito: outras ordens e filtros do catálogo vão para o Algolia (Q66); busca de usuários por nome espera o painel de admin (Q67).
 
 Pontos críticos para o passo 3 (Q68): o padrão 16 grava num item à parte, pequeno, para não reescrever a matrícula; o padrão 8b é um `GetItem` pela chave aluno + curso, sem índice.
+
+## 3. Quadro de entidades
+
+Tabela `MainTable` com `PK` e `SK`, e dois índices globais sobrecarregados, `GSI1` (`GSI1PK`, `GSI1SK`) e `GSI2` (`GSI2PK`, `GSI2SK`). Todo item leva `type` e `id`. Ids são KSUID, que ordenam por tempo (`dynamodb-key-design`). Decisões: Q71 a Q78.
+
+| Entidade | PK | SK | GSI1PK / GSI1SK | GSI2PK / GSI2SK |
+|---|---|---|---|---|
+| Account | `ACCOUNT#<accountId>` | `ACCOUNT#<accountId>` | `ROLE#<role>` / `ACCOUNT#<accountId>` | `EMAIL#<email>` / `ACCOUNT#<accountId>` |
+| RoleChange | `ACCOUNT#<accountId>` | `ROLE_CHANGE#<changeId>` | | |
+| Course | `COURSE#<courseId>` | `COURSE#<courseId>` | `INSTRUCTOR#<instructorId>` / `COURSE#<courseId>` | só publicados: `CATALOG` / `<publishedAt>#<courseId>` |
+| Module | `COURSE#<courseId>` | `MODULE#<moduleId>` | | |
+| Lesson (sumário) | `COURSE#<courseId>` | `MODULE#<moduleId>#LESSON#<lessonId>` | | |
+| LessonContent | `LESSON#<lessonId>` | `CONTENT` | | |
+| Enrollment | `ACCOUNT#<accountId>` | `ENROLLMENT#<courseId>` | só ativas: `COURSE#<courseId>` / `ENROLLMENT#<enrolledAt>#<accountId>` | |
+| Progress (posição) | `ACCOUNT#<accountId>` | `PROGRESS#<courseId>` | | |
+| LessonProgress | `ACCOUNT#<accountId>` | `PROGRESS#<courseId>#LESSON#<lessonId>` | | |
+| Review | `ACCOUNT#<accountId>` | `REVIEW#<courseId>` | `COURSE#<courseId>` / `REVIEW#<createdAt>#<accountId>` | |
+| File | `<OWNER>#<ownerId>` | `FILE#<purpose>#<fileId>` | | |
+| StudentExport | `EXPORT#<exportId>` | `EXPORT#<exportId>` | `COURSE#<courseId>` / `EXPORT#<exportId>` | |
+
+### Itens físicos que não são entidades
+
+- **Reserva de e-mail** (Q78): `PK = SK = EMAIL_CLAIM#<email normalizado>`, com `accountId`. Gravada e movida só pelo `AccountRepository`, na mesma transação da Account, com `attribute_not_exists(PK)`. Não entra em índice.
+
+### Regras de escrita
+
+- Toda escrita que toca mais de um item é uma transação (Q71).
+- A posição de módulos e aulas é atributo; o padrão 6 ordena no código. Mover aula de módulo é delete + put em transação.
+- Criações usam `attribute_not_exists(PK)` (aula concluída uma vez, uma avaliação por par, unicidade do e-mail).
+- O e-mail é normalizado (trim, minúsculas) antes de entrar em qualquer chave.
+
+### Como cada padrão é servido
+
+| # | Padrão | Índice | Chave | Operação |
+|---|---|---|---|---|
+| 1 | Conta por id | tabela | `ACCOUNT#a` / `ACCOUNT#a` | Get |
+| 1b | Conta por e-mail | `GSI2` | `EMAIL#e` | Query |
+| 2 | Usuários por papel | `GSI1` | `ROLE#r` | Query, de trás para frente; status por filtro |
+| 4 | Cursos do instrutor | `GSI1` | `INSTRUCTOR#i` | Query, de trás para frente |
+| 5 | Catálogo | `GSI2` | `CATALOG` | Query, de trás para frente |
+| 6 | Curso completo | tabela | `COURSE#c` | Query (curso, módulos, aulas, capa) |
+| 8b | Matrícula aluno + curso | tabela | `ACCOUNT#a` / `ENROLLMENT#c` | Get |
+| 9 | Minhas matrículas | tabela | `ACCOUNT#a`, `begins_with ENROLLMENT#` | Query com filtro de ativas |
+| 10 | Alunos do curso | `GSI1` | `COURSE#c`, `begins_with ENROLLMENT#` | Query |
+| 11 | Concluir aula | tabela | `ACCOUNT#a` / `PROGRESS#c#LESSON#l` | Put condicional + update do contador, em transação |
+| 12 | Meu progresso | tabela | `ACCOUNT#a`, `begins_with PROGRESS#c` | Query |
+| 13 | Minha avaliação | tabela | `ACCOUNT#a` / `REVIEW#c` | Get / Put condicional |
+| 14 | Avaliações do curso | `GSI1` | `COURSE#c`, `begins_with REVIEW#` | Query, de trás para frente |
+| 16 | Salvar posição | tabela | `ACCOUNT#a` / `PROGRESS#c` | Update |
+| 17 | Histórico de papéis | tabela | `ACCOUNT#a`, `begins_with ROLE_CHANGE#` | Query, de trás para frente |
+| 18 | Arquivo atual do dono | tabela | `<OWNER>#o`, `begins_with FILE#<purpose>#` | Query |
+| 19, 22 | Abrir aula, materiais | tabela | `LESSON#l` | Query (conteúdo, vídeo, materiais) |
+| 20 | Arquivo por id | tabela | derivada da chave do S3 | Get |
+| 21 | Exportações | `GSI1` / tabela | `COURSE#c`, `begins_with EXPORT#` / `EXPORT#e` | Query / Get |
