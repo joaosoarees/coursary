@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.13 na `develop` e em `dev`, conferidas por `pnpm e2e:dev` (Q218, 26 checagens); 1.14 (módulos e aulas) em grilling na `feat/1.14-modules-and-lessons`, decisões Q222 a Q228**.
+Última atualização: 2026-10-15. Estado: **histórias 1.0 a 1.13 na `develop` e em `dev`, conferidas por `pnpm e2e:dev` (Q218, 26 checagens); 1.14 (módulos e aulas) em grilling na `feat/1.14-modules-and-lessons`, decisões Q222 a Q231, sub-imp 1.14.a a 1.14.f**.
 
 ## Como retomar
 
@@ -282,6 +282,9 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q226 | Campos e limites | Módulo: título 3 a 120. Aula: título 3 a 120, `body` Markdown até 32 KiB em bytes UTF-8 (vazio permitido), `durationMinutes` inteiro 1 a 600. Criar aula grava sumário, conteúdo e `lessonCount` numa transação. |
 | Q227 | Tamanho do outline | Só os itens que mudam de lugar são gravados (posição: 1 operação; troca de módulo: 2); passou de 100 → `400 OUTLINE_TOO_LARGE`. A Q86 fica para quando aparecer. |
 | Q228 | Permissões de módulos e aulas | As do curso: `courses:update` (dono) e `courses:update-any` (admin), com a Q95. |
+| Q229 | O que o outline aceita | Só reordena: o corpo traz exatamente os módulos e aulas existentes, cada um uma vez; senão `400 OUTLINE_MISMATCH`. Cada item que muda vai com `attribute_exists`; se sumiu no meio, `409 CONFLICT`. |
+| Q230 | Regra de edição na entidade | `course.requireEditableBy(callerId, callerRole)` lança `CourseNotFound`, `Forbidden` ou `CourseArchived` (dono ou `update-any`, Q95, arquivado); o `UpdateCourseUseCase` passa a usá-la. |
+| Q231 | Sub-imp da 1.14 | a. `UnitOfWork` (commit, retry em conflito, tradução) e `requireEditableBy`; b. `Module`, `Lesson`, itens, repositórios de operações e query do outline; c. use cases de módulo; d. use cases de aula com `lessonCount`; e. outline `GET` e `PUT`; f. nove rotas, Yaak e `e2e:dev`. Sem ação IAM nova. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
