@@ -179,6 +179,8 @@ Atualizado ao fim de cada história (no Épico 0 e na implementação).
   - **O dono pode recusar as duas alternativas e preferir o que existe** (forma do controller, modelos de resposta). Uma proposta que mexe em gosto vem com protótipo compilado, e "manter" é uma resposta válida.
   - Achados baratos aparecem na medição, não na leitura do código: `versionFunctions` ligado por padrão acumulava uma versão por deploy em 34 funções.
   - A organização de pastas é parte do que o dono chama de "confuso": três convenções para a mesma coisa pesam mais que a escolha entre camada e domínio.
+  - **Refatoração mecânica por script, conferida pelo compilador**: mover 62 arquivos e reescrever imports a partir de um mapa único; levar a montagem das fábricas para os arquivos de função; dividir testes por bloco e limpar imports pelo relatório do lint. O typecheck, os testes e o carregamento de cada pacote provam que nada mudou.
+  - **Uma ambiguidade na pergunta aparece na execução** (a Q250 falava dos use cases com transação; o resumo, de "fakes só para o Cognito"): fazer o escopo sem dúvida e perguntar o resto, em vez de escolher em silêncio.
 
 ## Etapas seguintes (ainda não percorridas)
 
