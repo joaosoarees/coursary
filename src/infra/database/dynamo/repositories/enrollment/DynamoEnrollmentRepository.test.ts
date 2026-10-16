@@ -9,6 +9,7 @@ import { Enrollment } from '@application/entities/enrollment/Enrollment';
 import { Conflict } from '@application/errors/common';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { DynamoUnitOfWork } from '@infra/database/dynamo/DynamoUnitOfWork';
+import type { EnrollmentItem } from '@infra/database/dynamo/items/enrollment/EnrollmentItem';
 import { DynamoCourseRepository } from '@infra/database/dynamo/repositories/course/DynamoCourseRepository';
 import { DynamoEnrollmentRepository } from '@infra/database/dynamo/repositories/enrollment/DynamoEnrollmentRepository';
 import { AppConfig } from '@shared/config/AppConfig';
@@ -51,7 +52,7 @@ const count = async (course: Course) =>
   (await courses.findById(course.id))?.enrollmentCount;
 
 describe('DynamoEnrollmentRepository', () => {
-  it('should enroll, cancel and enroll again, keeping the count and the place in the list', async () => {
+  it('should enroll, cancel and enroll again, keeping the count and the place in both lists', async () => {
     const course = await publishedCourse();
     const student = Account.create({ name: 'Bia', email: 'b@example.com' });
     const enrollment = Enrollment.create({ student, course });
@@ -61,21 +62,26 @@ describe('DynamoEnrollmentRepository', () => {
       enrollments.createOperation(enrollment),
       courses.addEnrollmentsOperation(course, 1, rule),
     );
-    const listedAt = (await rawItem(enrollment))?.GSI1SK as string;
+    const listed = (await rawItem(enrollment)) as EnrollmentItem.ItemType;
     expect(await count(course)).toBe(1);
 
     await commit(
       enrollments.cancelOperation(enrollment),
       courses.addEnrollmentsOperation(course, -1, { requirePublished: false }),
     );
-    expect((await rawItem(enrollment))?.GSI1PK).toBeUndefined();
+    const cancelled = await rawItem(enrollment);
+    expect(cancelled?.GSI1PK).toBeUndefined();
+    expect(cancelled?.GSI2PK).toBeUndefined();
     expect(await count(course)).toBe(0);
 
     await commit(
       enrollments.reactivateOperation(enrollment),
       courses.addEnrollmentsOperation(course, 1, rule),
     );
-    expect((await rawItem(enrollment))?.GSI1SK).toBe(listedAt);
+    expect(await rawItem(enrollment)).toMatchObject({
+      GSI1SK: listed.GSI1SK,
+      GSI2SK: listed.GSI2SK,
+    });
     expect(
       (await enrollments.find(student.id, course.id, { consistent: true }))
         ?.status,
