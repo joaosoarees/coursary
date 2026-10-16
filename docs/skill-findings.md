@@ -424,7 +424,7 @@ Cada achado:
 
 #### 2026-10-16 · Q291 · acerto
 - **A skill diz**: não deixar rotas simples no padrão de 1024 MB; baixar a memória em passos, comparando a duração.
-- **O que aconteceu**: medido em `dev` com o `e2e:dev` (linhas `REPORT` no Logs Insights, por função). 512 MB deu as mesmas durações que 1024 MB. 256 MB deixou 31 de 34 funções de 1,6 a 3,2 vezes mais lentas, porque a CPU acompanha a memória e o trabalho é CPU (SDK, JSON, Zod). Com o dobro do tempo e metade da memória, o custo empata e a latência dobra. Ficou 512 MB, com metade do custo de 1024 MB. O pico de memória usada (cerca de 156 MB) não decide o valor; quem decide é a CPU.
+- **O que aconteceu**: medido em `dev` com o `e2e:dev` (linhas `REPORT` no Logs Insights, por função). 512 MB deu as mesmas durações que 1024 MB. 256 MB deixou 34 de 37 funções de 1,5 a 3,2 vezes mais lentas (as 3 que esperam o Cognito, de 14% a 17%), porque a CPU acompanha a memória e o trabalho é CPU (SDK, JSON, Zod). Com o dobro do tempo e metade da memória, o custo empata e a latência dobra. Ficou 512 MB, com metade do custo de 1024 MB. O pico de memória usada (cerca de 156 MB) não decide o valor; quem decide é a CPU.
 - **Sugestão**: dizer que o passo é julgado por função, e não no agregado; e que, abaixo do ponto em que a duração dobra, a economia some.
 
 ## Skills que faltam
