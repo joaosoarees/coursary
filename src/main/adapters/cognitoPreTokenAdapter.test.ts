@@ -1,9 +1,8 @@
 import type { PreTokenGenerationV2TriggerEvent } from 'aws-lambda';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
+import { accountWorld } from '@tests/support/accountWorld';
 
-import { Account } from '@application/entities/account/Account';
 import { IssueTokenClaimsUseCase } from '@application/usecases/auth/IssueTokenClaimsUseCase';
 import { cognitoPreTokenAdapter } from '@main/adapters/cognitoPreTokenAdapter';
 
@@ -16,19 +15,17 @@ const makeEvent = (internalId?: string) =>
     response: { claimsAndScopeOverrideDetails: {} },
   }) as unknown as PreTokenGenerationV2TriggerEvent;
 
-let accounts: InMemoryAccountRepository;
+let world: ReturnType<typeof accountWorld>;
 let handler: ReturnType<typeof cognitoPreTokenAdapter>;
 
 beforeEach(() => {
-  accounts = new InMemoryAccountRepository();
-  handler = cognitoPreTokenAdapter(new IssueTokenClaimsUseCase(accounts));
+  world = accountWorld();
+  handler = cognitoPreTokenAdapter(new IssueTokenClaimsUseCase(world.accounts));
 });
 
 describe('cognitoPreTokenAdapter', () => {
   it('should add the internal id and the role to the access token', async () => {
-    const account = Account.create({ name: 'Ana', email: 'ana@example.com' });
-    account.activate();
-    accounts.accounts.set(account.id, account);
+    const account = await world.addAccount();
 
     const event = await handler(makeEvent(account.id));
 

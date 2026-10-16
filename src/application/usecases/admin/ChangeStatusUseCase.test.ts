@@ -1,33 +1,31 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
+import { accountWorld } from '@tests/support/accountWorld';
 import { anAccountId } from '@tests/support/ids';
 
-import { Account, accountRoles } from '@application/entities/account/Account';
+import {
+  type Account,
+  accountRoles,
+  accountStatuses,
+} from '@application/entities/account/Account';
 import { AccountNotActive, AccountNotFound } from '@application/errors/account';
 import { CannotChangeOwnStatus } from '@application/errors/admin';
+import { Forbidden } from '@application/errors/common';
 import { ChangeStatusUseCase } from '@application/usecases/admin/ChangeStatusUseCase';
 
-let accounts: InMemoryAccountRepository;
+let world: ReturnType<typeof accountWorld>;
 let changeStatus: ChangeStatusUseCase;
 let admin: Account;
 let target: Account;
 
-const addAccount = async (name: string, role: Account.Role) => {
-  const account = Account.create({ name, email: `${name}@example.com` });
-  await accounts.create(account);
-  account.activate();
-  account.role = role;
-  account.session = { accessJti: 'jti-1', refreshTokenHash: 'hash-1' };
-
-  return account;
-};
-
 beforeEach(async () => {
-  accounts = new InMemoryAccountRepository();
-  changeStatus = new ChangeStatusUseCase(accounts);
-  admin = await addAccount('ana', accountRoles.Admin);
-  target = await addAccount('bia', accountRoles.Student);
+  world = accountWorld();
+  changeStatus = new ChangeStatusUseCase(world.accounts);
+  admin = await world.addAccount({ name: 'ana', role: accountRoles.Admin });
+  target = await world.addAccount({
+    name: 'bia',
+    session: { accessJti: 'jti-1', refreshTokenHash: 'hash-1' },
+  });
   vi.spyOn(console, 'info').mockImplementation(() => undefined);
 });
 
@@ -40,8 +38,10 @@ describe('ChangeStatusUseCase', () => {
       id: target.id,
       status: 'DISABLED',
     });
-    expect(target.status).toBe('DISABLED');
-    expect(target.session).toBeUndefined();
+    await expect(world.stored(target)).resolves.toMatchObject({
+      status: 'DISABLED',
+      session: undefined,
+    });
     expect(console.info).toHaveBeenCalledWith(
       expect.stringContaining(`"changedBy":"${admin.id}"`),
     );
@@ -56,18 +56,21 @@ describe('ChangeStatusUseCase', () => {
       status: 'ACTIVE',
     });
 
-    expect(target.status).toBe('ACTIVE');
-    expect(target.session).toBeUndefined();
+    await expect(world.stored(target)).resolves.toMatchObject({
+      status: 'ACTIVE',
+      session: undefined,
+    });
   });
 
   it('should write nothing when the account already has the status', async () => {
     await disable();
+    const changeStatusSpy = vi.spyOn(world.accounts, 'changeStatus');
 
     await expect(disable()).resolves.toEqual({
       id: target.id,
       status: 'DISABLED',
     });
-    expect(accounts.statusChanges).toHaveLength(1);
+    expect(changeStatusSpy).not.toHaveBeenCalled();
   });
 
   it('should refuse the caller own account', async () => {
@@ -83,9 +86,21 @@ describe('ChangeStatusUseCase', () => {
   });
 
   it('should refuse a pending account', async () => {
-    const pending = Account.create({ name: 'Caio', email: 'caio@example.com' });
-    await accounts.create(pending);
+    const pending = await world.addAccount({
+      name: 'caio',
+      status: accountStatuses.Pending,
+    });
 
     await expect(disable(pending.id)).rejects.toBeInstanceOf(AccountNotActive);
+  });
+
+  it('should refuse a caller who is no longer an active admin', async () => {
+    admin.status = accountStatuses.Disabled;
+    await world.save(admin);
+
+    await expect(disable()).rejects.toBeInstanceOf(Forbidden);
+    await expect(world.stored(target)).resolves.toMatchObject({
+      status: 'ACTIVE',
+    });
   });
 });

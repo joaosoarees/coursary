@@ -1,28 +1,24 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
+import { accountWorld } from '@tests/support/accountWorld';
+import { anAccountId } from '@tests/support/ids';
 
-import {
-  Account,
-  accountStatuses,
-} from '@application/entities/account/Account';
+import { accountStatuses } from '@application/entities/account/Account';
 import { AccountUnavailable } from '@application/errors/auth';
 import { IssueTokenClaimsUseCase } from '@application/usecases/auth/IssueTokenClaimsUseCase';
 
-let accounts: InMemoryAccountRepository;
+let world: ReturnType<typeof accountWorld>;
 let issueClaims: IssueTokenClaimsUseCase;
-let account: Account;
 
 beforeEach(() => {
-  accounts = new InMemoryAccountRepository();
-  issueClaims = new IssueTokenClaimsUseCase(accounts);
-  account = Account.create({ name: 'Ana', email: 'ana@example.com' });
-  account.activate();
-  accounts.accounts.set(account.id, account);
+  world = accountWorld();
+  issueClaims = new IssueTokenClaimsUseCase(world.accounts);
 });
 
 describe('IssueTokenClaimsUseCase', () => {
   it('should give the internal id and the role of an active account', async () => {
+    const account = await world.addAccount();
+
     await expect(
       issueClaims.execute({ internalId: account.id }),
     ).resolves.toEqual({ internalId: account.id, role: 'student' });
@@ -30,14 +26,14 @@ describe('IssueTokenClaimsUseCase', () => {
 
   it('should refuse an account that does not exist', async () => {
     await expect(
-      issueClaims.execute({ internalId: 'missing' }),
+      issueClaims.execute({ internalId: anAccountId() }),
     ).rejects.toBeInstanceOf(AccountUnavailable);
   });
 
   it.each([accountStatuses.Pending, accountStatuses.Disabled])(
     'should refuse a %s account',
     async (status) => {
-      account.status = status;
+      const account = await world.addAccount({ status });
 
       await expect(
         issueClaims.execute({ internalId: account.id }),

@@ -1,61 +1,62 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
+import { accountWorld, uniqueEmail } from '@tests/support/accountWorld';
 
 import {
-  Account,
+  type Account,
   accountStatuses,
 } from '@application/entities/account/Account';
 import { AccountUnavailable } from '@application/errors/auth';
 import { PromoteFirstAdminUseCase } from '@application/usecases/admin/PromoteFirstAdminUseCase';
 
-let accounts: InMemoryAccountRepository;
+let world: ReturnType<typeof accountWorld>;
 let promote: PromoteFirstAdminUseCase;
 let account: Account;
 
 beforeEach(async () => {
-  accounts = new InMemoryAccountRepository();
-  promote = new PromoteFirstAdminUseCase(accounts);
-  account = Account.create({ name: 'Ana', email: 'ana@example.com' });
-  await accounts.create(account);
-  account.activate();
+  world = accountWorld();
+  promote = new PromoteFirstAdminUseCase(world.accounts);
+  account = await world.addAccount({ name: 'ana' });
 });
 
 describe('PromoteFirstAdminUseCase', () => {
   it('should make an active account admin and record who did it', async () => {
     await expect(
-      promote.execute({ email: ' Ana@Example.com ' }),
+      promote.execute({ email: ` ${account.email.toUpperCase()} ` }),
     ).resolves.toEqual({ accountId: account.id, changed: true });
-    expect(account.role).toBe('admin');
-    expect(accounts.roleChanges).toMatchObject([
+    await expect(world.stored(account)).resolves.toMatchObject({
+      role: 'admin',
+    });
+    await expect(world.roleChanges(account)).resolves.toMatchObject([
       { fromRole: 'student', toRole: 'admin', changedBy: 'bootstrap' },
     ]);
   });
 
   it('should record nothing for an account that is already admin', async () => {
-    await promote.execute({ email: 'ana@example.com' });
+    await promote.execute({ email: account.email });
 
-    await expect(
-      promote.execute({ email: 'ana@example.com' }),
-    ).resolves.toEqual({ accountId: account.id, changed: false });
-    expect(accounts.roleChanges).toHaveLength(1);
+    await expect(promote.execute({ email: account.email })).resolves.toEqual({
+      accountId: account.id,
+      changed: false,
+    });
+    await expect(world.roleChanges(account)).resolves.toHaveLength(1);
   });
 
   it.each([accountStatuses.Pending, accountStatuses.Disabled])(
     'should refuse a %s account',
     async (status) => {
-      account.status = status;
+      const other = await world.addAccount({ name: 'bia', status });
 
       await expect(
-        promote.execute({ email: 'ana@example.com' }),
+        promote.execute({ email: other.email }),
       ).rejects.toBeInstanceOf(AccountUnavailable);
-      expect(accounts.roleChanges).toEqual([]);
+      await expect(world.roleChanges(other)).resolves.toEqual([]);
     },
   );
 
   it('should refuse an unknown e-mail', async () => {
     await expect(
-      promote.execute({ email: 'nobody@example.com' }),
+      promote.execute({ email: uniqueEmail('nobody') }),
     ).rejects.toBeInstanceOf(AccountUnavailable);
   });
 });

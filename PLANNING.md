@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-15. Estado: **fase 1 completa: histórias 1.0 a 1.15 na `develop` e em `dev`, conferidas por `pnpm e2e:dev` (Q218, 50 checagens); próxima: fase 2 (matrícula, progresso, avaliações), ainda sem quebra em histórias**.
+Última atualização: 2026-10-16. Estado: **fase 1 completa (1.0 a 1.15) e refatoração R.1 na `develop` e em `dev`, conferidas por `pnpm e2e:dev` (50 checagens); R.2 (fakes de conta fora, Q258) na `refactor/r2-account-fakes`, em PR; próxima: a 2.1 refeita a partir da `develop`**.
 
 ## Como retomar
 
@@ -11,7 +11,7 @@ Abra o Claude Code e diga:
 Ao retomar, o assistente deve:
 
 1. Ver no estado acima e na tabela "Fase 1: histórias" qual história é a próxima.
-2. Para retomar a 2.1 (matrícula): a `feat/2.1-enrollment` (local, sem push) tem a quebra da fase 2, as decisões Q242 a Q244 e a 2.1.a, todas anteriores à R.1. Rebasear sobre a `develop` e adaptar a 2.1.a ao formato novo: entidade em `entities/enrollment/`, item, repositório e testes nas subpastas de domínio, erros por `defineError`, e o `InMemoryEnrollmentRepository` trocado por testes contra o DynamoDB Local (Q250). Antes, responder a pergunta deixada aberta na R.1: os fakes de conta (`InMemoryAccountRepository`), usados pelos use cases de auth e admin, também saem (Q250 dizia "fakes só para o Cognito")? Depois, seguir a Q244 (2.1.b a 2.1.d) e estender o `pnpm e2e:dev`.
+2. Para retomar a 2.1 (matrícula), depois da R.2: a `feat/2.1-enrollment` (local, sem push) tem a quebra da fase 2, as decisões Q238 a Q244 e a 2.1.a, todas anteriores à R.1. Não rebasear: criar a branch de novo a partir da `develop`, trazer os commits de documentação por cherry-pick e reescrever a 2.1.a no domínio `enrollment` (Q259), com erros por `defineError` e testes contra o DynamoDB Local (Q250), usando o commit antigo como referência. Depois, seguir a Q244 (2.1.b a 2.1.d) e estender o `pnpm e2e:dev`.
 3. Seguir o "Começar tarefa X.X" do `CLAUDE.md`: branch a partir da `develop`, sub-imp propostas e discutidas antes de codar.
 4. Não refazer perguntas já fechadas.
 
@@ -304,6 +304,8 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q255 | Fonte da skill de projeto | `docs/process-log.md` atualizado com as etapas 12 a 15 e, daqui em diante, no fechamento de cada história. |
 | Q256 | Modelos de resposta | Ficam como hoje, cada um na subpasta de domínio da sua camada. |
 | Q257 | Mapa da reorganização | Entidades, erros, portas, use cases, schemas e itens/repositórios/queries Dynamo em subpastas de domínio (`account`, `admin`, `auth`, `catalog`, `course`, `outline`, `shared`); `usecases/admin` separado; `ResolveCaller` em `usecases/auth`; `CourseEditor` em `usecases/course`; schemas em `controllers/<domínio>/schemas.ts`. Ordem: versões, erros, fábricas, conta no controller, pastas, testes. |
+| Q258 | Fakes de conta | Saem também: o `InMemoryAccountRepository` reimplementava as condições de papel, status e sessão. Os specs que o usavam rodam contra o DynamoDB Local; só o `FakeAuthGateway` fica (Cognito). Feito na história de refatoração R.2, antes de retomar a 2.1. |
+| Q259 | Domínio da matrícula | `enrollment` em todas as camadas (entidade, erros, use cases, controllers, itens e repositórios Dynamo, `sls/functions/enrollment.yml`); o que é do curso, como `addEnrollmentsOperation`, fica em `course`. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)

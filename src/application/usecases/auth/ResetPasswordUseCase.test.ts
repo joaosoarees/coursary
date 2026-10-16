@@ -1,41 +1,40 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { FakeAuthGateway } from '@tests/fakes/FakeAuthGateway';
-import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
+import { accountWorld } from '@tests/support/accountWorld';
 
-import { Account } from '@application/entities/account/Account';
+import type { Account } from '@application/entities/account/Account';
 import { InvalidCode } from '@application/errors/auth';
 import { ResetPasswordUseCase } from '@application/usecases/auth/ResetPasswordUseCase';
 
-const params = {
-  email: ' Ana@Example.com ',
-  code: '012345',
-  newPassword: 'newsecret1',
-};
 const session = { accessJti: 'jti-1', refreshTokenHash: 'hash-1' };
 
+let world: ReturnType<typeof accountWorld>;
 let auth: FakeAuthGateway;
-let accounts: InMemoryAccountRepository;
 let account: Account;
 let resetPassword: ResetPasswordUseCase;
+let params: { email: string; code: string; newPassword: string };
 
 beforeEach(async () => {
+  world = accountWorld();
   auth = new FakeAuthGateway();
-  accounts = new InMemoryAccountRepository();
-  account = Account.create({ name: 'Ana', email: 'ana@example.com' });
-  await accounts.create(account);
-  account.session = session;
-  resetPassword = new ResetPasswordUseCase(auth, accounts);
+  account = await world.addAccount({ session });
+  resetPassword = new ResetPasswordUseCase(auth, world.accounts);
+  params = {
+    email: ` ${account.email.toUpperCase()} `,
+    code: '012345',
+    newPassword: 'newsecret1',
+  };
 });
 
 describe('ResetPasswordUseCase', () => {
   it('should set the new password and end the session', async () => {
     await resetPassword.execute(params);
 
-    expect(auth.passwordResets).toEqual([
-      { ...params, email: 'ana@example.com' },
-    ]);
-    expect(account.session).toBeUndefined();
+    expect(auth.passwordResets).toEqual([{ ...params, email: account.email }]);
+    await expect(world.stored(account)).resolves.toMatchObject({
+      session: undefined,
+    });
   });
 
   it('should end no session when the code is refused', async () => {
@@ -44,12 +43,12 @@ describe('ResetPasswordUseCase', () => {
     await expect(resetPassword.execute(params)).rejects.toBeInstanceOf(
       InvalidCode,
     );
-    expect(account.session).toEqual(session);
+    await expect(world.stored(account)).resolves.toMatchObject({ session });
   });
 
   it('should still succeed when the session could not be ended', async () => {
     const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    vi.spyOn(accounts, 'clearSession').mockRejectedValue(
+    vi.spyOn(world.accounts, 'clearSession').mockRejectedValue(
       new Error('throttled'),
     );
 
