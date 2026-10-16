@@ -314,6 +314,13 @@ Cada achado:
 - **O que aconteceu**: só o curso publicado tem `GSI2PK`/`GSI2SK` (`CATALOG` / `<publishedAt>#<id>`), gravados no mesmo `Update` do status; arquivar remove as duas chaves. Com `ReturnValuesOnConditionCheckFailure: 'ALL_OLD'`, o item antigo diz por que a condição falhou (sem item, arquivado, rascunho sem aula). O `Item` do erro vem como `AttributeValue` (`status.S`) mesmo pelo DocumentClient.
 - **Sugestão**: avisar que o `Item` de `ConditionalCheckFailedException` não é desserializado pelo DocumentClient.
 
+### `using-test-doubles`, `designing-testable-code` (R.2)
+
+#### 2026-10-16 · R.2 · erro
+- **A skill diz**: quando o comportamento depende de estado (gravar e depois ler), use um fake, como um repositório em memória, e mantenha o teste unitário. Ela justifica: um repositório real não responde "não encontrado" de forma confiável.
+- **O que aconteceu**: o `InMemoryAccountRepository` reimplementava à mão as condições que o DynamoDB avalia (admin ativo no `ConditionCheck`, papel e status anteriores, hash do refresh token na rotação). Os testes conferiam o objeto que o próprio fake tinha mutado, não o que ficou gravado. Contra o DynamoDB Local, os mesmos casos provam a condição real, e ids KSUID aleatórios e e-mails únicos tornam o "não encontrado" estável. A recusa de quem deixou de ser admin ativo ao trocar o status nunca tinha sido testada. Ficaram 14 arquivos de teste no DynamoDB Local, 193 linhas de fake a menos, e falhas de infraestrutura simuladas com `vi.spyOn` no repositório real.
+- **Sugestão**: quando o repositório põe regra na escrita (condição, transação) e a base tem emulador local, testar contra o emulador; reservar o fake para serviços sem emulador (aqui, o Cognito). Um fake de repositório condicional é uma segunda implementação das regras, sem teste que prove que as duas concordam.
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |

@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-16. Estado: **fase 1 completa (1.0 a 1.15) e refatoração R.1 na `develop` e em `dev`, conferidas por `pnpm e2e:dev` (50 checagens); em andamento: R.2 (fakes de conta fora, Q258) na `refactor/r2-account-fakes`; depois, a 2.1 refeita a partir da `develop`**.
+Última atualização: 2026-10-16. Estado: **fase 1 completa (1.0 a 1.15) e refatoração R.1 na `develop` e em `dev`, conferidas por `pnpm e2e:dev` (50 checagens); R.2 (fakes de conta fora, Q258) na `refactor/r2-account-fakes`, em PR; próxima: a 2.1 refeita a partir da `develop`**.
 
 ## Como retomar
 
