@@ -13,3 +13,10 @@ getMyReview:
         method: GET
         path: /courses/{courseId}/review
         authorizer: CognitoAuthorizer
+
+listCourseReviews:
+  handler: src/main/functions/review/listCourseReviews.handler
+  events:
+    - httpApi:
+        method: GET
+        path: /courses/{courseId}/reviews

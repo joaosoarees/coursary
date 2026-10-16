@@ -27,6 +27,8 @@ export class DynamoCoursePageQuery implements CoursePageQuery {
       return null;
     }
 
+    const entity = CourseItem.toEntity(course);
+
     return {
       id: course.id,
       title: course.title,
@@ -34,6 +36,8 @@ export class DynamoCoursePageQuery implements CoursePageQuery {
       instructorName: course.instructorName,
       lessonCount: course.lessonCount,
       enrollmentCount: course.enrollmentCount,
+      ratingCount: entity.ratingCount,
+      ratingAverage: entity.ratingAverage(),
       publishedAt: course.publishedAt ?? '',
       ...DynamoCourseOutlineQuery.toOutline(items),
     };

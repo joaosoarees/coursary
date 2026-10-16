@@ -66,4 +66,22 @@ describe('DynamoCoursePageQuery', () => {
     });
     expect(JSON.stringify(page)).not.toContain('Secret body');
   });
+
+  it('should compute the rating average on read, null before any review', async () => {
+    const { course } = await courseWithLesson('Rated');
+    await courses.publish(course.id, new Date());
+    await expect(coursePage.execute(course.id)).resolves.toMatchObject({
+      ratingCount: 0,
+      ratingAverage: null,
+    });
+
+    const unit = new DynamoUnitOfWork();
+    unit.add(courses.addRatingsOperation(course, 9, 2));
+    await unit.commit();
+
+    await expect(coursePage.execute(course.id)).resolves.toMatchObject({
+      ratingCount: 2,
+      ratingAverage: 4.5,
+    });
+  });
 });

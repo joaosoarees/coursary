@@ -11,6 +11,9 @@ export namespace CatalogQuery {
     instructorName: string;
     lessonCount: number;
     enrollmentCount: number;
+    ratingCount: number;
+    // Computed on read; null before the first review (Q83, Q283).
+    ratingAverage: number | null;
     publishedAt: string;
   }
 }

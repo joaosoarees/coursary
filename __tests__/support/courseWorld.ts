@@ -9,6 +9,7 @@ import { DynamoUnitOfWork } from '@infra/database/dynamo/DynamoUnitOfWork';
 import { DynamoCourseProgressQuery } from '@infra/database/dynamo/queries/enrollment/DynamoCourseProgressQuery';
 import { DynamoListCourseStudentsQuery } from '@infra/database/dynamo/queries/enrollment/DynamoListCourseStudentsQuery';
 import { DynamoCourseOutlineQuery } from '@infra/database/dynamo/queries/outline/DynamoCourseOutlineQuery';
+import { DynamoListCourseReviewsQuery } from '@infra/database/dynamo/queries/review/DynamoListCourseReviewsQuery';
 import { DynamoAccountRepository } from '@infra/database/dynamo/repositories/account/DynamoAccountRepository';
 import { DynamoCourseRepository } from '@infra/database/dynamo/repositories/course/DynamoCourseRepository';
 import { DynamoEnrollmentRepository } from '@infra/database/dynamo/repositories/enrollment/DynamoEnrollmentRepository';
@@ -66,6 +67,7 @@ export async function courseWorld() {
   const progress = new DynamoProgressRepository(config);
   const courseProgress = new DynamoCourseProgressQuery(config);
   const reviews = new DynamoReviewRepository(config);
+  const courseReviews = new DynamoListCourseReviewsQuery(config);
   const unitOfWork = () => new DynamoUnitOfWork();
   const owner = account('ana', accountRoles.Instructor);
   const other = account('bia', accountRoles.Instructor);
@@ -126,6 +128,7 @@ export async function courseWorld() {
     progress,
     courseProgress,
     reviews,
+    courseReviews,
     unitOfWork,
     owner,
     other,
