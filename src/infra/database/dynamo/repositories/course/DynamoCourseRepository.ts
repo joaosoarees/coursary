@@ -224,6 +224,32 @@ export class DynamoCourseRepository implements CourseRepository {
     });
   }
 
+  addEnrollmentsOperation(
+    course: Course,
+    delta: number,
+    { requirePublished }: { requirePublished: boolean },
+  ): UnitOfWork.Operation {
+    return DynamoUnitOfWork.operation({
+      Update: {
+        TableName: this.config.mainTableName,
+        Key: this.keyOf(course),
+        UpdateExpression: 'ADD enrollmentCount :delta',
+        ConditionExpression: requirePublished
+          ? '#status = :published'
+          : 'attribute_exists(PK)',
+        ...(requirePublished
+          ? {
+              ExpressionAttributeNames: { '#status': 'status' },
+              ExpressionAttributeValues: {
+                ':delta': delta,
+                ':published': courseStatuses.Published,
+              },
+            }
+          : { ExpressionAttributeValues: { ':delta': delta } }),
+      },
+    });
+  }
+
   private keyOf(course: Course) {
     return { PK: CourseItem.getPK(course.id), SK: CourseItem.getSK(course.id) };
   }
