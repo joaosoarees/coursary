@@ -185,7 +185,7 @@ Tabela `MainTable` com `PK` e `SK`, e dois índices globais sobrecarregados, `GS
 | Module | `COURSE#<courseId>` | `MODULE#<moduleId>` | | |
 | Lesson (sumário) | `COURSE#<courseId>` | `MODULE#<moduleId>#LESSON#<lessonId>` | | |
 | LessonContent | `LESSON#<lessonId>` | `CONTENT` | | |
-| Enrollment | `ACCOUNT#<accountId>` | `ENROLLMENT#<courseId>` | só ativas: `COURSE#<courseId>` / `ENROLLMENT#<enrolledAt>#<accountId>` | |
+| Enrollment | `ACCOUNT#<accountId>` | `ENROLLMENT#<courseId>` | só ativas: `COURSE#<courseId>` / `ENROLLMENT#<enrolledAt>#<accountId>` | só ativas: `ENROLLMENTS#<accountId>` / `<enrolledAt>#<courseId>` (Q268) |
 | Progress (posição) | `ACCOUNT#<accountId>` | `PROGRESS#<courseId>` | | |
 | LessonProgress | `ACCOUNT#<accountId>` | `PROGRESS#<courseId>#LESSON#<lessonId>` | | |
 | Review | `ACCOUNT#<accountId>` | `REVIEW#<courseId>` | `COURSE#<courseId>` / `REVIEW#<createdAt>#<accountId>` | |
@@ -208,7 +208,7 @@ Tabela `MainTable` com `PK` e `SK`, e dois índices globais sobrecarregados, `GS
 - O curso nasce `DRAFT` com `lessonCount` e `enrollmentCount` zerados e `instructorName` copiado da conta (Q204); `ratingSum`/`ratingCount` só entram com as avaliações (Q112). A edição exige `status <> ARCHIVED` na própria escrita, com `ReturnValuesOnConditionCheckFailure` para separar curso inexistente de arquivado.
 - Publicar grava `status`, `publishedAt` e `GSI2PK`/`GSI2SK` (`CATALOG` / `<publishedAt>#<courseId>`) num `Update` condicionado a `status = DRAFT AND lessonCount > 0`; arquivar exige `status = PUBLISHED` e remove as chaves do `GSI2` (Q232, Q233). A página pública lê a partição `COURSE#c` inteira numa `Query` (padrão 6).
 - A `session` (`accessJti`, `refreshTokenHash` = SHA-256 do refresh token) é a sessão única da conta (Q210, Q211): o sign-in a substitui, o refresh a troca só com condição `session.refreshTokenHash = :anterior`, e o reset de senha e a desativação a removem. O adapter das rotas privadas exige a claim `jti` igual a `session.accessJti`. Só existe no item com alguém conectado.
-- Matricular é `Put` condicional da Enrollment (`ACTIVE`, chaves do `GSI1`) + `ADD enrollmentCount 1` com o curso `PUBLISHED`; rematricular volta `CANCELLED` → `ACTIVE` e regrava o `GSI1` com o `enrolledAt` original; cancelar volta `ACTIVE` → `CANCELLED`, remove o `GSI1` e faz `ADD -1` exigindo só que o curso exista (Q243). A propagação do `studentName` lê a partição `ACCOUNT#a`, não o índice, para alcançar também as canceladas.
+- Matricular é `Put` condicional da Enrollment (`ACTIVE`, chaves do `GSI1`) + `ADD enrollmentCount 1` com o curso `PUBLISHED`; rematricular volta `CANCELLED` → `ACTIVE` e regrava o `GSI1` e o `GSI2` com o `enrolledAt` original; cancelar volta `ACTIVE` → `CANCELLED`, remove o `GSI1` e o `GSI2` e faz `ADD -1` exigindo só que o curso exista (Q243). A propagação do `studentName` lê a partição `ACCOUNT#a`, não o índice, para alcançar também as canceladas.
 - O `externalId` (o `sub` do Cognito) nasce vazio e é gravado na Account depois do `SignUp` (1.4.f); o atributo só existe no item quando preenchido.
 
 ### Como cada padrão é servido
@@ -223,7 +223,7 @@ Tabela `MainTable` com `PK` e `SK`, e dois índices globais sobrecarregados, `GS
 | 5 | Catálogo | `GSI2` | `CATALOG` | Query, de trás para frente |
 | 6 | Curso completo | tabela | `COURSE#c` | Query (curso, módulos, aulas, capa) |
 | 8b | Matrícula aluno + curso | tabela | `ACCOUNT#a` / `ENROLLMENT#c` | Get |
-| 9 | Minhas matrículas | tabela | `ACCOUNT#a`, `begins_with ENROLLMENT#` | Query com filtro de ativas |
+| 9 | Minhas matrículas | `GSI2` | `ENROLLMENTS#a` | Query, de trás para frente, + `BatchGet` dos cursos da página (Q80, Q268) |
 | 10 | Alunos do curso | `GSI1` | `COURSE#c`, `begins_with ENROLLMENT#` | Query |
 | 11 | Concluir aula | tabela | `ACCOUNT#a` / `PROGRESS#c#LESSON#l` | Put condicional + update do contador, em transação |
 | 12 | Meu progresso | tabela | `ACCOUNT#a`, `begins_with PROGRESS#c` | Query |
@@ -241,9 +241,9 @@ Tabela `MainTable` com `PK` e `SK`, e dois índices globais sobrecarregados, `GS
 | Índice | Chaves | Projeção | Quem usa |
 |---|---|---|---|
 | `GSI1` | `GSI1PK`, `GSI1SK` | `ALL` | Account por papel (2), cursos do instrutor (4), alunos ativos (10, esparso), avaliações (14), exportações (21) |
-| `GSI2` | `GSI2PK`, `GSI2SK` | `ALL` | Conta por e-mail (1b), catálogo (5, esparso: só cursos publicados) |
+| `GSI2` | `GSI2PK`, `GSI2SK` | `ALL` | Conta por e-mail (1b), catálogo (5, esparso: só cursos publicados), minhas matrículas (9, esparso: só ativas) |
 
-Os dois são genéricos: a entidade escreve os atributos de índice que precisa e o prefixo separa os padrões (Q79). Uma matrícula cancelada perde `GSI1PK`/`GSI1SK`; um curso que deixa de estar publicado perde `GSI2PK`/`GSI2SK`.
+Os dois são genéricos: a entidade escreve os atributos de índice que precisa e o prefixo separa os padrões (Q79). Uma matrícula cancelada perde `GSI1PK`/`GSI1SK` e `GSI2PK`/`GSI2SK`; um curso que deixa de estar publicado perde `GSI2PK`/`GSI2SK`.
 
 ## 5. Cópias e contadores
 
