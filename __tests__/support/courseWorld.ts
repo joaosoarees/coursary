@@ -27,6 +27,29 @@ const account = (name: string, role: Account.Role) => {
   return created;
 };
 
+interface CourseFields {
+  status?: Course.Status;
+  lessonCount?: number;
+}
+
+// Writes the fields straight to the stored course, past the repository's rules.
+export async function setCourseFields(course: Course, fields: CourseFields) {
+  const entries = Object.entries(fields);
+  await dynamoClient.send(
+    new UpdateCommand({
+      TableName: config.mainTableName,
+      Key: { PK: `COURSE#${course.id}`, SK: `COURSE#${course.id}` },
+      UpdateExpression: `SET ${entries.map(([k]) => `#${k} = :${k}`).join(', ')}`,
+      ExpressionAttributeNames: Object.fromEntries(
+        entries.map(([k]) => [`#${k}`, k]),
+      ),
+      ExpressionAttributeValues: Object.fromEntries(
+        entries.map(([k, v]) => [`:${k}`, v]),
+      ),
+    }),
+  );
+}
+
 // A draft course in DynamoDB Local, its owner, another instructor and an admin.
 export async function courseWorld() {
   const accounts = new DynamoAccountRepository(config);
@@ -52,25 +75,7 @@ export async function courseWorld() {
     courseId: course.id,
   });
 
-  const setCourse = async (fields: {
-    status?: Course.Status;
-    lessonCount?: number;
-  }) => {
-    const entries = Object.entries(fields);
-    await dynamoClient.send(
-      new UpdateCommand({
-        TableName: config.mainTableName,
-        Key: { PK: `COURSE#${course.id}`, SK: `COURSE#${course.id}` },
-        UpdateExpression: `SET ${entries.map(([k]) => `#${k} = :${k}`).join(', ')}`,
-        ExpressionAttributeNames: Object.fromEntries(
-          entries.map(([k]) => [`#${k}`, k]),
-        ),
-        ExpressionAttributeValues: Object.fromEntries(
-          entries.map(([k, v]) => [`:${k}`, v]),
-        ),
-      }),
-    );
-  };
+  const setCourse = (fields: CourseFields) => setCourseFields(course, fields);
 
   const addModule = async (title: string, position: number) => {
     const module = Module.create({ courseId: course.id, title, position });

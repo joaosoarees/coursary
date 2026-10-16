@@ -1,5 +1,7 @@
-import { GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { GetCommand } from '@aws-sdk/lib-dynamodb';
 import { describe, expect, it } from 'vitest';
+
+import { setCourseFields } from '@tests/support/courseWorld';
 
 import { Account } from '@application/entities/account/Account';
 import { Course } from '@application/entities/course/Course';
@@ -25,14 +27,7 @@ const commit = async (...operations: Parameters<DynamoUnitOfWork['add']>) => {
 const publishedCourse = async () => {
   const course = Course.create({ instructor, title: 'T', description: '' });
   await courses.create(course);
-  await dynamoClient.send(
-    new UpdateCommand({
-      TableName: config.mainTableName,
-      Key: { PK: `COURSE#${course.id}`, SK: `COURSE#${course.id}` },
-      UpdateExpression: 'SET lessonCount = :one',
-      ExpressionAttributeValues: { ':one': 1 },
-    }),
-  );
+  await setCourseFields(course, { lessonCount: 1 });
 
   return courses.publish(course.id, new Date());
 };

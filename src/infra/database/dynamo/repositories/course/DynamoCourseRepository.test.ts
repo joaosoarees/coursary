@@ -1,5 +1,7 @@
-import { GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { GetCommand } from '@aws-sdk/lib-dynamodb';
 import { describe, expect, it } from 'vitest';
+
+import { setCourseFields } from '@tests/support/courseWorld';
 
 import { Account } from '@application/entities/account/Account';
 import { Course } from '@application/entities/course/Course';
@@ -49,15 +51,7 @@ describe('DynamoCourseRepository', () => {
 
   it('should refuse to change an archived course', async () => {
     const course = await newCourse();
-    await dynamoClient.send(
-      new UpdateCommand({
-        TableName: config.mainTableName,
-        Key: { PK: `COURSE#${course.id}`, SK: `COURSE#${course.id}` },
-        UpdateExpression: 'SET #status = :archived',
-        ExpressionAttributeNames: { '#status': 'status' },
-        ExpressionAttributeValues: { ':archived': 'ARCHIVED' },
-      }),
-    );
+    await setCourseFields(course, { status: 'ARCHIVED' });
 
     await expect(
       repository.update(course.id, { title: 'X' }),
@@ -114,14 +108,7 @@ describe('DynamoCourseRepository', () => {
 
   it('should publish a course with lessons into the catalog and archive it out', async () => {
     const course = await newCourse();
-    await dynamoClient.send(
-      new UpdateCommand({
-        TableName: config.mainTableName,
-        Key: { PK: `COURSE#${course.id}`, SK: `COURSE#${course.id}` },
-        UpdateExpression: 'SET lessonCount = :one',
-        ExpressionAttributeValues: { ':one': 1 },
-      }),
-    );
+    await setCourseFields(course, { lessonCount: 1 });
 
     const published = await repository.publish(course.id, new Date());
     expect(published.status).toBe('PUBLISHED');
