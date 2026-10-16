@@ -760,7 +760,7 @@
               }
             ],
             "url": "{{baseUrl}}/courses/{{courseId}}/progress",
-            "description": "200 { completedLessons, completedLessonIds, lastLessonId, positionSeconds }; os dois últimos null enquanto nada foi salvo (Q279). Só matrícula ativa; demais como em Complete lesson. 401."
+            "description": "200 { completedLessons, completedLessonIds, lastLessonId, positionSeconds }; os dois últimos null enquanto nada foi salvo (Q279). completedLessonIds sem ordem com significado: cruze com o outline. Só matrícula ativa; demais como em Complete lesson. 401."
           }
         },
         {

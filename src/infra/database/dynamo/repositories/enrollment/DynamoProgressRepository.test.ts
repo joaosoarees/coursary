@@ -10,10 +10,6 @@ import type { Lesson } from '@application/entities/outline/Lesson';
 import { Conflict } from '@application/errors/common';
 import { AlreadyCompleted } from '@application/errors/enrollment';
 import { LessonNotFound } from '@application/errors/outline';
-import { DynamoProgressRepository } from '@infra/database/dynamo/repositories/enrollment/DynamoProgressRepository';
-import { AppConfig } from '@shared/config/AppConfig';
-
-const progress = new DynamoProgressRepository(new AppConfig());
 
 let world: Awaited<ReturnType<typeof courseWorld>>;
 let lesson: Lesson;
@@ -22,7 +18,9 @@ let enrollment: Enrollment;
 const complete = async (lessonId = lesson.id) => {
   const unit = world.unitOfWork();
   unit.add(
-    progress.completeOperation(LessonProgress.create({ enrollment, lessonId })),
+    world.progress.completeOperation(
+      LessonProgress.create({ enrollment, lessonId }),
+    ),
     world.enrollments.addCompletedLessonsOperation(enrollment, 1),
     world.lessons.inCourseOperation(world.course.id, lessonId),
   );
