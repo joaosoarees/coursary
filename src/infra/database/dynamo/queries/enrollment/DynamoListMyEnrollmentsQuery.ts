@@ -84,6 +84,10 @@ export class DynamoListMyEnrollmentsQuery implements ListMyEnrollmentsQuery {
       keys.length > 0 && round < DynamoListMyEnrollmentsQuery.maxBatchRounds;
       round++
     ) {
+      if (round > 0) {
+        await new Promise((resolve) => setTimeout(resolve, 50 * 2 ** round));
+      }
+
       const command = new BatchGetCommand({
         RequestItems: { [TableName]: { Keys: keys } },
       });
