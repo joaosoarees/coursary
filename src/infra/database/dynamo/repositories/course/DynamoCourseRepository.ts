@@ -2,7 +2,6 @@ import { ConditionalCheckFailedException } from '@aws-sdk/client-dynamodb';
 import {
   GetCommand,
   PutCommand,
-  QueryCommand,
   TransactWriteCommand,
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
@@ -24,6 +23,7 @@ import type { CourseRepository } from '@application/repositories/course/CourseRe
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { DynamoUnitOfWork } from '@infra/database/dynamo/DynamoUnitOfWork';
 import { CourseItem } from '@infra/database/dynamo/items/course/CourseItem';
+import { queryAll } from '@infra/database/dynamo/queryAll';
 import type { AppConfig } from '@shared/config/AppConfig';
 
 export class DynamoCourseRepository implements CourseRepository {
@@ -254,24 +254,15 @@ export class DynamoCourseRepository implements CourseRepository {
   private async courseKeysOf(
     instructorId: Account.Id,
   ): Promise<Record<string, unknown>[]> {
-    const keys: Record<string, unknown>[] = [];
-    let ExclusiveStartKey: Record<string, unknown> | undefined;
-
-    do {
-      const command = new QueryCommand({
-        TableName: this.config.mainTableName,
-        IndexName: 'GSI1',
-        KeyConditionExpression: 'GSI1PK = :pk',
-        ExpressionAttributeValues: {
-          ':pk': CourseItem.getGSI1PK(instructorId),
-        },
-        ProjectionExpression: 'PK, SK',
-        ExclusiveStartKey,
-      });
-      const page = await dynamoClient.send(command);
-      keys.push(...(page.Items ?? []));
-      ExclusiveStartKey = page.LastEvaluatedKey;
-    } while (ExclusiveStartKey);
+    const keys = await queryAll<Record<string, unknown>>({
+      TableName: this.config.mainTableName,
+      IndexName: 'GSI1',
+      KeyConditionExpression: 'GSI1PK = :pk',
+      ExpressionAttributeValues: {
+        ':pk': CourseItem.getGSI1PK(instructorId),
+      },
+      ProjectionExpression: 'PK, SK',
+    });
 
     return keys;
   }

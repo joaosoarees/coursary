@@ -1,9 +1,7 @@
-import { QueryCommand } from '@aws-sdk/lib-dynamodb';
-
 import type { CourseProgressQuery } from '@application/queries/enrollment/CourseProgressQuery';
-import { dynamoClient } from '@infra/clients/dynamoClient';
 import { CoursePositionItem } from '@infra/database/dynamo/items/enrollment/CoursePositionItem';
 import { LessonProgressItem } from '@infra/database/dynamo/items/enrollment/LessonProgressItem';
+import { queryAll } from '@infra/database/dynamo/queryAll';
 import type { AppConfig } from '@shared/config/AppConfig';
 
 type ProgressItem = CoursePositionItem.ItemType | LessonProgressItem.ItemType;
@@ -17,23 +15,14 @@ export class DynamoCourseProgressQuery implements CourseProgressQuery {
     accountId,
     courseId,
   }: CourseProgressQuery.Input): Promise<CourseProgressQuery.Result> {
-    const items: ProgressItem[] = [];
-    let ExclusiveStartKey: Record<string, unknown> | undefined;
-
-    do {
-      const command = new QueryCommand({
-        TableName: this.config.mainTableName,
-        KeyConditionExpression: 'PK = :pk AND begins_with(SK, :prefix)',
-        ExpressionAttributeValues: {
-          ':pk': CoursePositionItem.getPK(accountId),
-          ':prefix': CoursePositionItem.getSK(courseId),
-        },
-        ExclusiveStartKey,
-      });
-      const page = await dynamoClient.send(command);
-      items.push(...((page.Items ?? []) as ProgressItem[]));
-      ExclusiveStartKey = page.LastEvaluatedKey;
-    } while (ExclusiveStartKey);
+    const items = await queryAll<ProgressItem>({
+      TableName: this.config.mainTableName,
+      KeyConditionExpression: 'PK = :pk AND begins_with(SK, :prefix)',
+      ExpressionAttributeValues: {
+        ':pk': CoursePositionItem.getPK(accountId),
+        ':prefix': CoursePositionItem.getSK(courseId),
+      },
+    });
 
     const position = items.find(
       (item): item is CoursePositionItem.ItemType =>
