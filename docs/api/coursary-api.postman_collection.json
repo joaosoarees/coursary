@@ -649,7 +649,7 @@
           "request": {
             "method": "GET",
             "url": "{{baseUrl}}/courses?limit=20",
-            "description": "Público, sem token. 200 { items: [{ id, title, instructorName, lessonCount, enrollmentCount, publishedAt }], nextCursor }, publicados, mais recentes primeiro. 400 INVALID_CURSOR."
+            "description": "Público, sem token. 200 { items: [{ id, title, instructorName, lessonCount, enrollmentCount, publishedAt }], nextCursor }, publicados, mais recentes primeiro. 400 INVALID_CURSOR. Inclui ratingCount e ratingAverage (calculada na leitura, null sem avaliações; Q283)."
           }
         },
         {
@@ -657,7 +657,7 @@
           "request": {
             "method": "GET",
             "url": "{{baseUrl}}/courses/{{courseId}}",
-            "description": "Público, sem token. 200 { id, title, description, instructorName, lessonCount, enrollmentCount, publishedAt, modules: [{ id, title, position, lessons: [{ id, title, durationMinutes, position }] }] }, sem o corpo das aulas. Rascunho, arquivado ou inexistente: 404 COURSE_NOT_FOUND. Id malformado: 400 VALIDATION."
+            "description": "Público, sem token. 200 { id, title, description, instructorName, lessonCount, enrollmentCount, publishedAt, modules: [{ id, title, position, lessons: [{ id, title, durationMinutes, position }] }] }, sem o corpo das aulas. Rascunho, arquivado ou inexistente: 404 COURSE_NOT_FOUND. Id malformado: 400 VALIDATION. Inclui ratingCount e ratingAverage (calculada na leitura, null sem avaliações; Q283)."
           }
         }
       ]
@@ -783,6 +783,56 @@
               "raw": "{\n  \"lessonId\": \"{{lessonId}}\",\n  \"positionSeconds\": 120\n}"
             },
             "description": "204; guarda só a última posição (Q55, Q280), chamada a cada 15 a 30 s. positionSeconds inteiro de 0 a 86400, senão 400 VALIDATION. Só matrícula ativa; demais como em Complete lesson. 401."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "item": [
+        {
+          "name": "Review course",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/courses/{{courseId}}/review",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Great course\"\n}"
+            },
+            "description": "201 { courseId, rating, comment, createdAt, updatedAt } ao criar; 200 ao editar ou sem mudança (Q282). rating inteiro 1 a 5; comment opcional, até 2000, aparado; senão 400 VALIDATION. Só matrícula ativa (publicado ou arquivado); dono, admin e não matriculados: 403 FORBIDDEN em curso visível, 404 COURSE_NOT_FOUND em rascunho alheio. 401."
+          }
+        },
+        {
+          "name": "My review",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/courses/{{courseId}}/review",
+            "description": "200 com a avaliação do chamador, também depois de cancelar a matrícula; 404 REVIEW_NOT_FOUND se não avaliou (Q284). 401."
+          }
+        },
+        {
+          "name": "Course reviews (public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/courses/{{courseId}}/reviews?limit=20",
+            "description": "200 { items: [{ studentName, rating, comment, createdAt, updatedAt }], nextCursor }, sem login; só curso publicado (rascunho e arquivado: 404 COURSE_NOT_FOUND); mais recentes primeiro pela criação; limit 1 a 100 (Q283)."
           }
         }
       ]

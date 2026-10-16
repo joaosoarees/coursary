@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-16. Estado: **fase 1, R.1 a R.3, 2.1 a 2.4 na `develop` e em `dev`, `pnpm e2e:dev` 83 de 83; em andamento: 2.5 (avaliações, Q282 a Q285) na `feat/2.5-reviews`**.
+Última atualização: 2026-10-16. Estado: **fase 1, R.1 a R.3, 2.1 a 2.4 na `develop` e em `dev`, `pnpm e2e:dev` 83 de 83; 2.5 (avaliações, Q282 a Q285) na `feat/2.5-reviews`, em PR; o `e2e:dev` roda depois do merge; com ela a fase 2 fecha**.
 
 ## Como retomar
 
@@ -11,7 +11,7 @@ Abra o Claude Code e diga:
 Ao retomar, o assistente deve:
 
 1. Ver no estado acima e na tabela "Fase 1: histórias" qual história é a próxima.
-2. A próxima história é a 2.5 (Q238): avaliações (`PUT /courses/{courseId}/review`, `GET /courses/{courseId}/reviews` público, `ratingSum`/`ratingCount` na transação, propagação do nome). Seguir as convenções da R.3 (Q260 a Q267), nomes completos nos parâmetros (Q272) e passar o `/code-review` antes de abrir o PR.
+2. Com a 2.5, a fase 2 fecha. A próxima é a fase 3 (stream → SQS → Algolia e e-mails do domínio), que ainda precisa ser quebrada em histórias (etapa 12 do `process-log`). Antes, vale uma pausa de revisão (etapa 15) e decidir o achado do cursor público da 2.5 (o `accountId` vai codificado no cursor de `GET /courses/{courseId}/reviews`).
 3. Seguir o "Começar tarefa X.X" do `CLAUDE.md`: branch a partir da `develop`, sub-imp propostas e discutidas antes de codar.
 4. Não refazer perguntas já fechadas.
 

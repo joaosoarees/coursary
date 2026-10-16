@@ -227,8 +227,8 @@ Tabela `MainTable` com `PK` e `SK`, e dois índices globais sobrecarregados, `GS
 | 10 | Alunos do curso | `GSI1` | `COURSE#c`, `begins_with ENROLLMENT#` | Query |
 | 11 | Concluir aula | tabela | `ACCOUNT#a` / `PROGRESS#c#LESSON#l` | Put condicional + `ADD completedLessons` na matrícula `ACTIVE` + `ConditionCheck` do conteúdo da aula, em transação (Q278) |
 | 12 | Meu progresso | tabela | `ACCOUNT#a`, `begins_with PROGRESS#c` | Query (posição e aulas concluídas juntas) + contador da matrícula (Q279) |
-| 13 | Minha avaliação | tabela | `ACCOUNT#a` / `REVIEW#c` | Get / Put condicional |
-| 14 | Avaliações do curso | `GSI1` | `COURSE#c`, `begins_with REVIEW#` | Query, de trás para frente |
+| 13 | Minha avaliação | tabela | `ACCOUNT#a` / `REVIEW#c` | Get forte; criar: Put condicional + `ADD ratingSum, ratingCount` + `ConditionCheck` da matrícula; editar: Update condicionado à nota lida + `ADD` da diferença, em transação (Q282) |
+| 14 | Avaliações do curso | `GSI1` | `COURSE#c`, `begins_with REVIEW#` | Query, de trás para frente; só curso publicado, sem `accountId` na resposta (Q283) |
 | 16 | Salvar posição | tabela | `ACCOUNT#a` / `PROGRESS#c` | Get forte da matrícula + Put por cima, sem transação (Q280) |
 | 17 | Histórico de papéis | tabela | `ACCOUNT#a`, `begins_with ROLE_CHANGE#` | Query, de trás para frente |
 | 18 | Arquivo atual do dono | tabela | `<OWNER>#o`, `begins_with FILE#<purpose>#` | Query |
@@ -251,7 +251,7 @@ Cada valor duplicado tem um tipo e um dono (`dynamodb-denormalization`; Q80 a Q8
 
 | Atributo | Em | Tipo | Dono |
 |---|---|---|---|
-| `studentName` | Enrollment, Review | exibição | A rota que renomeia a conta: query em `ACCOUNT#a`, transações de até 100 itens |
+| `studentName` | Enrollment, Review | exibição | A rota que renomeia a conta: uma query por prefixo (`ENROLLMENT#`, `REVIEW#`) em `ACCOUNT#a`, transações de até 100 itens |
 | `instructorName` | Course | exibição | A rota que renomeia a conta: cursos do instrutor pelo `GSI1` |
 | `cover` (`fileId`, `variants`) | Course | exibição | O processador de imagem, na transação que marca o `FILE` como `PROCESSED` (Q85) |
 | `avatar` (`fileId`, `variants`) | Account | exibição | O mesmo, para o avatar (Q85) |
