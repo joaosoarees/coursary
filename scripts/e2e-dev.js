@@ -703,6 +703,79 @@ try {
     200,
   );
 
+  console.log('\n# Enrollment lists (2.2)');
+  // Both lists read a GSI, which is eventually consistent (Q268).
+  const eventually = async (read, done) => {
+    let last;
+
+    for (let attempt = 0; attempt < 5; attempt++) {
+      last = await read();
+
+      if (done(last)) {
+        return last;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 400));
+    }
+
+    return last;
+  };
+  const myEnrollments = () =>
+    call('GET', '/me/enrollments', { token: learnerToken });
+  const students = (token) =>
+    call('GET', `/courses/${courseId}/students`, { token });
+  const myList = await eventually(myEnrollments, (r) =>
+    r.body?.items?.some((item) => item.courseId === courseId),
+  );
+  check(
+    'the student finds the course among their enrollments, with its title',
+    {
+      status: myList.body?.items?.some(
+        (item) =>
+          item.courseId === courseId &&
+          item.title === publicPage.body?.title &&
+          item.courseStatus === 'PUBLISHED',
+      )
+        ? 200
+        : 500,
+      body: myList.body,
+    },
+    200,
+  );
+  const studentList = await eventually(
+    () => students(instructorToken),
+    (r) => r.body?.items?.length === 1,
+  );
+  check(
+    'the owner lists the student with the copied name',
+    {
+      status:
+        studentList.body?.items?.[0]?.accountId === plainStudent.accountId &&
+        studentList.body?.items?.[0]?.studentName === 'E2E Renamed Learner'
+          ? 200
+          : 500,
+      body: studentList.body,
+    },
+    200,
+  );
+  check(
+    'an admin lists the students too',
+    await students(adminTokens.accessToken),
+    200,
+  );
+  check(
+    'another instructor cannot list them',
+    await students(otherToken),
+    403,
+    'FORBIDDEN',
+  );
+  check(
+    'a student cannot list them',
+    await students(learnerToken),
+    403,
+    'FORBIDDEN',
+  );
+
   console.log('\n# Archive (1.15, Q52)');
   check(
     'the instructor archives the course',
@@ -716,6 +789,11 @@ try {
     await enrollment(otherToken),
     409,
     'COURSE_ARCHIVED',
+  );
+  check(
+    'the owner still lists the students of an archived course',
+    await students(instructorToken),
+    200,
   );
   check(
     'an enrolled student can still leave an archived course',

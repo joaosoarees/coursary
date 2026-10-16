@@ -57,7 +57,7 @@ export class DynamoEnrollmentRepository implements EnrollmentRepository {
         TableName: this.config.mainTableName,
         Key: this.keyOf(enrollment),
         UpdateExpression:
-          'SET #status = :active, GSI1PK = :gsi1pk, GSI1SK = :gsi1sk',
+          'SET #status = :active, GSI1PK = :gsi1pk, GSI1SK = :gsi1sk, GSI2PK = :gsi2pk, GSI2SK = :gsi2sk',
         ConditionExpression: '#status = :cancelled',
         ExpressionAttributeNames: { '#status': 'status' },
         ExpressionAttributeValues: {
@@ -67,6 +67,11 @@ export class DynamoEnrollmentRepository implements EnrollmentRepository {
           ':gsi1sk': EnrollmentItem.getGSI1SK(
             enrollment.enrolledAt.toISOString(),
             enrollment.accountId,
+          ),
+          ':gsi2pk': EnrollmentItem.getGSI2PK(enrollment.accountId),
+          ':gsi2sk': EnrollmentItem.getGSI2SK(
+            enrollment.enrolledAt.toISOString(),
+            enrollment.courseId,
           ),
         },
       },
@@ -78,7 +83,8 @@ export class DynamoEnrollmentRepository implements EnrollmentRepository {
       Update: {
         TableName: this.config.mainTableName,
         Key: this.keyOf(enrollment),
-        UpdateExpression: 'SET #status = :cancelled REMOVE GSI1PK, GSI1SK',
+        UpdateExpression:
+          'SET #status = :cancelled REMOVE GSI1PK, GSI1SK, GSI2PK, GSI2SK',
         ConditionExpression: '#status = :active',
         ExpressionAttributeNames: { '#status': 'status' },
         ExpressionAttributeValues: {

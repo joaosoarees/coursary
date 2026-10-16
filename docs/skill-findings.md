@@ -333,6 +333,18 @@ Cada achado:
 - **O que aconteceu**: o índice de alunos só tem as matrículas ativas. Propagar o `studentName` por ele deixaria as canceladas com o nome antigo, e elas voltam à lista na rematrícula. A propagação lê a partição do aluno (`ACCOUNT#a`, `begins_with ENROLLMENT#`), onde estão todas, em transações de até 100.
 - **Sugestão**: avisar que propagar por um índice esparso só alcança os itens que estão nele; propague pela coleção que contém todas as cópias.
 
+### `dynamodb-many-to-many-relationships`, `dynamodb-query-pagination` (2.2)
+
+#### 2026-10-16 · 2.2.a · lacuna
+- **A skill diz**: o lado da tabela de um par lê a coleção com uma Query; um filtro tira os itens que não interessam.
+- **O que aconteceu**: o SK da matrícula é `ENROLLMENT#<courseId>`, então a Query da tabela ordena pelo curso, não pela data da matrícula, e paga pelas canceladas que o filtro descarta. Um segundo índice esparso (`GSI2`, só ativas, `<enrolledAt>#<courseId>`) deu a ordem pedida e páginas sem leitura desperdiçada. O custo é uma escrita de índice por matrícula, que compensa numa lista lida muito mais do que escrita.
+- **Sugestão**: quando a ordem pedida não é a do SK, ou o filtro descarta boa parte, comparar o custo de leitura com o de um índice esparso na direção da tabela, e não só na direção invertida.
+
+#### 2026-10-16 · 2.2.b · acerto
+- **A skill diz**: busque os itens referenciados com `BatchGetItem` e peça de novo as `UnprocessedKeys`.
+- **O que aconteceu**: uma página tem no máximo 100 matrículas, então os cursos dela cabem num `BatchGet`. As chaves não processadas são pedidas de novo até três vezes; se ainda sobrar alguma, a requisição falha em vez de devolver uma lista incompleta como se estivesse completa. A ação IAM `BatchGetItem` entrou no mesmo commit (Q192).
+- **Sugestão**: nenhuma.
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |

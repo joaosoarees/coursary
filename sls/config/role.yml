@@ -2,6 +2,7 @@ statements:
   - Effect: Allow
     Action:
       - dynamodb:GetItem
+      - dynamodb:BatchGetItem
       - dynamodb:PutItem
       - dynamodb:UpdateItem
       - dynamodb:DeleteItem

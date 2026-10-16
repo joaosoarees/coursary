@@ -8,7 +8,8 @@ import { AccountItem } from '@infra/database/dynamo/items/account/AccountItem';
 import { CourseItem } from '@infra/database/dynamo/items/course/CourseItem';
 
 // Kept in the student's partition; only an active one is in the course's
-// list of students (a sparse index, Q49, Q73).
+// list of students and in the student's list of courses (sparse indexes, Q49,
+// Q73, Q268).
 export class EnrollmentItem {
   static readonly type = 'Enrollment';
 
@@ -25,6 +26,11 @@ export class EnrollmentItem {
             GSI1SK: EnrollmentItem.getGSI1SK(
               attributes.enrolledAt,
               attributes.accountId,
+            ),
+            GSI2PK: EnrollmentItem.getGSI2PK(attributes.accountId),
+            GSI2SK: EnrollmentItem.getGSI2SK(
+              attributes.enrolledAt,
+              attributes.courseId,
             ),
           }
         : {}),
@@ -77,6 +83,19 @@ export class EnrollmentItem {
   ): NonNullable<EnrollmentItem.Keys['GSI1SK']> {
     return `ENROLLMENT#${enrolledAt}#${accountId}`;
   }
+
+  static getGSI2PK(
+    accountId: Account.Id,
+  ): NonNullable<EnrollmentItem.Keys['GSI2PK']> {
+    return `ENROLLMENTS#${accountId}`;
+  }
+
+  static getGSI2SK(
+    enrolledAt: string,
+    courseId: Course.Id,
+  ): NonNullable<EnrollmentItem.Keys['GSI2SK']> {
+    return `${enrolledAt}#${courseId}`;
+  }
 }
 
 export namespace EnrollmentItem {
@@ -85,6 +104,8 @@ export namespace EnrollmentItem {
     SK: `ENROLLMENT#${string}`;
     GSI1PK?: `COURSE#${string}`;
     GSI1SK?: `ENROLLMENT#${string}#${string}`;
+    GSI2PK?: `ENROLLMENTS#${string}`;
+    GSI2SK?: `${string}#${string}`;
   }
 
   export interface Attributes {
