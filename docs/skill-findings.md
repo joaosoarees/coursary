@@ -359,6 +359,18 @@ Cada achado:
 - **O que aconteceu**: renomear `{id}` para `{accountId}` (Q272) quebrou o deploy, com `ConflictException: conflicting variable on the same hierarchical level`. O nome da variável faz parte do id lógico da rota, então o CloudFormation cria a rota nova antes de apagar a antiga, e o HTTP API não aceita duas variáveis diferentes no mesmo nível. A stack voltou atrás. A saída foram dois deploys: um sem as rotas e outro com os nomes novos (Q277).
 - **Sugestão**: avisar que o nome do parâmetro de rota não muda num deploy só; escolher os nomes certos desde a primeira rota, ou planejar a troca em dois deploys.
 
+### `dynamodb-item-operations`, `dynamodb-denormalization` (2.4)
+
+#### 2026-10-16 · 2.4.a · acerto
+- **A skill diz**: "uma vez só" é um Put com `attribute_not_exists`; o contador sobe na mesma transação, então uma repetição não conta duas vezes.
+- **O que aconteceu**: concluir aula é uma transação com o `Put` condicional do progresso, o `ADD completedLessons 1` na matrícula `ACTIVE` e um `ConditionCheck` no conteúdo da aula (`courseId` igual ao da rota), que prova que a aula é do curso sem precisar do módulo. Quando quem falha é o `Put`, a falha vira `AlreadyCompleted`, e o use case responde 200 sem gravar nada. A operação fica idempotente sem uma leitura antes.
+- **Sugestão**: mostrar que a condição que falhou, identificada pela posição em `CancellationReasons`, pode virar a resposta idempotente, em vez de exigir uma leitura prévia.
+
+#### 2026-10-16 · 2.4.d · acerto
+- **A skill diz**: transação só quando duas escritas precisam andar juntas; ela custa o dobro.
+- **O que aconteceu**: salvar a posição, a rota mais chamada (a cada 15 a 30 s), lê a matrícula com consistência forte e faz um `Put` simples: 1 RCU + 1 WCU, contra cerca de 4 WCU com `ConditionCheck` em transação. Se o aluno cancelar no meio, sobra só uma posição gravada a mais, sem dano.
+- **Sugestão**: nenhuma.
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |

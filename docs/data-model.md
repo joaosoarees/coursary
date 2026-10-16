@@ -186,7 +186,7 @@ Tabela `MainTable` com `PK` e `SK`, e dois índices globais sobrecarregados, `GS
 | Lesson (sumário) | `COURSE#<courseId>` | `MODULE#<moduleId>#LESSON#<lessonId>` | | |
 | LessonContent | `LESSON#<lessonId>` | `CONTENT` | | |
 | Enrollment | `ACCOUNT#<accountId>` | `ENROLLMENT#<courseId>` | só ativas: `COURSE#<courseId>` / `ENROLLMENT#<enrolledAt>#<accountId>` | só ativas: `ENROLLMENTS#<accountId>` / `<enrolledAt>#<courseId>` (Q268) |
-| Progress (posição) | `ACCOUNT#<accountId>` | `PROGRESS#<courseId>` | | |
+| CoursePosition (posição, Q280) | `ACCOUNT#<accountId>` | `PROGRESS#<courseId>` | | |
 | LessonProgress | `ACCOUNT#<accountId>` | `PROGRESS#<courseId>#LESSON#<lessonId>` | | |
 | Review | `ACCOUNT#<accountId>` | `REVIEW#<courseId>` | `COURSE#<courseId>` / `REVIEW#<createdAt>#<accountId>` | |
 | File | `<OWNER>#<ownerId>` | `FILE#<purpose>#<fileId>` | | |
@@ -225,11 +225,11 @@ Tabela `MainTable` com `PK` e `SK`, e dois índices globais sobrecarregados, `GS
 | 8b | Matrícula aluno + curso | tabela | `ACCOUNT#a` / `ENROLLMENT#c` | Get |
 | 9 | Minhas matrículas | `GSI2` | `ENROLLMENTS#a` | Query, de trás para frente, + `BatchGet` dos cursos da página (Q80, Q268) |
 | 10 | Alunos do curso | `GSI1` | `COURSE#c`, `begins_with ENROLLMENT#` | Query |
-| 11 | Concluir aula | tabela | `ACCOUNT#a` / `PROGRESS#c#LESSON#l` | Put condicional + update do contador, em transação |
-| 12 | Meu progresso | tabela | `ACCOUNT#a`, `begins_with PROGRESS#c` | Query |
+| 11 | Concluir aula | tabela | `ACCOUNT#a` / `PROGRESS#c#LESSON#l` | Put condicional + `ADD completedLessons` na matrícula `ACTIVE` + `ConditionCheck` do conteúdo da aula, em transação (Q278) |
+| 12 | Meu progresso | tabela | `ACCOUNT#a`, `begins_with PROGRESS#c` | Query (posição e aulas concluídas juntas) + contador da matrícula (Q279) |
 | 13 | Minha avaliação | tabela | `ACCOUNT#a` / `REVIEW#c` | Get / Put condicional |
 | 14 | Avaliações do curso | `GSI1` | `COURSE#c`, `begins_with REVIEW#` | Query, de trás para frente |
-| 16 | Salvar posição | tabela | `ACCOUNT#a` / `PROGRESS#c` | Update |
+| 16 | Salvar posição | tabela | `ACCOUNT#a` / `PROGRESS#c` | Get forte da matrícula + Put por cima, sem transação (Q280) |
 | 17 | Histórico de papéis | tabela | `ACCOUNT#a`, `begins_with ROLE_CHANGE#` | Query, de trás para frente |
 | 18 | Arquivo atual do dono | tabela | `<OWNER>#o`, `begins_with FILE#<purpose>#` | Query |
 | 19, 22 | Abrir aula, materiais | tabela | `LESSON#l` | Get do conteúdo (`CONTENT`) em paralelo com o curso e a matrícula (8b); vira Query quando vídeo e materiais entrarem (Q273) |

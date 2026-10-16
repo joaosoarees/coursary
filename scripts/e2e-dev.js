@@ -817,6 +817,54 @@ try {
     'LESSON_NOT_FOUND',
   );
 
+  console.log('\n# Progress (2.4)');
+  const completion = (lessonId, token = learnerToken) =>
+    call('PUT', `/courses/${courseId}/lessons/${lessonId}/completion`, {
+      token,
+    });
+  check('the student completes a lesson', await completion(l1), 201);
+  check('completing it again answers the same', await completion(l1), 200);
+  check(
+    'the owner has no progress to record',
+    await completion(l1, instructorToken),
+    403,
+    'FORBIDDEN',
+  );
+  check(
+    'the student saves where they stopped',
+    await call('PUT', `/courses/${courseId}/position`, {
+      token: learnerToken,
+      body: { lessonId: l3, positionSeconds: 42 },
+    }),
+    204,
+  );
+  check(
+    'a negative position is refused',
+    await call('PUT', `/courses/${courseId}/position`, {
+      token: learnerToken,
+      body: { lessonId: l3, positionSeconds: -1 },
+    }),
+    400,
+    'VALIDATION',
+  );
+  const progress = await call('GET', `/courses/${courseId}/progress`, {
+    token: learnerToken,
+  });
+  check(
+    'the progress counts the lesson and resumes at the position',
+    {
+      status:
+        progress.body?.completedLessons === 1 &&
+        progress.body?.completedLessonIds?.includes(l1) &&
+        progress.body?.lastLessonId === l3 &&
+        progress.body?.positionSeconds === 42
+          ? 200
+          : 500,
+      body: progress.body,
+    },
+    200,
+  );
+
   console.log('\n# Archive (1.15, Q52)');
   check(
     'the instructor archives the course',
@@ -846,6 +894,7 @@ try {
     await call('GET', outlinePath, { token: learnerToken }),
     200,
   );
+  check('and still records progress there', await completion(l3), 201);
   check(
     'an enrolled student can still leave an archived course',
     await enrollment(learnerToken, 'DELETE'),
