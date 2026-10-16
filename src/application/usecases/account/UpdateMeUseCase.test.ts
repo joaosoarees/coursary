@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { courseWorld } from '@tests/support/courseWorld';
 
@@ -20,7 +20,7 @@ beforeEach(async () => {
 });
 
 describe('UpdateMeUseCase', () => {
-  test('renames the account and copies the name into its courses', async () => {
+  it('should rename the account and copy the name into its courses', async () => {
     const profile = await updateMe.execute({
       account: world.owner,
       name: 'Ana Souza',
@@ -33,7 +33,7 @@ describe('UpdateMeUseCase', () => {
     expect((await world.storedCourse())?.instructorName).toBe('Ana Souza');
   });
 
-  test('copies the name into every enrollment of the student, cancelled ones too', async () => {
+  it('should copy the name into every enrollment of the student, cancelled ones too', async () => {
     const student = world.other;
     await world.accounts.create(student);
     await world.setCourse({ status: 'PUBLISHED' });
@@ -52,7 +52,7 @@ describe('UpdateMeUseCase', () => {
     ).resolves.toMatchObject({ status: 'CANCELLED', studentName: 'Bia Lima' });
   });
 
-  test('does not rename a disabled account', async () => {
+  it('should not rename a disabled account', async () => {
     world.owner.status = 'DISABLED';
 
     await expect(

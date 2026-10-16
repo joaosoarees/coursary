@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { courseWorld } from '@tests/support/courseWorld';
 
@@ -18,13 +18,13 @@ beforeEach(async () => {
 });
 
 describe('PublishCourseUseCase', () => {
-  test('refuses to publish a course without lessons', async () => {
+  it('should refuse to publish a course without lessons', async () => {
     await expect(publish.execute(world.as(world.owner))).rejects.toBeInstanceOf(
       CourseEmpty,
     );
   });
 
-  test('publishes once and answers the same course when asked again', async () => {
+  it('should publish once and answer the same course when asked again', async () => {
     await world.setCourse({ lessonCount: 1 });
 
     const first = await publish.execute(world.as(world.owner));
@@ -34,7 +34,7 @@ describe('PublishCourseUseCase', () => {
     expect(again.publishedAt).toBe(first.publishedAt);
   });
 
-  test('hides a draft from another instructor and refuses an archived course', async () => {
+  it('should hide a draft from another instructor and refuse an archived course', async () => {
     await world.setCourse({ lessonCount: 1 });
     await expect(publish.execute(world.as(world.other))).rejects.toBeInstanceOf(
       CourseNotFound,

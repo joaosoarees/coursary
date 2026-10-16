@@ -1,5 +1,5 @@
 import { PutCommand } from '@aws-sdk/lib-dynamodb';
-import { describe, expect, test } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { anAccountId } from '@tests/support/ids';
 
@@ -60,7 +60,7 @@ describe('DynamoListAccountsByRoleQuery', () => {
   const instructors = (status?: Account.Status) => (page: Page.Options) =>
     listAccounts.execute({ role: accountRoles.Instructor, status, page });
 
-  test('lists the accounts of a role, newest first, across pages', async () => {
+  it('should list the accounts of a role, newest first, across pages', async () => {
     const created = [
       await putAccount('ACTIVE'),
       await putAccount('ACTIVE'),
@@ -76,7 +76,7 @@ describe('DynamoListAccountsByRoleQuery', () => {
     expect(listed).toHaveLength(3);
   });
 
-  test('keeps only the status asked for', async () => {
+  it('should keep only the status asked for', async () => {
     const active = await putAccount('ACTIVE');
     const disabled = await putAccount('DISABLED');
 
@@ -88,7 +88,7 @@ describe('DynamoListAccountsByRoleQuery', () => {
     expect(listed.every((item) => item.status === 'DISABLED')).toBe(true);
   });
 
-  test('leaves out pending accounts whose time to live has passed', async () => {
+  it('should leave out pending accounts whose time to live has passed', async () => {
     const expired = await putAccount('PENDING', {
       expiresAt: Math.floor(Date.now() / 1000) - 60,
     });
@@ -102,7 +102,7 @@ describe('DynamoListAccountsByRoleQuery', () => {
     expect(ids).not.toContain(expired.id);
   });
 
-  test('refuses a cursor from another role', async () => {
+  it('should refuse a cursor from another role', async () => {
     await putAccount('ACTIVE');
     await putAccount('ACTIVE');
     const { nextCursor } = await instructors()({ limit: 1, cursor: undefined });

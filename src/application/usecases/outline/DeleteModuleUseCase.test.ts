@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { courseWorld } from '@tests/support/courseWorld';
 
@@ -20,7 +20,7 @@ beforeEach(async () => {
 });
 
 describe('DeleteModuleUseCase', () => {
-  test('deletes an empty module of a draft only', async () => {
+  it('should delete an empty module of a draft only', async () => {
     const module = await world.addModule('M1', 0);
     await world.setCourse({ status: 'PUBLISHED' });
 
@@ -33,7 +33,7 @@ describe('DeleteModuleUseCase', () => {
     expect(await world.modules.findById(world.course.id, module.id)).toBeNull();
   });
 
-  test('refuses to delete a module with lessons', async () => {
+  it('should refuse to delete a module with lessons', async () => {
     const module = await world.addModule('M1', 0);
     await world.addLesson(module, 0);
 

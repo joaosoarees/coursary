@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { courseWorld } from '@tests/support/courseWorld';
 
@@ -15,13 +15,13 @@ beforeEach(async () => {
 });
 
 describe('ArchiveCourseUseCase', () => {
-  test('archives only a published course', async () => {
+  it('should archive only a published course', async () => {
     await expect(archive.execute(world.as(world.owner))).rejects.toBeInstanceOf(
       CourseNotPublished,
     );
   });
 
-  test('lets an admin archive and refuses another instructor', async () => {
+  it('should let an admin archive and refuse another instructor', async () => {
     await world.setCourse({ lessonCount: 1 });
     await world.courses.publish(world.course.id, new Date());
 

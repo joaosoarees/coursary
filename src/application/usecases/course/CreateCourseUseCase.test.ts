@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { courseWorld } from '@tests/support/courseWorld';
 
@@ -14,7 +14,7 @@ beforeEach(async () => {
 });
 
 describe('CreateCourseUseCase', () => {
-  test('creates a draft owned by the caller, with the caller name', async () => {
+  it('should create a draft owned by the caller, with the caller name', async () => {
     const created = await create.execute({
       instructor: world.owner,
       title: ' DynamoDB ',
@@ -31,7 +31,7 @@ describe('CreateCourseUseCase', () => {
     });
   });
 
-  test('refuses an account that is not active', async () => {
+  it('should refuse an account that is not active', async () => {
     world.owner.status = 'DISABLED';
 
     await expect(

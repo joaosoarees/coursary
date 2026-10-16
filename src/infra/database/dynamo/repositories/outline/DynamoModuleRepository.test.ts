@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { courseWorld } from '@tests/support/courseWorld';
 
@@ -11,7 +11,7 @@ beforeEach(async () => {
 });
 
 describe('DynamoModuleRepository', () => {
-  test('refuses the whole change when the course status moved', async () => {
+  it('should refuse the whole change when the course status moved', async () => {
     const module = await world.addModule('M1', 0);
     await world.setCourse({ status: 'PUBLISHED' });
     module.title = 'Renamed';

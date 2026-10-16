@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { uniqueEmail } from '@tests/support/accountWorld';
 import { courseWorld } from '@tests/support/courseWorld';
@@ -37,7 +37,7 @@ const enrollmentCount = async () =>
   (await world.storedCourse())?.enrollmentCount;
 
 describe('EnrollUseCase', () => {
-  test('enrolls once, copies the name and counts the student', async () => {
+  it('should enroll once, copy the name and count the student', async () => {
     const { enrollment, created } = await enrollStudent();
 
     expect(created).toBe(true);
@@ -52,7 +52,7 @@ describe('EnrollUseCase', () => {
     await expect(enrollmentCount()).resolves.toBe(1);
   });
 
-  test('answers an active enrollment again without writing', async () => {
+  it('should answer an active enrollment again without writing', async () => {
     const first = await enrollStudent();
 
     const again = await enrollStudent();
@@ -61,7 +61,7 @@ describe('EnrollUseCase', () => {
     await expect(enrollmentCount()).resolves.toBe(1);
   });
 
-  test('enrolls again after cancelling, keeping the first date', async () => {
+  it('should enroll again after cancelling, keeping the first date', async () => {
     const first = await enrollStudent();
     await cancel.execute({ callerId: student.id, courseId: world.course.id });
 
@@ -72,13 +72,13 @@ describe('EnrollUseCase', () => {
     await expect(enrollmentCount()).resolves.toBe(1);
   });
 
-  test('refuses the owner of the course', async () => {
+  it('should refuse the owner of the course', async () => {
     await expect(
       enroll.execute({ student: world.owner, courseId: world.course.id }),
     ).rejects.toBeInstanceOf(OwnCourse);
   });
 
-  test('hides a draft and refuses an archived course', async () => {
+  it('should hide a draft and refuse an archived course', async () => {
     await world.setCourse({ status: 'DRAFT' });
     await expect(enrollStudent()).rejects.toBeInstanceOf(CourseNotFound);
 

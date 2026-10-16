@@ -1,5 +1,5 @@
 import { BatchWriteCommand } from '@aws-sdk/lib-dynamodb';
-import { describe, expect, test } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 
 import type { Page } from '@application/contracts/Page';
@@ -72,7 +72,7 @@ async function readAll(
 }
 
 describe('DynamoPagination.queryPage', () => {
-  test('pages through a partition and ends with a null cursor', async () => {
+  it('should page through a partition and end with a null cursor', async () => {
     const PK = await seed([], 5);
 
     const pages = await readAll(makeQuery(PK, false), 2);
@@ -85,7 +85,7 @@ describe('DynamoPagination.queryPage', () => {
     expect(pages.at(-1)?.nextCursor).toBeNull();
   });
 
-  test('keeps reading past filtered items and accepts a short page with a cursor', async () => {
+  it('should keep reading past filtered items and accept a short page with a cursor', async () => {
     const PK = await seed([1, 15], 15);
 
     const pages = await readAll(makeQuery(PK, true), 1);
@@ -97,7 +97,7 @@ describe('DynamoPagination.queryPage', () => {
     ).toBe(true);
   });
 
-  test('refuses a cursor from another partition', async () => {
+  it('should refuse a cursor from another partition', async () => {
     const PK = await seed([], 3);
     const other = await seed([], 3);
     const [otherPage] = await readAll(makeQuery(other, false), 1);

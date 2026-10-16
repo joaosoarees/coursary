@@ -1,6 +1,6 @@
 import { TransactionCanceledException } from '@aws-sdk/client-dynamodb';
 import { GetCommand } from '@aws-sdk/lib-dynamodb';
-import { describe, expect, test, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { Conflict } from '@application/errors/common';
 import { CourseArchived } from '@application/errors/course';
@@ -33,7 +33,7 @@ const exists = async (PK: string) => {
 };
 
 describe('DynamoUnitOfWork', () => {
-  test('writes every operation it was given', async () => {
+  it('should write every operation it was given', async () => {
     const [a, b] = [`UOW#${crypto.randomUUID()}`, `UOW#${crypto.randomUUID()}`];
     const unit = new DynamoUnitOfWork();
     unit.add(put(a), put(b));
@@ -43,7 +43,7 @@ describe('DynamoUnitOfWork', () => {
     expect([await exists(a), await exists(b)]).toEqual([true, true]);
   });
 
-  test('throws the error of the operation whose condition failed and writes nothing', async () => {
+  it('should throw the error of the operation whose condition failed and write nothing', async () => {
     const [taken, other] = [
       `UOW#${crypto.randomUUID()}`,
       `UOW#${crypto.randomUUID()}`,
@@ -58,7 +58,7 @@ describe('DynamoUnitOfWork', () => {
     expect(await exists(other)).toBe(false);
   });
 
-  test('retries a transaction conflict and gives up with a Conflict', async () => {
+  it('should retry a transaction conflict and give up with a Conflict', async () => {
     const conflict = new TransactionCanceledException({
       $metadata: {},
       message: 'conflict',
