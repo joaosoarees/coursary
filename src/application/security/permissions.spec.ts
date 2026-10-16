@@ -26,9 +26,16 @@ describe('Permissions', () => {
     ).toBe(false);
   });
 
-  it('should give the admin every action of the instructor', () => {
+  it('should give each role every action of the role below it', () => {
+    expect(rolePermissions.instructor).toEqual(
+      expect.arrayContaining([...rolePermissions.student]),
+    );
     expect(rolePermissions.admin).toEqual(
       expect.arrayContaining([...rolePermissions.instructor]),
     );
+  });
+
+  it('should let a student enroll and nothing an instructor does', () => {
+    expect(rolePermissions.student).toEqual([permissions.CoursesEnroll]);
   });
 });
