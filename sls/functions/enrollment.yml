@@ -3,7 +3,7 @@ enroll:
   events:
     - httpApi:
         method: PUT
-        path: /courses/{id}/enrollment
+        path: /courses/{courseId}/enrollment
         authorizer: CognitoAuthorizer
 
 cancelEnrollment:
@@ -11,7 +11,7 @@ cancelEnrollment:
   events:
     - httpApi:
         method: DELETE
-        path: /courses/{id}/enrollment
+        path: /courses/{courseId}/enrollment
         authorizer: CognitoAuthorizer
 
 listMyEnrollments:
@@ -27,5 +27,5 @@ listCourseStudents:
   events:
     - httpApi:
         method: GET
-        path: /courses/{id}/students
+        path: /courses/{courseId}/students
         authorizer: CognitoAuthorizer

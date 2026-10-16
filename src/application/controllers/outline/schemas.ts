@@ -21,14 +21,14 @@ const bodySchema = z
 const durationSchema = z.number().int().min(1).max(600);
 
 export const moduleParamsSchema = z.object({
-  id: courseIdSchema,
-  mid: moduleId,
+  courseId: courseIdSchema,
+  moduleId,
 });
 
 export const lessonParamsSchema = z.object({
-  id: courseIdSchema,
-  mid: moduleId,
-  lid: lessonId,
+  courseId: courseIdSchema,
+  moduleId,
+  lessonId,
 });
 
 export const moduleBodySchema = z.object({ title: titleSchema });

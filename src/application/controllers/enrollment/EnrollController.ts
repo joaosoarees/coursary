@@ -25,7 +25,7 @@ export class EnrollController extends Controller<'private', EnrollmentDetails> {
   >): Promise<Controller.Response<EnrollmentDetails>> {
     const { enrollment, created } = await this.enroll.execute({
       student: account,
-      courseId: params.id,
+      courseId: params.courseId,
     });
 
     return { statusCode: created ? 201 : 200, body: enrollment };

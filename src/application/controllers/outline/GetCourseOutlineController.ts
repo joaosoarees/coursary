@@ -30,7 +30,7 @@ export class GetCourseOutlineController extends Controller<
     const result = await this.getCourseOutline.execute({
       callerId: accountId,
       callerRole: role,
-      courseId: params.id,
+      courseId: params.courseId,
     });
 
     return { statusCode: 200, body: result };

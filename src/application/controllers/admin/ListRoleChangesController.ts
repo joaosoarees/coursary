@@ -32,7 +32,7 @@ export class ListRoleChangesController extends Controller<
     ListRoleChangesController.QueryParams
   >): Promise<Controller.Response<Page<RoleChangeSummary>>> {
     const page = await this.listRoleChanges.execute({
-      accountId: params.id,
+      accountId: params.accountId,
       ...queryParams,
     });
 

@@ -30,7 +30,7 @@ export class PublishCourseController extends Controller<
     const course = await this.publishCourse.execute({
       callerId: accountId,
       callerRole: role,
-      courseId: params.id,
+      courseId: params.courseId,
     });
 
     return { statusCode: 200, body: course };

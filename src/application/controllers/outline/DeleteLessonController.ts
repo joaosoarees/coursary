@@ -26,9 +26,9 @@ export class DeleteLessonController extends Controller<'private'> {
     await this.deleteLesson.execute({
       callerId: accountId,
       callerRole: role,
-      courseId: params.id,
-      moduleId: params.mid,
-      lessonId: params.lid,
+      courseId: params.courseId,
+      moduleId: params.moduleId,
+      lessonId: params.lessonId,
     });
 
     return { statusCode: 204 };

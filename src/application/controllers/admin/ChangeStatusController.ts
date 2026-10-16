@@ -30,7 +30,7 @@ export class ChangeStatusController extends Controller<
   >): Promise<Controller.Response<ChangeStatusUseCase.Output>> {
     const changed = await this.changeStatus.execute({
       callerId: accountId,
-      accountId: params.id,
+      accountId: params.accountId,
       status: this.status,
     });
 

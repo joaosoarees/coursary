@@ -9,7 +9,7 @@ export const courseIdSchema = ksuidSchema.transform((value) =>
   Course.toId(value),
 );
 
-export const courseIdParamsSchema = z.object({ id: courseIdSchema });
+export const courseIdParamsSchema = z.object({ courseId: courseIdSchema });
 
 export const emailSchema = z.string().trim().pipe(z.email().max(254));
 

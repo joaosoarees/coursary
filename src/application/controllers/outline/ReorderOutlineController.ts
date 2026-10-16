@@ -34,7 +34,7 @@ export class ReorderOutlineController extends Controller<
     const result = await this.reorderOutline.execute({
       callerId: accountId,
       callerRole: role,
-      courseId: params.id,
+      courseId: params.courseId,
       modules: body.modules,
     });
 

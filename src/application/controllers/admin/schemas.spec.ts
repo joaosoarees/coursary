@@ -41,11 +41,12 @@ describe('changeRoleSchema', () => {
 describe('accountIdParamsSchema', () => {
   it('should accept a KSUID and refuse a malformed id', () => {
     expect(
-      accountIdParamsSchema.safeParse({ id: '2Wk1zbcTqPHEuTXoAXZRDcjYKKK' })
-        .success,
+      accountIdParamsSchema.safeParse({
+        accountId: '2Wk1zbcTqPHEuTXoAXZRDcjYKKK',
+      }).success,
     ).toBe(true);
-    expect(accountIdParamsSchema.safeParse({ id: 'missing' }).success).toBe(
-      false,
-    );
+    expect(
+      accountIdParamsSchema.safeParse({ accountId: 'missing' }).success,
+    ).toBe(false);
   });
 });

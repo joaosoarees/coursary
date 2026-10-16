@@ -36,8 +36,8 @@ export class CreateLessonController extends Controller<
     const result = await this.createLesson.execute({
       callerId: accountId,
       callerRole: role,
-      courseId: params.id,
-      moduleId: params.mid,
+      courseId: params.courseId,
+      moduleId: params.moduleId,
       ...body,
     });
 

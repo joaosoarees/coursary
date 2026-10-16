@@ -34,7 +34,7 @@ export class UpdateCourseController extends Controller<
     const course = await this.updateCourse.execute({
       callerId: accountId,
       callerRole: role,
-      courseId: params.id,
+      courseId: params.courseId,
       changes: body,
     });
 

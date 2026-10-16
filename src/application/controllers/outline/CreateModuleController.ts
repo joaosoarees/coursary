@@ -34,7 +34,7 @@ export class CreateModuleController extends Controller<
     const result = await this.createModule.execute({
       callerId: accountId,
       callerRole: role,
-      courseId: params.id,
+      courseId: params.courseId,
       title: body.title,
     });
 
