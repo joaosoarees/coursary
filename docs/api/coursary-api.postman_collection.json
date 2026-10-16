@@ -473,7 +473,7 @@
               }
             ],
             "url": "{{baseUrl}}/courses/{{courseId}}/outline",
-            "description": "200 { modules: [{ id, title, position, lessons: [{ id, title, durationMinutes, position }] }] }, em ordem. Dono ou admin; curso alheio em rascunho 404 COURSE_NOT_FOUND, visível 403; arquivado 409 COURSE_ARCHIVED; 400 VALIDATION; 401."
+            "description": "200 { modules: [{ id, title, position, lessons: [{ id, title, durationMinutes, position }] }] }, em ordem. Dono ou admin em qualquer status (arquivado incluído); aluno com matrícula ativa em curso publicado ou arquivado (Q274). Os demais: rascunho 404 COURSE_NOT_FOUND, visível 403 FORBIDDEN; 400 VALIDATION; 401."
           }
         },
         {
@@ -719,6 +719,20 @@
             ],
             "url": "{{baseUrl}}/courses/{{courseId}}/students?limit=20",
             "description": "200 { items: [{ accountId, studentName, enrolledAt, completedLessons }], nextCursor }. Só ativos, mais recentes primeiro; vale em curso arquivado. Dono ou admin; outro instrutor: 403 em curso visível, 404 em rascunho; aluno: 403 FORBIDDEN. 401."
+          }
+        },
+        {
+          "name": "Open lesson",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/courses/{{courseId}}/lessons/{{lessonId}}",
+            "description": "200 { lessonId, courseId, body }; título e módulo vêm do outline (Q273). Matrícula ativa em curso publicado ou arquivado, ou dono/admin em qualquer status. Os demais: rascunho 404 COURSE_NOT_FOUND, visível 403 FORBIDDEN. Aula que não é do curso: 404 LESSON_NOT_FOUND. 401."
           }
         }
       ]

@@ -345,6 +345,13 @@ Cada achado:
 - **O que aconteceu**: uma página tem no máximo 100 matrículas, então os cursos dela cabem num `BatchGet`. As chaves não processadas são pedidas de novo até três vezes; se ainda sobrar alguma, a requisição falha em vez de devolver uma lista incompleta como se estivesse completa. A ação IAM `BatchGetItem` entrou no mesmo commit (Q192).
 - **Sugestão**: nenhuma.
 
+### `dynamodb-read-consistency` (2.3)
+
+#### 2026-10-16 · 2.3.c · acerto
+- **A skill diz**: leia com consistência forte o item que decide um acesso logo depois de uma escrita; o índice só lê eventual.
+- **O que aconteceu**: abrir aula lê a matrícula pela chave da tabela (`ACCOUNT#a` / `ENROLLMENT#c`) com `ConsistentRead`, nunca pelo `GSI2` da lista, então quem acabou de se matricular abre a aula na mesma hora. As três leituras (curso, matrícula, conteúdo) não dependem uma da outra e saem em paralelo; nada é devolvido antes da regra de acesso (Q275).
+- **Sugestão**: nenhuma.
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |

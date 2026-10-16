@@ -232,7 +232,7 @@ Tabela `MainTable` com `PK` e `SK`, e dois índices globais sobrecarregados, `GS
 | 16 | Salvar posição | tabela | `ACCOUNT#a` / `PROGRESS#c` | Update |
 | 17 | Histórico de papéis | tabela | `ACCOUNT#a`, `begins_with ROLE_CHANGE#` | Query, de trás para frente |
 | 18 | Arquivo atual do dono | tabela | `<OWNER>#o`, `begins_with FILE#<purpose>#` | Query |
-| 19, 22 | Abrir aula, materiais | tabela | `LESSON#l` | Query (conteúdo, vídeo, materiais) |
+| 19, 22 | Abrir aula, materiais | tabela | `LESSON#l` | Get do conteúdo (`CONTENT`) em paralelo com o curso e a matrícula (8b); vira Query quando vídeo e materiais entrarem (Q273) |
 | 20 | Arquivo por id | tabela | derivada da chave do S3 | Get |
 | 21 | Exportações | `GSI1` / tabela | `COURSE#c`, `begins_with EXPORT#` / `EXPORT#e` | Query / Get |
 

@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-16. Estado: **fase 1, R.1 a R.3, 2.1 e 2.2 na `develop` e em `dev`, `pnpm e2e:dev` 69 de 69; em andamento: 2.3 (abrir aula) na `feat/2.3-open-lesson`**.
+Última atualização: 2026-10-16. Estado: **fase 1, R.1 a R.3, 2.1 e 2.2 na `develop` e em `dev`, `pnpm e2e:dev` 69 de 69; 2.3 (abrir aula, Q272 a Q276) na `feat/2.3-open-lesson`, em PR; o `e2e:dev` roda depois do merge**.
 
 ## Como retomar
 
@@ -11,7 +11,7 @@ Abra o Claude Code e diga:
 Ao retomar, o assistente deve:
 
 1. Ver no estado acima e na tabela "Fase 1: histórias" qual história é a próxima.
-2. A próxima história é a 2.3 (Q238): abrir aula (`GET /courses/{id}/lessons/{lid}`, leitura forte da matrícula; curso arquivado aberto para matriculados, Q240). Seguir as convenções da R.3 (Q260 a Q267) e passar o `/code-review` antes de abrir o PR.
+2. A próxima história é a 2.4 (Q238): progresso (concluir aula uma vez com `completedLessons` na transação, ler o progresso, posição no vídeo em item à parte). Seguir as convenções da R.3 (Q260 a Q267) e passar o `/code-review` antes de abrir o PR.
 3. Seguir o "Começar tarefa X.X" do `CLAUDE.md`: branch a partir da `develop`, sub-imp propostas e discutidas antes de codar.
 4. Não refazer perguntas já fechadas.
 
