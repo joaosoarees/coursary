@@ -27,34 +27,15 @@ findAccountByEmail:
         path: /admin/users/by-email
         authorizer: CognitoAuthorizer
 
+# Routes off for one deploy so they can come back with renamed parameters (Q277).
 changeRole:
   handler: src/main/functions/admin/changeRole.handler
-  events:
-    - httpApi:
-        method: PUT
-        path: /admin/users/{accountId}/role
-        authorizer: CognitoAuthorizer
 
 listRoleChanges:
   handler: src/main/functions/admin/listRoleChanges.handler
-  events:
-    - httpApi:
-        method: GET
-        path: /admin/users/{accountId}/role-changes
-        authorizer: CognitoAuthorizer
 
 disableAccount:
   handler: src/main/functions/admin/disableAccount.handler
-  events:
-    - httpApi:
-        method: POST
-        path: /admin/users/{accountId}/disable
-        authorizer: CognitoAuthorizer
 
 enableAccount:
   handler: src/main/functions/admin/enableAccount.handler
-  events:
-    - httpApi:
-        method: POST
-        path: /admin/users/{accountId}/enable
-        authorizer: CognitoAuthorizer

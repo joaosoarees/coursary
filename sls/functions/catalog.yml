@@ -5,9 +5,6 @@ listCatalog:
         method: GET
         path: /courses
 
+# Route off for one deploy so it can come back with a renamed parameter (Q277).
 getCoursePage:
   handler: src/main/functions/catalog/getCoursePage.handler
-  events:
-    - httpApi:
-        method: GET
-        path: /courses/{courseId}
