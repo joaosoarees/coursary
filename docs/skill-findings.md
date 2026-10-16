@@ -182,7 +182,7 @@ Cada achado:
 
 #### 2026-10-15 · 1.8.a · acerto
 - **A skill diz**: o authorizer aceita o id token e o access token, a menos que a rota exija o escopo `aws.cognito.signin.user.admin`; ele não consulta o Cognito, então um token de conta desativada passa até expirar.
-- **O que aconteceu**: as rotas privadas exigem o escopo (Q163), e as de `/me` conferem a conta no banco (Q165), que já leem de qualquer forma.
+- **O que aconteceu**: as rotas privadas exigiam o escopo (Q163), e as de `/me` conferiam a conta no banco (Q165). Depois a Q169 tirou o escopo, e o adapter recusa o id token por não ter `internalId` (401). A skill (revista em 2026-10-14) prefere manter o escopo, que dá 403 `insufficient_scope`: ver a revisão de 2026-10-16.
 - **Sugestão**: nenhuma.
 
 ### `cognito-custom-message-lambda-trigger` (variáveis globais)
@@ -368,7 +368,7 @@ Cada achado:
 
 #### 2026-10-16 · 2.4.d · acerto
 - **A skill diz**: transação só quando duas escritas precisam andar juntas; ela custa o dobro.
-- **O que aconteceu**: salvar a posição, a rota mais chamada (a cada 15 a 30 s), lê a matrícula com consistência forte e faz um `Put` simples: 1 RCU + 1 WCU, contra cerca de 4 WCU com `ConditionCheck` em transação. Se o aluno cancelar no meio, sobra só uma posição gravada a mais, sem dano.
+- **O que aconteceu**: salvar a posição, a rota mais chamada (a cada 15 a 30 s), lê a matrícula com consistência forte e faz um `Put` simples: 2 RCU (a conta, que o adapter lê em toda rota privada, e a matrícula) + 1 WCU, contra cerca de 4 WCU com `ConditionCheck` em transação. A primeira conta deu 1 RCU porque esqueceu a leitura da conta; o curso, que custava mais 0,5, só é lido quando a matrícula não está ativa (R.4). Se o aluno cancelar no meio, sobra só uma posição gravada a mais, sem dano.
 - **Sugestão**: nenhuma.
 
 ### `dynamodb-denormalization`, `dynamodb-many-to-many-relationships` (2.5)
@@ -382,6 +382,43 @@ Cada achado:
 - **A skill diz**: o lado invertido no `GSI1` lista os pares de um item.
 - **O que aconteceu**: a lista pública não pode expor o `accountId`, que está no SK do índice (`REVIEW#<createdAt>#<accountId>`) e no cursor. O item da resposta é montado sem o id. O cursor, porém, é a chave codificada em base64url e carrega o `accountId` do último item da página.
 - **Sugestão**: avisar que o cursor de uma lista pública carrega a chave da tabela, mesmo quando a lista vem de um índice. Se um id não deve sair da API, ou ele fica fora da chave, ou o cursor é cifrado. Aqui o risco foi aceito (Q286).
+
+### Revisão de 2026-10-16: skills de DynamoDB nunca registradas e `/code-review` de `src/` (R.4)
+
+#### 2026-10-16 · revisão · lacuna (`dynamodb-capacity-and-pricing`)
+- **A skill diz**: a escrita é cobrada pelo item inteiro, não pela mudança; uma transação custa o dobro; um índice `ALL` soma as unidades da entrada.
+- **O que aconteceu**: os contadores do curso ficam no item que carrega a descrição (até 5.000 caracteres). Cada matrícula ou avaliação reescreve esse item inteiro, em dobro, mais as entradas do `GSI1` e do `GSI2`: de 8 a 24 WCU só no curso. A conta da rota mais chamada (salvar a posição) esqueceu a leitura da conta que o adapter faz em toda rota privada. Separar a descrição ficou para a fase 3 (Q287).
+- **Sugestão**: uma tabela de unidades por operação de transação, com `ConditionCheck` e escrita em índice; e o aviso de que contadores quentes devem morar num item pequeno.
+
+#### 2026-10-16 · revisão · acerto (`dynamodb-document-client`)
+- **A skill diz**: um cliente único, comandos do `lib-dynamodb`, exceções do `client-dynamodb`.
+- **O que aconteceu**: tudo isso está em `src/infra/clients/dynamoClient.ts` e só na infraestrutura. A lacuna do `Item` em `AttributeValue` no erro já está registrada na 1.15.b.
+- **Sugestão**: nenhuma.
+
+#### 2026-10-16 · revisão · acerto (`dynamodb-queries`)
+- **A skill diz** (`prefix-queries.md`): um prefixo sem separador final casa ids mais longos, a menos que os ids tenham tamanho fixo.
+- **O que aconteceu**: o progresso lê `begins_with PROGRESS#<courseId>` sem `#` final de propósito, para trazer junto a posição (`PROGRESS#c`). É seguro porque o KSUID tem 27 caracteres fixos.
+- **Sugestão**: nenhuma.
+
+#### 2026-10-16 · revisão · acerto e erro de processo (`dynamodb-schema-evolution`)
+- **A skill diz**: atributo novo ganha valor padrão no mapper; item que precisa aparecer num índice novo pede backfill.
+- **O que aconteceu**: `ratingSum`/`ratingCount` e o `lessonCount` do módulo têm padrão 0 no mapper, e o `ADD` cria o atributo na primeira escrita. Quando o `GSI2` entrou na matrícula (2.2), o backfill não foi planejado; só a consulta a `dev` mostrou que não havia matrícula a migrar. O mesmo se repetiu com o contador do módulo (R.4), agora conferido antes.
+- **Sugestão**: no `process-log`, a etapa de "índice ou atributo novo" passa a ter a pergunta "o que já está gravado precisa entrar?".
+
+#### 2026-10-16 · revisão · acerto (`dynamodb-one-to-one-relationships`)
+- **A skill diz**: "Keep two items when one part… changes much more often… on a hot path".
+- **O que aconteceu**: a posição do aluno (`PROGRESS#c`), gravada a cada 15 a 30 s, é um 1:1 com a matrícula num item à parte; não reescreve a matrícula nem os seus dois índices.
+- **Sugestão**: nenhuma.
+
+#### 2026-10-16 · revisão · acerto (`dynamodb-single-table-design`, `dynamodb-tables-and-keys`)
+- **A skill diz**: uma tabela, chaves genéricas `PK`/`SK`, padrões de acesso primeiro.
+- **O que aconteceu**: os padrões 1 a 22 do `data-model` são servidos por chave ou por dois GSIs genéricos, sem scan; a tabela (`MainTable.yml`) e a do DynamoDB Local seguem a regra de `KeyType` revista em 2026-10-14.
+- **Sugestão**: nenhuma.
+
+#### 2026-10-16 · R.4 · lacuna (`dynamodb-read-consistency`)
+- **A skill diz**: leitura eventual por padrão; forte onde a leitura decide uma escrita.
+- **O que aconteceu**: o editor de outline decidia sobre uma leitura eventual ("o módulo está vazio?", "o módulo existe?", "os itens batem?"), e a escrita não segurava a decisão. Uma aula podia ficar num módulo apagado, invisível mas contada no curso. A correção foi um contador no módulo, segurado pelas próprias transações, e leitura forte nas rotas de edição (Q288). O `/code-review` achou; as auditorias por skill, não.
+- **Sugestão**: avisar que uma checagem de "vazio" ou "existe" feita por query precisa ser segurada na escrita (contador condicional ou `ConditionCheck`), não só lida com consistência forte.
 
 ## Skills que faltam
 
@@ -399,3 +436,11 @@ Cada achado:
 | Manter a tabela do DynamoDB Local igual à IaC (`MainTable.yml`) nos testes de integração | Q189, 1.10.a |
 | Testes de ponta a ponta contra um stage deployado com contas descartáveis (sem caixa de e-mail, limpeza no fim) | Q218 |
 | Unidade de trabalho em DynamoDB entre repositórios (operações, limite de 100, retry de `TransactionConflict`, tradução de `CancellationReasons`) | 1.14 |
+| E-mail transacional pelo SES em Lambda (`sesv2`, saída da sandbox, configuration set, bounce e complaint pelo SNS, lista de supressão) | Q37, Q161, fase 3 |
+| Fan-out de um stream do DynamoDB para várias filas (Lambda roteadora ou EventBridge Pipes) | Q90 |
+| Configuração do índice Algolia como código (`searchableAttributes`, `customRanking`, réplicas, facets) | Q66, Q91 |
+| Alarmes de consumidor de stream (`IteratorAge`, `Errors` da Lambda) | Q90, Q92 |
+| Job longo em lotes além de 15 min (estado, continuação reenfileirada, `DeleteObjects`) | Q86 |
+| URL pré-assinada para `<video>` (requisições por faixa, validade, sessão da role) | Q54 |
+| Write sharding de partição quente de GSI e leitura scatter-gather com cursor mesclado | Q75, Q101 |
+| Cookie `HttpOnly` de refresh no HTTP API com SPA em outro subdomínio (`SameSite`, CORS com credenciais) | Q149 |
