@@ -2,6 +2,8 @@ name: aws
 region: sa-east-1
 runtime: nodejs24.x
 architecture: arm64
+# Measured step by step from the 1024 MB default (Q291).
+memorySize: 512
 versionFunctions: false
 environment: ${file(./sls/config/env.yml)}
 httpApi:
