@@ -63,7 +63,7 @@ describe('EnrollUseCase', () => {
 
   test('enrolls again after cancelling, keeping the first date', async () => {
     const first = await enrollStudent();
-    await cancel.execute({ studentId: student.id, courseId: world.course.id });
+    await cancel.execute({ callerId: student.id, courseId: world.course.id });
 
     const again = await enrollStudent();
 

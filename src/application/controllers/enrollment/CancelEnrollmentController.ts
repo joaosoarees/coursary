@@ -22,7 +22,7 @@ export class CancelEnrollmentController extends Controller<'private'> {
     Record<string, unknown>,
     CancelEnrollmentController.Params
   >): Promise<Controller.Response<undefined>> {
-    await this.useCase.execute({ studentId: accountId, courseId: params.id });
+    await this.useCase.execute({ callerId: accountId, courseId: params.id });
 
     return { statusCode: 204 };
   }

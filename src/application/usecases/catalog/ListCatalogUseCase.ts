@@ -4,7 +4,11 @@ import type { CatalogQuery } from '@application/queries/catalog/CatalogQuery';
 export class ListCatalogUseCase {
   constructor(private readonly catalog: CatalogQuery) {}
 
-  execute(page: Page.Options): Promise<Page<CatalogQuery.Item>> {
+  execute(page: ListCatalogUseCase.Input): Promise<Page<CatalogQuery.Item>> {
     return this.catalog.execute(page);
   }
+}
+
+export namespace ListCatalogUseCase {
+  export type Input = Page.Options;
 }

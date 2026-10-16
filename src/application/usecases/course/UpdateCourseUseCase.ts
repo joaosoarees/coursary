@@ -1,7 +1,7 @@
-import type { Account } from '@application/entities/account/Account';
 import { Course } from '@application/entities/course/Course';
 import type { CourseRepository } from '@application/repositories/course/CourseRepository';
 import { CourseDetails } from '@application/usecases/course/CourseDetails';
+import type { CourseEditor } from '@application/usecases/course/CourseEditor';
 
 export class UpdateCourseUseCase {
   constructor(private readonly coursesRepository: CourseRepository) {}
@@ -23,9 +23,7 @@ export class UpdateCourseUseCase {
 }
 
 export namespace UpdateCourseUseCase {
-  export interface Input {
-    callerId: Account.Id;
-    callerRole: Account.Role;
+  export interface Input extends CourseEditor {
     courseId: Course.Id;
     changes: Course.Changes;
   }

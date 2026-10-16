@@ -4,14 +4,14 @@ import type { AccountRepository } from '@application/repositories/account/Accoun
 
 export class SignInUseCase {
   constructor(
-    private readonly authGateway: AuthGateway,
     private readonly accountsRepository: AccountRepository,
+    private readonly authGateway: AuthGateway,
   ) {}
 
   async execute({
     email,
     password,
-  }: AuthGateway.SignInParams): Promise<AuthGateway.Tokens> {
+  }: SignInUseCase.Input): Promise<AuthGateway.Tokens> {
     const { tokens, accountId, accessJti } = await this.authGateway.signIn({
       email: Account.normalizeEmail(email),
       password,
@@ -25,4 +25,8 @@ export class SignInUseCase {
 
     return tokens;
   }
+}
+
+export namespace SignInUseCase {
+  export type Input = AuthGateway.SignInParams;
 }

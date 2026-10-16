@@ -4,11 +4,11 @@ import type { AccountRepository } from '@application/repositories/account/Accoun
 
 export class ResetPasswordUseCase {
   constructor(
-    private readonly authGateway: AuthGateway,
     private readonly accountsRepository: AccountRepository,
+    private readonly authGateway: AuthGateway,
   ) {}
 
-  async execute(params: AuthGateway.ResetPasswordParams): Promise<void> {
+  async execute(params: ResetPasswordUseCase.Input): Promise<void> {
     const email = Account.normalizeEmail(params.email);
 
     await this.authGateway.resetPassword({ ...params, email });
@@ -28,4 +28,8 @@ export class ResetPasswordUseCase {
       );
     }
   }
+}
+
+export namespace ResetPasswordUseCase {
+  export type Input = AuthGateway.ResetPasswordParams;
 }

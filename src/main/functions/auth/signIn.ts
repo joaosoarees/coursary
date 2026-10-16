@@ -6,7 +6,7 @@ import { makeAuthGateway } from '@main/factories/makeAuthGateway';
 
 const authGateway = makeAuthGateway();
 const accountsRepository = makeAccountRepository();
-const signInUseCase = new SignInUseCase(authGateway, accountsRepository);
+const signInUseCase = new SignInUseCase(accountsRepository, authGateway);
 const controller = new SignInController(signInUseCase);
 
 export const handler = lambdaHttpAdapter(controller);

@@ -24,7 +24,7 @@ beforeEach(async () => {
 });
 
 const cancelStudent = () =>
-  cancel.execute({ studentId: student.id, courseId: world.course.id });
+  cancel.execute({ callerId: student.id, courseId: world.course.id });
 
 describe('CancelEnrollmentUseCase', () => {
   test('cancels once, keeps the enrollment and uncounts the student', async () => {

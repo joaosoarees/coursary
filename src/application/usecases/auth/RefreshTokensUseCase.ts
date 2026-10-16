@@ -4,8 +4,8 @@ import type { AccountRepository } from '@application/repositories/account/Accoun
 
 export class RefreshTokensUseCase {
   constructor(
-    private readonly authGateway: AuthGateway,
     private readonly accountsRepository: AccountRepository,
+    private readonly authGateway: AuthGateway,
   ) {}
 
   async execute({
