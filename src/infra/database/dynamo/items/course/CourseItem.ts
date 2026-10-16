@@ -38,6 +38,9 @@ export class CourseItem {
       status: course.status,
       lessonCount: course.lessonCount,
       enrollmentCount: course.enrollmentCount,
+      ...(course.ratingCount > 0
+        ? { ratingSum: course.ratingSum, ratingCount: course.ratingCount }
+        : {}),
       ...(course.publishedAt
         ? { publishedAt: course.publishedAt.toISOString() }
         : {}),
@@ -55,6 +58,8 @@ export class CourseItem {
       status: item.status,
       lessonCount: item.lessonCount,
       enrollmentCount: item.enrollmentCount,
+      ratingSum: item.ratingSum ?? 0,
+      ratingCount: item.ratingCount ?? 0,
       publishedAt: item.publishedAt ? new Date(item.publishedAt) : undefined,
       createdAt: new Date(item.createdAt),
     });
@@ -107,6 +112,9 @@ export namespace CourseItem {
     status: Course.Status;
     lessonCount: number;
     enrollmentCount: number;
+    // Written by the first review (Q83, Q112).
+    ratingSum?: number;
+    ratingCount?: number;
     publishedAt?: string;
     createdAt: string;
   }

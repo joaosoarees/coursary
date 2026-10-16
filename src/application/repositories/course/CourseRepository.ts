@@ -26,6 +26,12 @@ export interface CourseRepository {
     delta: number,
     options: CourseRepository.EnrollmentCountOptions,
   ): UnitOfWork.Operation;
+
+  addRatingsOperation(
+    course: Course,
+    sumDelta: number,
+    countDelta: number,
+  ): UnitOfWork.Operation;
 }
 
 export namespace CourseRepository {

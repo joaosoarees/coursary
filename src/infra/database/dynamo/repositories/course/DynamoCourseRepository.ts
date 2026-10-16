@@ -231,6 +231,22 @@ export class DynamoCourseRepository implements CourseRepository {
     });
   }
 
+  addRatingsOperation(
+    course: Course,
+    sumDelta: number,
+    countDelta: number,
+  ): UnitOfWork.Operation {
+    return DynamoUnitOfWork.operation({
+      Update: {
+        TableName: this.config.mainTableName,
+        Key: this.keyOf(course),
+        UpdateExpression: 'ADD ratingSum :sum, ratingCount :count',
+        ConditionExpression: 'attribute_exists(PK)',
+        ExpressionAttributeValues: { ':sum': sumDelta, ':count': countDelta },
+      },
+    });
+  }
+
   private keyOf(course: Course) {
     return { PK: CourseItem.getPK(course.id), SK: CourseItem.getSK(course.id) };
   }

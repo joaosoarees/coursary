@@ -1,0 +1,66 @@
+import { GetCommand } from '@aws-sdk/lib-dynamodb';
+
+import type { UnitOfWork } from '@application/contracts/UnitOfWork';
+import type { Account } from '@application/entities/account/Account';
+import type { Course } from '@application/entities/course/Course';
+import type { Review } from '@application/entities/review/Review';
+import type { ReviewRepository } from '@application/repositories/review/ReviewRepository';
+import { dynamoClient } from '@infra/clients/dynamoClient';
+import { DynamoUnitOfWork } from '@infra/database/dynamo/DynamoUnitOfWork';
+import { ReviewItem } from '@infra/database/dynamo/items/review/ReviewItem';
+import type { AppConfig } from '@shared/config/AppConfig';
+
+export class DynamoReviewRepository implements ReviewRepository {
+  constructor(private readonly config: AppConfig) {}
+
+  async find(
+    accountId: Account.Id,
+    courseId: Course.Id,
+  ): Promise<Review | null> {
+    const command = new GetCommand({
+      TableName: this.config.mainTableName,
+      Key: this.keyOf(accountId, courseId),
+      ConsistentRead: true,
+    });
+
+    const { Item } = await dynamoClient.send(command);
+
+    return Item ? ReviewItem.toEntity(Item as ReviewItem.ItemType) : null;
+  }
+
+  createOperation(review: Review): UnitOfWork.Operation {
+    return DynamoUnitOfWork.operation({
+      Put: {
+        TableName: this.config.mainTableName,
+        Item: ReviewItem.fromEntity(review).toItem(),
+        ConditionExpression: 'attribute_not_exists(PK)',
+      },
+    });
+  }
+
+  updateOperation(
+    review: Review,
+    previousRating: number,
+  ): UnitOfWork.Operation {
+    return DynamoUnitOfWork.operation({
+      Update: {
+        TableName: this.config.mainTableName,
+        Key: this.keyOf(review.accountId, review.courseId),
+        UpdateExpression:
+          'SET rating = :rating, #comment = :comment, updatedAt = :updatedAt',
+        ConditionExpression: 'rating = :previous',
+        ExpressionAttributeNames: { '#comment': 'comment' },
+        ExpressionAttributeValues: {
+          ':rating': review.rating,
+          ':comment': review.comment,
+          ':updatedAt': review.updatedAt.toISOString(),
+          ':previous': previousRating,
+        },
+      },
+    });
+  }
+
+  private keyOf(accountId: Account.Id, courseId: Course.Id) {
+    return { PK: ReviewItem.getPK(accountId), SK: ReviewItem.getSK(courseId) };
+  }
+}

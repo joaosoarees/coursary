@@ -26,6 +26,8 @@ export class Course {
   status: Course.Status;
   lessonCount: number;
   enrollmentCount: number;
+  ratingSum: number;
+  ratingCount: number;
   publishedAt: Date | undefined;
   readonly createdAt: Date;
 
@@ -38,12 +40,19 @@ export class Course {
     this.status = attributes.status;
     this.lessonCount = attributes.lessonCount;
     this.enrollmentCount = attributes.enrollmentCount;
+    this.ratingSum = attributes.ratingSum;
+    this.ratingCount = attributes.ratingCount;
     this.publishedAt = attributes.publishedAt;
     this.createdAt = attributes.createdAt;
   }
 
   isOwnedBy(accountId: Account.Id): boolean {
     return this.instructorId === accountId;
+  }
+
+  // Computed on read, never stored (Q83).
+  ratingAverage(): number | null {
+    return this.ratingCount > 0 ? this.ratingSum / this.ratingCount : null;
   }
 
   isVisibleToEveryone(): boolean {
@@ -149,6 +158,8 @@ export class Course {
       status: courseStatuses.Draft,
       lessonCount: 0,
       enrollmentCount: 0,
+      ratingSum: 0,
+      ratingCount: 0,
       publishedAt: undefined,
       createdAt: new Date(),
     });
@@ -169,6 +180,8 @@ export namespace Course {
     status: Status;
     lessonCount: number;
     enrollmentCount: number;
+    ratingSum: number;
+    ratingCount: number;
     publishedAt: Date | undefined;
     createdAt: Date;
   }

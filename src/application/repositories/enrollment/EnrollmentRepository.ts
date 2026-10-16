@@ -16,6 +16,9 @@ export interface EnrollmentRepository {
 
   cancelOperation(enrollment: Enrollment): UnitOfWork.Operation;
 
+  // Holds the transaction to an enrollment that is still active.
+  activeOperation(enrollment: Enrollment): UnitOfWork.Operation;
+
   // Counts a completed lesson; the enrollment must still be active.
   addCompletedLessonsOperation(
     enrollment: Enrollment,

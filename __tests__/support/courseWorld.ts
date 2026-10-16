@@ -15,6 +15,7 @@ import { DynamoEnrollmentRepository } from '@infra/database/dynamo/repositories/
 import { DynamoProgressRepository } from '@infra/database/dynamo/repositories/enrollment/DynamoProgressRepository';
 import { DynamoLessonRepository } from '@infra/database/dynamo/repositories/outline/DynamoLessonRepository';
 import { DynamoModuleRepository } from '@infra/database/dynamo/repositories/outline/DynamoModuleRepository';
+import { DynamoReviewRepository } from '@infra/database/dynamo/repositories/review/DynamoReviewRepository';
 import { AppConfig } from '@shared/config/AppConfig';
 
 const config = new AppConfig();
@@ -64,6 +65,7 @@ export async function courseWorld() {
   const students = new DynamoListCourseStudentsQuery(config);
   const progress = new DynamoProgressRepository(config);
   const courseProgress = new DynamoCourseProgressQuery(config);
+  const reviews = new DynamoReviewRepository(config);
   const unitOfWork = () => new DynamoUnitOfWork();
   const owner = account('ana', accountRoles.Instructor);
   const other = account('bia', accountRoles.Instructor);
@@ -123,6 +125,7 @@ export async function courseWorld() {
     students,
     progress,
     courseProgress,
+    reviews,
     unitOfWork,
     owner,
     other,

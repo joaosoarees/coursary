@@ -95,6 +95,18 @@ export class DynamoEnrollmentRepository implements EnrollmentRepository {
     });
   }
 
+  activeOperation(enrollment: Enrollment): UnitOfWork.Operation {
+    return DynamoUnitOfWork.operation({
+      ConditionCheck: {
+        TableName: this.config.mainTableName,
+        Key: this.keyOf(enrollment),
+        ConditionExpression: '#status = :active',
+        ExpressionAttributeNames: { '#status': 'status' },
+        ExpressionAttributeValues: { ':active': enrollmentStatuses.Active },
+      },
+    });
+  }
+
   addCompletedLessonsOperation(
     enrollment: Enrollment,
     delta: number,
