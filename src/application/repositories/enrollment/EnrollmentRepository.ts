@@ -15,6 +15,8 @@ export interface EnrollmentRepository {
   reactivateOperation(enrollment: Enrollment): UnitOfWork.Operation;
 
   cancelOperation(enrollment: Enrollment): UnitOfWork.Operation;
+
+  updateStudentName(accountId: Account.Id, name: string): Promise<void>;
 }
 
 export namespace EnrollmentRepository {

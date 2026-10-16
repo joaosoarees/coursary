@@ -1,4 +1,8 @@
-import { GetCommand } from '@aws-sdk/lib-dynamodb';
+import {
+  GetCommand,
+  QueryCommand,
+  TransactWriteCommand,
+} from '@aws-sdk/lib-dynamodb';
 
 import type { UnitOfWork } from '@application/contracts/UnitOfWork';
 import type { Account } from '@application/entities/account/Account';
@@ -83,6 +87,54 @@ export class DynamoEnrollmentRepository implements EnrollmentRepository {
         },
       },
     });
+  }
+
+  // Copies the name into every enrollment of the student (Q81), at most 100 per
+  // transaction; calling it again with the same name finishes what a failure left.
+  async updateStudentName(accountId: Account.Id, name: string): Promise<void> {
+    const TableName = this.config.mainTableName;
+    const keys = await this.enrollmentKeysOf(accountId);
+
+    for (let start = 0; start < keys.length; start += 100) {
+      const command = new TransactWriteCommand({
+        TransactItems: keys.slice(start, start + 100).map((Key) => ({
+          Update: {
+            TableName,
+            Key,
+            UpdateExpression: 'SET studentName = :name',
+            ConditionExpression: 'attribute_exists(PK)',
+            ExpressionAttributeValues: { ':name': name },
+          },
+        })),
+      });
+
+      await dynamoClient.send(command);
+    }
+  }
+
+  private async enrollmentKeysOf(
+    accountId: Account.Id,
+  ): Promise<Record<string, unknown>[]> {
+    const keys: Record<string, unknown>[] = [];
+    let ExclusiveStartKey: Record<string, unknown> | undefined;
+
+    do {
+      const command = new QueryCommand({
+        TableName: this.config.mainTableName,
+        KeyConditionExpression: 'PK = :pk AND begins_with(SK, :prefix)',
+        ExpressionAttributeValues: {
+          ':pk': EnrollmentItem.getPK(accountId),
+          ':prefix': 'ENROLLMENT#',
+        },
+        ProjectionExpression: 'PK, SK',
+        ExclusiveStartKey,
+      });
+      const page = await dynamoClient.send(command);
+      keys.push(...(page.Items ?? []));
+      ExclusiveStartKey = page.LastEvaluatedKey;
+    } while (ExclusiveStartKey);
+
+    return keys;
   }
 
   private keyOf(enrollment: Enrollment) {
