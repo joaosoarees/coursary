@@ -21,6 +21,7 @@ functions:
   - ${file(./sls/functions/course.yml)}
   - ${file(./sls/functions/outline.yml)}
   - ${file(./sls/functions/catalog.yml)}
+  - ${file(./sls/functions/enrollment.yml)}
 
 resources:
   - ${file(./sls/resources/dynamodb/MainTable.yml)}

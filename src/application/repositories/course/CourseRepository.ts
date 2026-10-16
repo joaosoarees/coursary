@@ -19,4 +19,11 @@ export interface CourseRepository {
   statusUnchangedOperation(course: Course): UnitOfWork.Operation;
 
   addLessonsOperation(course: Course, delta: number): UnitOfWork.Operation;
+
+  // A new or renewed enrollment needs a published course; leaving one does not.
+  addEnrollmentsOperation(
+    course: Course,
+    delta: number,
+    options: { requirePublished: boolean },
+  ): UnitOfWork.Operation;
 }

@@ -9,6 +9,7 @@ import { DynamoUnitOfWork } from '@infra/database/dynamo/DynamoUnitOfWork';
 import { DynamoCourseOutlineQuery } from '@infra/database/dynamo/queries/outline/DynamoCourseOutlineQuery';
 import { DynamoAccountRepository } from '@infra/database/dynamo/repositories/account/DynamoAccountRepository';
 import { DynamoCourseRepository } from '@infra/database/dynamo/repositories/course/DynamoCourseRepository';
+import { DynamoEnrollmentRepository } from '@infra/database/dynamo/repositories/enrollment/DynamoEnrollmentRepository';
 import { DynamoLessonRepository } from '@infra/database/dynamo/repositories/outline/DynamoLessonRepository';
 import { DynamoModuleRepository } from '@infra/database/dynamo/repositories/outline/DynamoModuleRepository';
 import { AppConfig } from '@shared/config/AppConfig';
@@ -33,6 +34,7 @@ export async function courseWorld() {
   const modules = new DynamoModuleRepository(config);
   const lessons = new DynamoLessonRepository(config);
   const outline = new DynamoCourseOutlineQuery(config);
+  const enrollments = new DynamoEnrollmentRepository(config);
   const unitOfWork = () => new DynamoUnitOfWork();
   const owner = account('ana', accountRoles.Instructor);
   const other = account('bia', accountRoles.Instructor);
@@ -106,6 +108,7 @@ export async function courseWorld() {
     modules,
     lessons,
     outline,
+    enrollments,
     unitOfWork,
     owner,
     other,

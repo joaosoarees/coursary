@@ -321,6 +321,18 @@ Cada achado:
 - **O que aconteceu**: o `InMemoryAccountRepository` reimplementava à mão as condições que o DynamoDB avalia (admin ativo no `ConditionCheck`, papel e status anteriores, hash do refresh token na rotação). Os testes conferiam o objeto que o próprio fake tinha mutado, não o que ficou gravado. Contra o DynamoDB Local, os mesmos casos provam a condição real, e ids KSUID aleatórios e e-mails únicos tornam o "não encontrado" estável. A recusa de quem deixou de ser admin ativo ao trocar o status nunca tinha sido testada. Ficaram 14 arquivos de teste no DynamoDB Local, 193 linhas de fake a menos, e falhas de infraestrutura simuladas com `vi.spyOn` no repositório real.
 - **Sugestão**: quando o repositório põe regra na escrita (condição, transação) e a base tem emulador local, testar contra o emulador; reservar o fake para serviços sem emulador (aqui, o Cognito). Um fake de repositório condicional é uma segunda implementação das regras, sem teste que prove que as duas concordam.
 
+### `dynamodb-many-to-many-relationships`, `dynamodb-denormalization` (2.1)
+
+#### 2026-10-16 · 2.1.a · lacuna
+- **A skill diz**: um item de associação por par, com as chaves invertidas no `GSI1`, e o contador escrito na mesma transação do par.
+- **O que aconteceu**: a matrícula é um par que sai e volta (cancelamento lógico, Q49). Só a ativa tem `GSI1PK`/`GSI1SK`, o que torna a lista de alunos do curso um índice esparso. Cancelar remove as duas chaves; rematricular as regrava com o `enrolledAt` original, e o aluno volta ao mesmo lugar da lista. O contador é assimétrico: `+1` exige o curso `PUBLISHED`, mas `-1` exige só que o curso exista, para que o aluno possa sair de um curso arquivado.
+- **Sugestão**: cobrir o par com estado (ativo/cancelado): o índice esparso na direção invertida, a regravação das chaves ao reativar e a condição diferente para cada sentido do contador.
+
+#### 2026-10-16 · 2.1.c · lacuna
+- **A skill diz** (`dynamodb-denormalization`): propague a cópia pelos itens que a carregam, achados pelo índice.
+- **O que aconteceu**: o índice de alunos só tem as matrículas ativas. Propagar o `studentName` por ele deixaria as canceladas com o nome antigo, e elas voltam à lista na rematrícula. A propagação lê a partição do aluno (`ACCOUNT#a`, `begins_with ENROLLMENT#`), onde estão todas, em transações de até 100.
+- **Sugestão**: avisar que propagar por um índice esparso só alcança os itens que estão nele; propague pela coleção que contém todas as cópias.
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |

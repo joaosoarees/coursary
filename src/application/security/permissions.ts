@@ -14,11 +14,18 @@ export const permissions = {
   CoursesListOwn: 'courses:list-own',
   CoursesPublish: 'courses:publish',
   CoursesArchive: 'courses:archive',
+  CoursesEnroll: 'courses:enroll',
 } as const;
 
 export type Permission = (typeof permissions)[keyof typeof permissions];
 
+// Each role holds every permission of the one below it (Q241).
+const studentPermissions = [
+  permissions.CoursesEnroll,
+] as const satisfies readonly Permission[];
+
 const instructorPermissions = [
+  ...studentPermissions,
   permissions.CoursesCreate,
   permissions.CoursesUpdate,
   permissions.CoursesListOwn,
@@ -27,7 +34,7 @@ const instructorPermissions = [
 ] as const satisfies readonly Permission[];
 
 export const rolePermissions = {
-  [accountRoles.Student]: [],
+  [accountRoles.Student]: studentPermissions,
   [accountRoles.Instructor]: instructorPermissions,
   [accountRoles.Admin]: [
     ...instructorPermissions,

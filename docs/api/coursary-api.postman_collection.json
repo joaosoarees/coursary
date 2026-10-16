@@ -661,6 +661,39 @@
           }
         }
       ]
+    },
+    {
+      "name": "Enrollment",
+      "item": [
+        {
+          "name": "Enroll",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/courses/{{courseId}}/enrollment",
+            "description": "201 com { courseId, status: ACTIVE, enrolledAt, completedLessons } na primeira matrícula; 200 na rematrícula (mantém o enrolledAt) e quando já ativa, sem gravar. Dono do curso: 409 OWN_COURSE. Rascunho: 404 COURSE_NOT_FOUND. Arquivado: 409 COURSE_ARCHIVED. 401."
+          }
+        },
+        {
+          "name": "Cancel enrollment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/courses/{{courseId}}/enrollment",
+            "description": "204, também se já cancelada (a matrícula fica, CANCELLED). Nunca matriculado: 404 ENROLLMENT_NOT_FOUND. Vale em curso arquivado. 401."
+          }
+        }
+      ]
     }
   ]
 }

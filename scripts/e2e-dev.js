@@ -622,12 +622,105 @@ try {
     409,
     'COURSE_PUBLISHED',
   );
+  console.log('\n# Enrollment (2.1)');
+  const enrollment = (token, method = 'PUT', id = courseId) =>
+    call(method, `/courses/${id}/enrollment`, { token });
+  const enrollmentCount = async () =>
+    (await call('GET', `/courses/${courseId}`)).body?.enrollmentCount;
+  const firstEnrollment = await enrollment(learnerToken);
+  check('a student enrolls in the published course', firstEnrollment, 201);
+  check(
+    'enrolling again answers the same enrollment',
+    await enrollment(learnerToken),
+    200,
+  );
+  check(
+    'the course counts one student',
+    { status: (await enrollmentCount()) === 1 ? 200 : 500 },
+    200,
+  );
+  check(
+    'the owner cannot enroll in their own course',
+    await enrollment(instructorToken),
+    409,
+    'OWN_COURSE',
+  );
+  check(
+    'a draft takes no enrollment',
+    await enrollment(learnerToken, 'PUT', emptyCourse.id),
+    404,
+    'COURSE_NOT_FOUND',
+  );
+  check(
+    'leaving a course never joined answers not found',
+    await enrollment(otherToken, 'DELETE'),
+    404,
+    'ENROLLMENT_NOT_FOUND',
+  );
+  await call('PATCH', '/me', {
+    token: learnerToken,
+    body: { name: 'E2E Renamed Learner' },
+  });
+  const { Item: stored } = aws(
+    'dynamodb',
+    'get-item',
+    '--table-name',
+    table,
+    '--consistent-read',
+    '--key',
+    JSON.stringify({
+      PK: { S: `ACCOUNT#${plainStudent.accountId}` },
+      SK: { S: `ENROLLMENT#${courseId}` },
+    }),
+  );
+  check(
+    'a new name reaches the enrollment',
+    { status: stored?.studentName?.S === 'E2E Renamed Learner' ? 200 : 500 },
+    200,
+  );
+  check('the student leaves', await enrollment(learnerToken, 'DELETE'), 204);
+  check(
+    'leaving again answers the same',
+    await enrollment(learnerToken, 'DELETE'),
+    204,
+  );
+  check(
+    'the course counts no student',
+    { status: (await enrollmentCount()) === 0 ? 200 : 500 },
+    200,
+  );
+  const again = await enrollment(learnerToken);
+  check(
+    'enrolling again keeps the first date',
+    {
+      status:
+        again.status === 200 &&
+        again.body?.enrolledAt === firstEnrollment.body?.enrolledAt
+          ? 200
+          : 500,
+      body: again.body,
+    },
+    200,
+  );
+
+  console.log('\n# Archive (1.15, Q52)');
   check(
     'the instructor archives the course',
     await call('POST', `/courses/${courseId}/archive`, {
       token: instructorToken,
     }),
     200,
+  );
+  check(
+    'an archived course takes no new enrollment',
+    await enrollment(otherToken),
+    409,
+    'COURSE_ARCHIVED',
+  );
+  check(
+    'an enrolled student can still leave an archived course',
+    await enrollment(learnerToken, 'DELETE'),
+    204,
   );
   check(
     'the archived course leaves the catalog',

@@ -27,6 +27,8 @@ export const ErrorCode = {
   OutlineMismatch: 'OUTLINE_MISMATCH',
   OutlineTooLarge: 'OUTLINE_TOO_LARGE',
   TooManyRequests: 'TOO_MANY_REQUESTS',
+  OwnCourse: 'OWN_COURSE',
+  EnrollmentNotFound: 'ENROLLMENT_NOT_FOUND',
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
