@@ -65,19 +65,19 @@ export class Course {
     }
   }
 
+  // Only a draft loses modules and lessons (Q24, Q223).
+  requireDraft(): void {
+    if (this.status !== courseStatuses.Draft) {
+      throw new CoursePublished();
+    }
+  }
+
   static requireFound(course: Course | null): Course {
     if (!course) {
       throw new CourseNotFound();
     }
 
     return course;
-  }
-
-  // Only a draft loses modules and lessons (Q24, Q223).
-  requireDraft(): void {
-    if (this.status !== courseStatuses.Draft) {
-      throw new CoursePublished();
-    }
   }
 
   static isId(value: unknown): value is Course.Id {
