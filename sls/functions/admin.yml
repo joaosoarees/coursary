@@ -1,5 +1,15 @@
 promoteAdmin:
   handler: src/main/functions/admin/promoteAdmin.handler
+  timeout: 5
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+          Resource: !GetAtt MainTable.Arn
 
 listAccounts:
   handler: src/main/functions/admin/listAccounts.handler
