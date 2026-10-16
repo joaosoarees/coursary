@@ -1,33 +1,28 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
+import { accountWorld } from '@tests/support/accountWorld';
 import { anAccountId } from '@tests/support/ids';
 
-import { Account, accountRoles } from '@application/entities/account/Account';
+import {
+  type Account,
+  accountRoles,
+  accountStatuses,
+} from '@application/entities/account/Account';
 import { AccountNotActive, AccountNotFound } from '@application/errors/account';
 import { CannotChangeOwnRole } from '@application/errors/admin';
 import { Forbidden } from '@application/errors/common';
 import { ChangeRoleUseCase } from '@application/usecases/admin/ChangeRoleUseCase';
 
-let accounts: InMemoryAccountRepository;
+let world: ReturnType<typeof accountWorld>;
 let changeRole: ChangeRoleUseCase;
 let admin: Account;
 let target: Account;
 
-const addAccount = async (name: string, role: Account.Role) => {
-  const account = Account.create({ name, email: `${name}@example.com` });
-  await accounts.create(account);
-  account.activate();
-  account.role = role;
-
-  return account;
-};
-
 beforeEach(async () => {
-  accounts = new InMemoryAccountRepository();
-  changeRole = new ChangeRoleUseCase(accounts);
-  admin = await addAccount('ana', accountRoles.Admin);
-  target = await addAccount('bia', accountRoles.Student);
+  world = accountWorld();
+  changeRole = new ChangeRoleUseCase(world.accounts);
+  admin = await world.addAccount({ name: 'ana', role: accountRoles.Admin });
+  target = await world.addAccount({ name: 'bia' });
 });
 
 describe('ChangeRoleUseCase', () => {
@@ -39,8 +34,10 @@ describe('ChangeRoleUseCase', () => {
         role: accountRoles.Instructor,
       }),
     ).resolves.toEqual({ id: target.id, role: 'instructor' });
-    expect(target.role).toBe('instructor');
-    expect(accounts.roleChanges).toMatchObject([
+    await expect(world.stored(target)).resolves.toMatchObject({
+      role: 'instructor',
+    });
+    await expect(world.roleChanges(target)).resolves.toMatchObject([
       { fromRole: 'student', toRole: 'instructor', changedBy: admin.id },
     ]);
   });
@@ -53,7 +50,7 @@ describe('ChangeRoleUseCase', () => {
         role: accountRoles.Student,
       }),
     ).resolves.toEqual({ id: target.id, role: 'student' });
-    expect(accounts.roleChanges).toHaveLength(0);
+    await expect(world.roleChanges(target)).resolves.toHaveLength(0);
   });
 
   it('should refuse a change to the caller own role', async () => {
@@ -77,8 +74,10 @@ describe('ChangeRoleUseCase', () => {
   });
 
   it('should refuse an account that is not active', async () => {
-    const pending = Account.create({ name: 'Caio', email: 'caio@example.com' });
-    await accounts.create(pending);
+    const pending = await world.addAccount({
+      name: 'caio',
+      status: accountStatuses.Pending,
+    });
 
     await expect(
       changeRole.execute({
@@ -91,6 +90,7 @@ describe('ChangeRoleUseCase', () => {
 
   it('should refuse a caller who is no longer admin', async () => {
     admin.role = accountRoles.Student;
+    await world.save(admin);
 
     await expect(
       changeRole.execute({
@@ -99,5 +99,6 @@ describe('ChangeRoleUseCase', () => {
         role: accountRoles.Admin,
       }),
     ).rejects.toBeInstanceOf(Forbidden);
+    await expect(world.roleChanges(target)).resolves.toHaveLength(0);
   });
 });

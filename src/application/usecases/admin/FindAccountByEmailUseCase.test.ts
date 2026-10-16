@@ -1,30 +1,35 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
+import { accountWorld, uniqueEmail } from '@tests/support/accountWorld';
 
-import { Account } from '@application/entities/account/Account';
+import {
+  type Account,
+  accountStatuses,
+} from '@application/entities/account/Account';
 import { AccountNotFound } from '@application/errors/account';
 import { FindAccountByEmailUseCase } from '@application/usecases/admin/FindAccountByEmailUseCase';
 
-let accounts: InMemoryAccountRepository;
+let world: ReturnType<typeof accountWorld>;
 let account: Account;
 
 beforeEach(async () => {
-  accounts = new InMemoryAccountRepository();
-  account = Account.create({ name: 'Ana', email: 'ana@example.com' });
-  await accounts.create(account);
+  world = accountWorld();
+  account = await world.addAccount({
+    name: 'Ana',
+    status: accountStatuses.Pending,
+  });
 });
 
 describe('FindAccountByEmailUseCase', () => {
   it('should return the summary of the account with the e-mail', async () => {
     await expect(
-      new FindAccountByEmailUseCase(accounts).execute({
-        email: ' ANA@example.com',
+      new FindAccountByEmailUseCase(world.accounts).execute({
+        email: ` ${account.email.toUpperCase()}`,
       }),
     ).resolves.toEqual({
       id: account.id,
       name: 'Ana',
-      email: 'ana@example.com',
+      email: account.email,
       role: 'student',
       status: 'PENDING',
       createdAt: account.createdAt.toISOString(),
@@ -33,8 +38,8 @@ describe('FindAccountByEmailUseCase', () => {
 
   it('should answer not found for an unknown e-mail', async () => {
     await expect(
-      new FindAccountByEmailUseCase(accounts).execute({
-        email: 'bia@example.com',
+      new FindAccountByEmailUseCase(world.accounts).execute({
+        email: uniqueEmail('bia'),
       }),
     ).rejects.toBeInstanceOf(AccountNotFound);
   });
