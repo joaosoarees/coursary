@@ -53,3 +53,11 @@ getProgress:
         method: GET
         path: /courses/{courseId}/progress
         authorizer: CognitoAuthorizer
+
+savePosition:
+  handler: src/main/functions/enrollment/savePosition.handler
+  events:
+    - httpApi:
+        method: PUT
+        path: /courses/{courseId}/position
+        authorizer: CognitoAuthorizer
