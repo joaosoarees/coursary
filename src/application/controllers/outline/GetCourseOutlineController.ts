@@ -10,7 +10,7 @@ export class GetCourseOutlineController extends Controller<
   'private',
   CourseOutlineQuery.Outline
 > {
-  protected override readonly permission = permissions.CoursesUpdate;
+  protected override readonly permission = permissions.CoursesLearn;
 
   protected override readonly paramsSchema = courseIdParamsSchema;
 
