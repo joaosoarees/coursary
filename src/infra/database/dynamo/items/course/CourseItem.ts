@@ -76,11 +76,14 @@ export class CourseItem {
     return `COURSE#${id}`;
   }
 
-  static getGSI2PK(): 'CATALOG' {
+  static getGSI2PK(): NonNullable<CourseItem.Keys['GSI2PK']> {
     return 'CATALOG';
   }
 
-  static getGSI2SK(publishedAt: string, id: Course.Id): `${string}#${string}` {
+  static getGSI2SK(
+    publishedAt: string,
+    id: Course.Id,
+  ): NonNullable<CourseItem.Keys['GSI2SK']> {
     return `${publishedAt}#${id}`;
   }
 }

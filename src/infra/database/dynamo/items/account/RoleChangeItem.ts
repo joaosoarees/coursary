@@ -1,5 +1,6 @@
 import type { Account } from '@application/entities/account/Account';
 import { RoleChange } from '@application/entities/account/RoleChange';
+import { AccountItem } from '@infra/database/dynamo/items/account/AccountItem';
 
 export class RoleChangeItem {
   static readonly type = 'RoleChange';
@@ -40,10 +41,10 @@ export class RoleChangeItem {
   }
 
   static getPK(accountId: Account.Id): RoleChangeItem.Keys['PK'] {
-    return `ACCOUNT#${accountId}`;
+    return AccountItem.getPK(accountId);
   }
 
-  static getSK(id: string): RoleChangeItem.Keys['SK'] {
+  static getSK(id: RoleChange.Id): RoleChangeItem.Keys['SK'] {
     return `ROLE_CHANGE#${id}`;
   }
 }
@@ -55,7 +56,7 @@ export namespace RoleChangeItem {
   }
 
   export interface Attributes {
-    id: string;
+    id: RoleChange.Id;
     accountId: Account.Id;
     changedBy: RoleChange.Actor;
     fromRole: Account.Role;

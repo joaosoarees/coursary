@@ -65,14 +65,16 @@ export class EnrollmentItem {
     return `ENROLLMENT#${courseId}`;
   }
 
-  static getGSI1PK(courseId: Course.Id): `COURSE#${string}` {
+  static getGSI1PK(
+    courseId: Course.Id,
+  ): NonNullable<EnrollmentItem.Keys['GSI1PK']> {
     return CourseItem.getPK(courseId);
   }
 
   static getGSI1SK(
     enrolledAt: string,
     accountId: Account.Id,
-  ): `ENROLLMENT#${string}#${string}` {
+  ): NonNullable<EnrollmentItem.Keys['GSI1SK']> {
     return `ENROLLMENT#${enrolledAt}#${accountId}`;
   }
 }
