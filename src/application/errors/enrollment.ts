@@ -14,3 +14,11 @@ export const EnrollmentNotFound = defineError(
   404,
   'You are not enrolled in this course.',
 );
+
+// Raised by the completion write; the use case answers it as already done (Q278).
+export const AlreadyCompleted = defineError(
+  'AlreadyCompleted',
+  ErrorCode.AlreadyCompleted,
+  409,
+  'The lesson was already completed.',
+);
