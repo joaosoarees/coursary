@@ -16,6 +16,7 @@ export const permissions = {
   CoursesArchive: 'courses:archive',
   CoursesEnroll: 'courses:enroll',
   CoursesListStudents: 'courses:list-students',
+  CoursesLearn: 'courses:learn',
 } as const;
 
 export type Permission = (typeof permissions)[keyof typeof permissions];
@@ -23,6 +24,7 @@ export type Permission = (typeof permissions)[keyof typeof permissions];
 // Each role holds every permission of the one below it (Q241).
 const studentPermissions = [
   permissions.CoursesEnroll,
+  permissions.CoursesLearn,
 ] as const satisfies readonly Permission[];
 
 const instructorPermissions = [

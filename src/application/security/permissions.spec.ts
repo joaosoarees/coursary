@@ -35,7 +35,10 @@ describe('Permissions', () => {
     );
   });
 
-  it('should let a student enroll and nothing an instructor does', () => {
-    expect(rolePermissions.student).toEqual([permissions.CoursesEnroll]);
+  it('should let a student enroll and learn, and nothing an instructor does', () => {
+    expect(rolePermissions.student).toEqual([
+      permissions.CoursesEnroll,
+      permissions.CoursesLearn,
+    ]);
   });
 });
