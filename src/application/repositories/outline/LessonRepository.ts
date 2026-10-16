@@ -10,6 +10,12 @@ export interface LessonRepository {
     id: Lesson.Id,
   ): Promise<Lesson | null>;
 
+  // The body alone, without knowing the module; null when not in the course.
+  findContent(
+    courseId: Course.Id,
+    id: Lesson.Id,
+  ): Promise<LessonRepository.Content | null>;
+
   createOperations(lesson: Lesson): UnitOfWork.Operation[];
 
   updateOperations(lesson: Lesson): UnitOfWork.Operation[];
@@ -22,4 +28,12 @@ export interface LessonRepository {
     lesson: Lesson,
     fromModuleId: Module.Id,
   ): UnitOfWork.Operation[];
+}
+
+export namespace LessonRepository {
+  export interface Content {
+    lessonId: Lesson.Id;
+    courseId: Course.Id;
+    body: string;
+  }
 }

@@ -61,4 +61,21 @@ describe('DynamoLessonRepository', () => {
       commit(world.lessons.deleteOperations(lesson)),
     ).rejects.toBeInstanceOf(LessonNotFound);
   });
+
+  it('should find the content of a lesson only within its course', async () => {
+    const module = await world.addModule('M1', 0);
+    const lesson = await world.addLesson(module, 0);
+    const other = await courseWorld();
+
+    await expect(
+      world.lessons.findContent(world.course.id, lesson.id),
+    ).resolves.toEqual({
+      lessonId: lesson.id,
+      courseId: world.course.id,
+      body: '',
+    });
+    await expect(
+      world.lessons.findContent(other.course.id, lesson.id),
+    ).resolves.toBeNull();
+  });
 });
