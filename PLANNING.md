@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-16. Estado: **fase 1, R.1 a R.3, 2.1 a 2.3 na `develop` e em `dev`, `pnpm e2e:dev` 76 de 76; 2.4 (progresso, Q278 a Q281) na `feat/2.4-progress`, em PR; o `e2e:dev` roda depois do merge**.
+Última atualização: 2026-10-16. Estado: **fase 1, R.1 a R.3, 2.1 a 2.4 na `develop` e em `dev`, `pnpm e2e:dev` 83 de 83; em andamento: 2.5 (avaliações, Q282 a Q285) na `feat/2.5-reviews`**.
 
 ## Como retomar
 
@@ -335,6 +335,10 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q279 | Ler o progresso | `GET /courses/{courseId}/progress` → `{ completedLessons, completedLessonIds, lastLessonId, positionSeconds }`; Query `ACCOUNT#a` com `begins_with PROGRESS#c` seguindo `LastEvaluatedKey`; `completedLessons` da matrícula; só matrícula ativa. |
 | Q280 | Salvar a posição | `PUT /courses/{courseId}/position` `{ lessonId, positionSeconds }` (0 a 86.400) → 204; leitura forte da matrícula ativa + `Put` de `PROGRESS#c` (1 RCU + 1 WCU, sem transação); `lessonId` só gravado. |
 | Q281 | Sub-imp da 2.4 | a. `LessonProgress` e transação de concluir; b. use case e rota de concluir; c. leitura do progresso; d. salvar a posição; e. Postman, `e2e:dev`, documentação, `/code-review`. |
+| Q282 | Avaliar e editar | `PUT /courses/{courseId}/review` `{ rating (1 a 5), comment? (até 2.000, aparado) }` → 201 ao criar, 200 ao editar ou sem mudança (sem gravar); `{ courseId, rating, comment, createdAt, updatedAt }`. Criar: `Put` condicional + `ADD ratingSum, ratingCount 1` + `ConditionCheck` da matrícula `ACTIVE`; editar: `Update` condicionado à nota lida + `ADD ratingSum :diferença` + o mesmo `ConditionCheck`. Só matrícula ativa; sem apagar. |
+| Q283 | Lista pública de avaliações | `GET /courses/{courseId}/reviews`, público, só curso publicado (arquivado 404), mais recente primeiro pela criação, 20/100; item `{ studentName, rating, comment, createdAt, updatedAt }` sem `accountId`. Página do curso e catálogo ganham `ratingCount` e `ratingAverage` (calculada na leitura, `null` sem avaliações); ausentes contam 0. |
+| Q284 | Minha avaliação | `GET /courses/{courseId}/review` → a do próprio aluno ou `404 REVIEW_NOT_FOUND`; `courses:review` no aluno; não exige matrícula ativa. |
+| Q285 | Sub-imp da 2.5 | a. `Review` e transações; b. `courses:review`, use cases e rotas `PUT`/`GET /review`; c. propagação do nome para as avaliações; d. lista pública e média na página e no catálogo; e. Postman, `e2e:dev`, documentação, `/code-review`. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
