@@ -5,7 +5,7 @@ import type {
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 
-import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
+import { accountWorld } from '@tests/support/accountWorld';
 
 import { Controller } from '@application/contracts/Controller';
 import { Account, accountRoles } from '@application/entities/account/Account';
@@ -103,19 +103,14 @@ class PublicWhoAmIController extends Controller<'public', { accountId: null }> {
   }
 }
 
-let accounts: InMemoryAccountRepository;
+let world: ReturnType<typeof accountWorld>;
 let resolveCaller: ResolveCallerUseCase;
 let student: Account;
 
 const addAccount = async (role: Account.Role) => {
-  const account = Account.create({
-    name: 'Ana',
-    email: `${crypto.randomUUID()}@example.com`,
-  });
-  await accounts.create(account);
-  account.activate();
-  account.role = role;
+  const account = await world.addAccount({ role });
   account.session = { accessJti: `jti-${account.id}`, refreshTokenHash: 'h' };
+  await world.save(account);
 
   return account;
 };
@@ -126,8 +121,8 @@ const claimsOf = (account: Account) => ({
 });
 
 beforeEach(async () => {
-  accounts = new InMemoryAccountRepository();
-  resolveCaller = new ResolveCallerUseCase(accounts);
+  world = accountWorld();
+  resolveCaller = new ResolveCallerUseCase(world.accounts);
   student = await addAccount(accountRoles.Student);
 });
 
@@ -177,6 +172,7 @@ describe('lambdaHttpAdapter', () => {
 
   it('should answer 403 ACCOUNT_UNAVAILABLE for an account that is no longer active', async () => {
     student.status = 'DISABLED';
+    await world.save(student);
 
     const response = await lambdaHttpAdapter(
       new WhoAmIController(),
