@@ -1,4 +1,4 @@
-import { GetCommand } from '@aws-sdk/lib-dynamodb';
+import { GetCommand, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 
 import type { UnitOfWork } from '@application/contracts/UnitOfWork';
 import type { Account } from '@application/entities/account/Account';
@@ -8,6 +8,7 @@ import type { ReviewRepository } from '@application/repositories/review/ReviewRe
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { DynamoUnitOfWork } from '@infra/database/dynamo/DynamoUnitOfWork';
 import { ReviewItem } from '@infra/database/dynamo/items/review/ReviewItem';
+import { queryAll } from '@infra/database/dynamo/queryAll';
 import type { AppConfig } from '@shared/config/AppConfig';
 
 export class DynamoReviewRepository implements ReviewRepository {
@@ -58,6 +59,37 @@ export class DynamoReviewRepository implements ReviewRepository {
         },
       },
     });
+  }
+
+  // Copies the name into every review of the student (Q81), at most 100 per
+  // transaction; calling it again with the same name finishes what a failure left.
+  async updateStudentName(accountId: Account.Id, name: string): Promise<void> {
+    const TableName = this.config.mainTableName;
+    const keys = await queryAll<Record<string, unknown>>({
+      TableName,
+      KeyConditionExpression: 'PK = :pk AND begins_with(SK, :prefix)',
+      ExpressionAttributeValues: {
+        ':pk': ReviewItem.getPK(accountId),
+        ':prefix': 'REVIEW#',
+      },
+      ProjectionExpression: 'PK, SK',
+    });
+
+    for (let start = 0; start < keys.length; start += 100) {
+      const command = new TransactWriteCommand({
+        TransactItems: keys.slice(start, start + 100).map((Key) => ({
+          Update: {
+            TableName,
+            Key,
+            UpdateExpression: 'SET studentName = :name',
+            ConditionExpression: 'attribute_exists(PK)',
+            ExpressionAttributeValues: { ':name': name },
+          },
+        })),
+      });
+
+      await dynamoClient.send(command);
+    }
   }
 
   private keyOf(accountId: Account.Id, courseId: Course.Id) {

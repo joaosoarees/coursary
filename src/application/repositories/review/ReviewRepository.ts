@@ -11,4 +11,6 @@ export interface ReviewRepository {
   // Holds the edit to the rating the caller read, so the counter moves by the
   // right difference.
   updateOperation(review: Review, previousRating: number): UnitOfWork.Operation;
+
+  updateStudentName(accountId: Account.Id, name: string): Promise<void>;
 }
