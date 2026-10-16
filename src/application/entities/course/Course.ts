@@ -49,16 +49,21 @@ export class Course {
     return this.status !== courseStatuses.Draft;
   }
 
-  // The owner or an admin may change a course; anyone else learns only what
-  // they could see (Q95), and an archived course takes no change (Q206).
-  requireEditableBy(callerId: Account.Id, callerRole: Account.Role): void {
-    const mayEdit =
+  // The owner or an admin manages a course; anyone else learns only what they
+  // could see (Q95, Q270).
+  requireManagedBy(callerId: Account.Id, callerRole: Account.Role): void {
+    const manages =
       this.isOwnedBy(callerId) ||
       Permissions.allows(callerRole, permissions.CoursesUpdateAny);
 
-    if (!mayEdit) {
+    if (!manages) {
       throw this.isVisibleToEveryone() ? new Forbidden() : new CourseNotFound();
     }
+  }
+
+  // Managing is not enough to change it: an archived course takes no change (Q206).
+  requireEditableBy(callerId: Account.Id, callerRole: Account.Role): void {
+    this.requireManagedBy(callerId, callerRole);
 
     if (this.status === courseStatuses.Archived) {
       throw new CourseArchived();

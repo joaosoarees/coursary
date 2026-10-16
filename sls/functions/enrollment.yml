@@ -21,3 +21,11 @@ listMyEnrollments:
         method: GET
         path: /me/enrollments
         authorizer: CognitoAuthorizer
+
+listCourseStudents:
+  handler: src/main/functions/enrollment/listCourseStudents.handler
+  events:
+    - httpApi:
+        method: GET
+        path: /courses/{id}/students
+        authorizer: CognitoAuthorizer
