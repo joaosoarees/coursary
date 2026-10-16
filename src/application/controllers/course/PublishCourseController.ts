@@ -14,7 +14,7 @@ export class PublishCourseController extends Controller<
 
   protected override readonly paramsSchema = courseIdParamsSchema;
 
-  constructor(private readonly useCase: PublishCourseUseCase) {
+  constructor(private readonly publishCourse: PublishCourseUseCase) {
     super();
   }
 
@@ -27,7 +27,7 @@ export class PublishCourseController extends Controller<
     Record<string, unknown>,
     PublishCourseController.Params
   >): Promise<Controller.Response<CourseDetails>> {
-    const course = await this.useCase.execute({
+    const course = await this.publishCourse.execute({
       callerId: accountId,
       callerRole: role,
       courseId: params.id,

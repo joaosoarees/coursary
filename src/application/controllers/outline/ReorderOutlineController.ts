@@ -19,7 +19,7 @@ export class ReorderOutlineController extends Controller<
 
   protected override readonly bodySchema = outlineBodySchema;
 
-  constructor(private readonly useCase: ReorderOutlineUseCase) {
+  constructor(private readonly reorderOutline: ReorderOutlineUseCase) {
     super();
   }
 
@@ -33,7 +33,7 @@ export class ReorderOutlineController extends Controller<
     ReorderOutlineController.Body,
     ReorderOutlineController.Params
   >): Promise<Controller.Response<CourseOutlineQuery.Outline>> {
-    const result = await this.useCase.execute({
+    const result = await this.reorderOutline.execute({
       callerId: accountId,
       callerRole: role,
       courseId: params.id,

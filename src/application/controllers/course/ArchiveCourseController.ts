@@ -14,7 +14,7 @@ export class ArchiveCourseController extends Controller<
 
   protected override readonly paramsSchema = courseIdParamsSchema;
 
-  constructor(private readonly useCase: ArchiveCourseUseCase) {
+  constructor(private readonly archiveCourse: ArchiveCourseUseCase) {
     super();
   }
 
@@ -27,7 +27,7 @@ export class ArchiveCourseController extends Controller<
     Record<string, unknown>,
     ArchiveCourseController.Params
   >): Promise<Controller.Response<CourseDetails>> {
-    const course = await this.useCase.execute({
+    const course = await this.archiveCourse.execute({
       callerId: accountId,
       callerRole: role,
       courseId: params.id,

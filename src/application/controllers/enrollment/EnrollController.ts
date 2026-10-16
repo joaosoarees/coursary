@@ -11,7 +11,7 @@ export class EnrollController extends Controller<'private', EnrollmentDetails> {
 
   protected override readonly paramsSchema = courseIdParamsSchema;
 
-  constructor(private readonly useCase: EnrollUseCase) {
+  constructor(private readonly enroll: EnrollUseCase) {
     super();
   }
 
@@ -23,7 +23,7 @@ export class EnrollController extends Controller<'private', EnrollmentDetails> {
     Record<string, unknown>,
     EnrollController.Params
   >): Promise<Controller.Response<EnrollmentDetails>> {
-    const { enrollment, created } = await this.useCase.execute({
+    const { enrollment, created } = await this.enroll.execute({
       student: account,
       courseId: params.id,
     });

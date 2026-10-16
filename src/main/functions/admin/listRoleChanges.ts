@@ -12,7 +12,6 @@ const listRoleChangesUseCase = new ListRoleChangesUseCase(
   listRoleChangesQuery,
 );
 const controller = new ListRoleChangesController(listRoleChangesUseCase);
-
 const resolveCaller = makeResolveCallerUseCase();
 
 export const handler = lambdaHttpAdapter(controller, resolveCaller);

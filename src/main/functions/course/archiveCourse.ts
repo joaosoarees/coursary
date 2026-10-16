@@ -5,8 +5,8 @@ import { makeCourseRepository } from '@main/factories/makeCourseRepository';
 import { makeResolveCallerUseCase } from '@main/factories/makeResolveCallerUseCase';
 
 const coursesRepository = makeCourseRepository();
-const useCase = new ArchiveCourseUseCase(coursesRepository);
-const controller = new ArchiveCourseController(useCase);
+const archiveCourseUseCase = new ArchiveCourseUseCase(coursesRepository);
+const controller = new ArchiveCourseController(archiveCourseUseCase);
 const resolveCaller = makeResolveCallerUseCase();
 
 export const handler = lambdaHttpAdapter(controller, resolveCaller);

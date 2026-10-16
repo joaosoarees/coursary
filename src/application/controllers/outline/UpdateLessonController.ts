@@ -19,7 +19,7 @@ export class UpdateLessonController extends Controller<
 
   protected override readonly bodySchema = updateLessonSchema;
 
-  constructor(private readonly useCase: UpdateLessonUseCase) {
+  constructor(private readonly updateLesson: UpdateLessonUseCase) {
     super();
   }
 
@@ -33,7 +33,7 @@ export class UpdateLessonController extends Controller<
     UpdateLessonController.Body,
     UpdateLessonController.Params
   >): Promise<Controller.Response<LessonDetails>> {
-    const result = await this.useCase.execute({
+    const result = await this.updateLesson.execute({
       callerId: accountId,
       callerRole: role,
       courseId: params.id,

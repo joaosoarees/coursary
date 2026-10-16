@@ -7,6 +7,8 @@ import { makeAccountRepository } from '@main/factories/makeAccountRepository';
 
 const schema = z.object({ email: emailSchema });
 const accountsRepository = makeAccountRepository();
-const useCase = new PromoteFirstAdminUseCase(accountsRepository);
+const promoteFirstAdminUseCase = new PromoteFirstAdminUseCase(
+  accountsRepository,
+);
 
-export const handler = lambdaInvokeAdapter(schema, useCase);
+export const handler = lambdaInvokeAdapter(schema, promoteFirstAdminUseCase);

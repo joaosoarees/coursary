@@ -10,7 +10,7 @@ export class CancelEnrollmentController extends Controller<'private'> {
 
   protected override readonly paramsSchema = courseIdParamsSchema;
 
-  constructor(private readonly useCase: CancelEnrollmentUseCase) {
+  constructor(private readonly cancelEnrollment: CancelEnrollmentUseCase) {
     super();
   }
 
@@ -22,7 +22,10 @@ export class CancelEnrollmentController extends Controller<'private'> {
     Record<string, unknown>,
     CancelEnrollmentController.Params
   >): Promise<Controller.Response<undefined>> {
-    await this.useCase.execute({ callerId: accountId, courseId: params.id });
+    await this.cancelEnrollment.execute({
+      callerId: accountId,
+      courseId: params.id,
+    });
 
     return { statusCode: 204 };
   }

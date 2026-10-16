@@ -19,7 +19,7 @@ export class CreateModuleController extends Controller<
 
   protected override readonly bodySchema = moduleBodySchema;
 
-  constructor(private readonly useCase: CreateModuleUseCase) {
+  constructor(private readonly createModule: CreateModuleUseCase) {
     super();
   }
 
@@ -33,7 +33,7 @@ export class CreateModuleController extends Controller<
     CreateModuleController.Body,
     CreateModuleController.Params
   >): Promise<Controller.Response<ModuleDetails>> {
-    const result = await this.useCase.execute({
+    const result = await this.createModule.execute({
       callerId: accountId,
       callerRole: role,
       courseId: params.id,

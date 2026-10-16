@@ -6,7 +6,7 @@ import type { CourseOutlineQuery } from '@application/queries/outline/CourseOutl
 import { permissions } from '@application/security/permissions';
 import type { GetCourseOutlineUseCase } from '@application/usecases/outline/GetCourseOutlineUseCase';
 
-export class GetOutlineController extends Controller<
+export class GetCourseOutlineController extends Controller<
   'private',
   CourseOutlineQuery.Outline
 > {
@@ -14,7 +14,7 @@ export class GetOutlineController extends Controller<
 
   protected override readonly paramsSchema = outlineParamsSchema;
 
-  constructor(private readonly useCase: GetCourseOutlineUseCase) {
+  constructor(private readonly getCourseOutline: GetCourseOutlineUseCase) {
     super();
   }
 
@@ -25,9 +25,9 @@ export class GetOutlineController extends Controller<
   }: Controller.Request<
     'private',
     Record<string, unknown>,
-    GetOutlineController.Params
+    GetCourseOutlineController.Params
   >): Promise<Controller.Response<CourseOutlineQuery.Outline>> {
-    const result = await this.useCase.execute({
+    const result = await this.getCourseOutline.execute({
       callerId: accountId,
       callerRole: role,
       courseId: params.id,
@@ -37,6 +37,6 @@ export class GetOutlineController extends Controller<
   }
 }
 
-export namespace GetOutlineController {
+export namespace GetCourseOutlineController {
   export type Params = z.infer<typeof outlineParamsSchema>;
 }

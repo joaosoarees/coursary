@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { Controller } from '@application/contracts/Controller';
 import { emailSchema } from '@application/controllers/auth/schemas';
 import type { AuthGateway } from '@application/gateways/auth/AuthGateway';
-import { SignInUseCase } from '@application/usecases/auth/SignInUseCase';
+import type { SignInUseCase } from '@application/usecases/auth/SignInUseCase';
 
 export const signInSchema = z.object({
   email: emailSchema,

@@ -3,6 +3,6 @@ import { cognitoPreTokenAdapter } from '@main/adapters/cognitoPreTokenAdapter';
 import { makeAccountRepository } from '@main/factories/makeAccountRepository';
 
 const accountsRepository = makeAccountRepository();
-const useCase = new IssueTokenClaimsUseCase(accountsRepository);
+const issueTokenClaimsUseCase = new IssueTokenClaimsUseCase(accountsRepository);
 
-export const handler = cognitoPreTokenAdapter(useCase);
+export const handler = cognitoPreTokenAdapter(issueTokenClaimsUseCase);

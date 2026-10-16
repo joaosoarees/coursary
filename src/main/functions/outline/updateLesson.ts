@@ -6,14 +6,14 @@ import { makeLessonRepository } from '@main/factories/makeLessonRepository';
 import { makeResolveCallerUseCase } from '@main/factories/makeResolveCallerUseCase';
 import { makeUnitOfWork } from '@main/factories/makeUnitOfWork';
 
-const courseRepository = makeCourseRepository();
-const lessonRepository = makeLessonRepository();
-const useCase = new UpdateLessonUseCase(
-  courseRepository,
-  lessonRepository,
+const coursesRepository = makeCourseRepository();
+const lessonsRepository = makeLessonRepository();
+const updateLessonUseCase = new UpdateLessonUseCase(
+  coursesRepository,
+  lessonsRepository,
   makeUnitOfWork,
 );
-const controller = new UpdateLessonController(useCase);
+const controller = new UpdateLessonController(updateLessonUseCase);
 const resolveCaller = makeResolveCallerUseCase();
 
 export const handler = lambdaHttpAdapter(controller, resolveCaller);

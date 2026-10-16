@@ -5,7 +5,7 @@ import {
   emailSchema,
   passwordSchema,
 } from '@application/controllers/auth/schemas';
-import { SignUpUseCase } from '@application/usecases/auth/SignUpUseCase';
+import type { SignUpUseCase } from '@application/usecases/auth/SignUpUseCase';
 
 export const signUpSchema = z.object({
   name: z.string().trim().min(1).max(100),
@@ -15,7 +15,7 @@ export const signUpSchema = z.object({
 
 export class SignUpController extends Controller<
   'public',
-  SignUpController.Response
+  SignUpUseCase.Output
 > {
   protected override readonly bodySchema = signUpSchema;
 
@@ -25,7 +25,7 @@ export class SignUpController extends Controller<
 
   protected async handle(
     request: Controller.Request<'public', SignUpController.Body>,
-  ): Promise<Controller.Response<SignUpController.Response>> {
+  ): Promise<Controller.Response<SignUpUseCase.Output>> {
     const { accountId } = await this.signUp.execute(request.body);
 
     return { statusCode: 201, body: { accountId } };
@@ -34,8 +34,4 @@ export class SignUpController extends Controller<
 
 export namespace SignUpController {
   export type Body = z.infer<typeof signUpSchema>;
-
-  export interface Response {
-    accountId: string;
-  }
 }
