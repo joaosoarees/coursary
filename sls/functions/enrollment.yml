@@ -29,3 +29,11 @@ listCourseStudents:
         method: GET
         path: /courses/{courseId}/students
         authorizer: CognitoAuthorizer
+
+openLesson:
+  handler: src/main/functions/enrollment/openLesson.handler
+  events:
+    - httpApi:
+        method: GET
+        path: /courses/{courseId}/lessons/{lessonId}
+        authorizer: CognitoAuthorizer

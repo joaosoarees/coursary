@@ -3,13 +3,12 @@ import { z } from 'zod';
 import {
   courseIdSchema,
   ksuidSchema,
+  lessonIdSchema,
   titleSchema,
 } from '@application/controllers/shared/schemas';
-import { Lesson } from '@application/entities/outline/Lesson';
 import { Module } from '@application/entities/outline/Module';
 
 const moduleId = ksuidSchema.transform((value) => Module.toId(value));
-const lessonId = ksuidSchema.transform((value) => Lesson.toId(value));
 
 const MAX_BODY_BYTES = 32 * 1024;
 
@@ -28,7 +27,7 @@ export const moduleParamsSchema = z.object({
 export const lessonParamsSchema = z.object({
   courseId: courseIdSchema,
   moduleId,
-  lessonId,
+  lessonId: lessonIdSchema,
 });
 
 export const moduleBodySchema = z.object({ title: titleSchema });
@@ -54,5 +53,7 @@ export const updateLessonSchema = z
   );
 
 export const outlineBodySchema = z.object({
-  modules: z.array(z.object({ id: moduleId, lessonIds: z.array(lessonId) })),
+  modules: z.array(
+    z.object({ id: moduleId, lessonIds: z.array(lessonIdSchema) }),
+  ),
 });
