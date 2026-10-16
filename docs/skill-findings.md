@@ -381,7 +381,7 @@ Cada achado:
 #### 2026-10-16 · 2.5.d · lacuna
 - **A skill diz**: o lado invertido no `GSI1` lista os pares de um item.
 - **O que aconteceu**: a lista pública não pode expor o `accountId`, que está no SK do índice (`REVIEW#<createdAt>#<accountId>`) e no cursor. O item da resposta é montado sem o id. O cursor, porém, é a chave codificada em base64url e carrega o `accountId` do último item da página.
-- **Sugestão**: avisar que o cursor de uma lista pública carrega a chave, e que um id que não deve sair da API precisa ficar fora dela (por exemplo, com um hash no lugar do id) ou o cursor precisa ser cifrado.
+- **Sugestão**: avisar que o cursor de uma lista pública carrega a chave da tabela, mesmo quando a lista vem de um índice. Se um id não deve sair da API, ou ele fica fora da chave, ou o cursor é cifrado. Aqui o risco foi aceito (Q286).
 
 ## Skills que faltam
 

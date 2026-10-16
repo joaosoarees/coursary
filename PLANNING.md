@@ -11,7 +11,7 @@ Abra o Claude Code e diga:
 Ao retomar, o assistente deve:
 
 1. Ver no estado acima e na tabela "Fase 1: histórias" qual história é a próxima.
-2. Com a 2.5, a fase 2 fecha. A próxima é a fase 3 (stream → SQS → Algolia e e-mails do domínio), que ainda precisa ser quebrada em histórias (etapa 12 do `process-log`). Antes, vale uma pausa de revisão (etapa 15) e decidir o achado do cursor público da 2.5 (o `accountId` vai codificado no cursor de `GET /courses/{courseId}/reviews`).
+2. Com a 2.5, a fase 2 fecha. A próxima é a fase 3 (stream → SQS → Algolia e e-mails do domínio), que ainda precisa ser quebrada em histórias (etapa 12 do `process-log`). Antes, vale uma pausa de revisão (etapa 15).
 3. Seguir o "Começar tarefa X.X" do `CLAUDE.md`: branch a partir da `develop`, sub-imp propostas e discutidas antes de codar.
 4. Não refazer perguntas já fechadas.
 
@@ -339,6 +339,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q283 | Lista pública de avaliações | `GET /courses/{courseId}/reviews`, público, só curso publicado (arquivado 404), mais recente primeiro pela criação, 20/100; item `{ studentName, rating, comment, createdAt, updatedAt }` sem `accountId`. Página do curso e catálogo ganham `ratingCount` e `ratingAverage` (calculada na leitura, `null` sem avaliações); ausentes contam 0. |
 | Q284 | Minha avaliação | `GET /courses/{courseId}/review` → a do próprio aluno ou `404 REVIEW_NOT_FOUND`; `courses:review` no aluno; não exige matrícula ativa. |
 | Q285 | Sub-imp da 2.5 | a. `Review` e transações; b. `courses:review`, use cases e rotas `PUT`/`GET /review`; c. propagação do nome para as avaliações; d. lista pública e média na página e no catálogo; e. Postman, `e2e:dev`, documentação, `/code-review`. |
+| Q286 | Cursor da lista pública de avaliações (revê a Q283) | Aceito: o `nextCursor` carrega o `accountId` do último item (a chave da tabela é exigida para continuar). O id é um KSUID aleatório que nenhuma rota pública aceita; o que vaza é que duas avaliações são do mesmo aluno, o que o nome copiado já mostra. Cifrar os cursores (AES-GCM, chave no SSM) volta se um id interno ficar sensível ou uma rota pública passar a aceitar `accountId`. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
