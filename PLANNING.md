@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-16. Estado: **fase 1 completa (1.0 a 1.15), R.1, R.2 e 2.1 (matrícula) na `develop` e em `dev`, `pnpm e2e:dev` 63 de 63; R.3 (padrões entre arquivos irmãos, Q260 a Q267) na `refactor/r3-patterns`, em PR; próxima: 2.2 (listas de matrículas e alunos)**.
+Última atualização: 2026-10-16. Estado: **fase 1, R.1 a R.3 e 2.1 na `develop` e em `dev`, `pnpm e2e:dev` 63 de 63; em andamento: 2.2 (listas de matrículas e alunos, Q268 a Q271) na `feat/2.2-enrollment-lists`**.
 
 ## Como retomar
 
@@ -321,6 +321,10 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q265 | Erro `OwnCourse` | Fica: `OWN_COURSE` 409 é contrato da Q239 (conflito com o estado do recurso, não ação proibida ao papel). |
 | Q266 | `promoteAdmin` | `timeout: 5` e role própria de menor privilégio, como as outras funções sem HTTP. |
 | Q267 | Refatoração R.3 | Alinha os desvios entre arquivos irmãos achados na varredura de 2026-10-16 (Q260 a Q266 e os mecânicos), sem mudança de comportamento, `e2e:dev` igual no fim. Ficam de fora: ordem dos erros, `CatalogQuery.Item`, laço de paginação repetido (vira helper na quinta cópia). Daqui em diante, todo PR passa pelo `/code-review` antes de abrir. |
+| Q268 | Ordem de "minhas matrículas" (revê o padrão 9) | Índice esparso no `GSI2` só nas ativas: `ENROLLMENTS#<accountId>` / `<enrolledAt>#<courseId>`, mais recente primeiro, paginado, sem filtro. Cancelar remove as chaves; rematricular as regrava com o `enrolledAt` original. Uma escrita de índice a mais por matrícula em troca de páginas sem leituras descartadas, para uma lista lida muito mais do que escrita; leitura eventual, como o `GSI1`. |
+| Q269 | `GET /me/enrollments` | Paginado 20/100, cursor preso ao aluno; item `{ courseId, title, instructorName, lessonCount, completedLessons, enrolledAt, courseStatus }`, curso por `BatchGet` (Q80) numa chamada por página, `UnprocessedKeys` pedidas de novo; curso ausente fica fora com log. |
+| Q270 | `GET /courses/{id}/students` | Dono ou admin, permissão `courses:list-students` no instrutor; demais pela Q95; arquivado continua listável. `requireManagedBy` (dono ou admin) separado de `requireEditableBy`. Item `{ accountId, studentName, enrolledAt, completedLessons }`, mais recente primeiro, 20/100, cursor preso a `COURSE#c`. |
+| Q271 | Sub-imp da 2.2 | a. `GSI2` na matrícula e query de "minhas matrículas"; b. `findManyByIds` com `BatchGetItem` e IAM no mesmo commit; c. use case e rota `GET /me/enrollments`; d. `courses:list-students`, `requireManagedBy`, query e rota `GET /courses/{id}/students`; e. Postman, `e2e:dev`, documentação; `/code-review` antes do PR. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
