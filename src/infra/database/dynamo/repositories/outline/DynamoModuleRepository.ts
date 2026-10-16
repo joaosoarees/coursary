@@ -57,7 +57,7 @@ export class DynamoModuleRepository implements ModuleRepository {
           TableName: this.config.mainTableName,
           Key: this.keyOf(module.courseId, module.id),
           ConditionExpression:
-            'attribute_exists(PK) AND (attribute_not_exists(lessonCount) OR lessonCount = :none)',
+            'attribute_exists(PK) AND (attribute_not_exists(lessonCount) OR lessonCount <= :none)',
           ExpressionAttributeValues: { ':none': 0 },
           ReturnValuesOnConditionCheckFailure: 'ALL_OLD',
         },
