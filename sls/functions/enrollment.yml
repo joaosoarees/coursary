@@ -1,0 +1,15 @@
+enroll:
+  handler: src/main/functions/enrollment/enroll.handler
+  events:
+    - httpApi:
+        method: PUT
+        path: /courses/{id}/enrollment
+        authorizer: CognitoAuthorizer
+
+cancelEnrollment:
+  handler: src/main/functions/enrollment/cancelEnrollment.handler
+  events:
+    - httpApi:
+        method: DELETE
+        path: /courses/{id}/enrollment
+        authorizer: CognitoAuthorizer
