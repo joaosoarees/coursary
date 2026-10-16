@@ -2,7 +2,6 @@ import type { UnitOfWork } from '@application/contracts/UnitOfWork';
 import { Course } from '@application/entities/course/Course';
 import type { Module } from '@application/entities/outline/Module';
 import { ModuleNotEmpty, ModuleNotFound } from '@application/errors/outline';
-import type { CourseOutlineQuery } from '@application/queries/outline/CourseOutlineQuery';
 import type { CourseRepository } from '@application/repositories/course/CourseRepository';
 import type { ModuleRepository } from '@application/repositories/outline/ModuleRepository';
 import type { CourseEditor } from '@application/usecases/course/CourseEditor';
@@ -11,7 +10,6 @@ export class DeleteModuleUseCase {
   constructor(
     private readonly coursesRepository: CourseRepository,
     private readonly modulesRepository: ModuleRepository,
-    private readonly courseOutline: CourseOutlineQuery,
     private readonly unitOfWork: UnitOfWork.Factory,
   ) {}
 
@@ -31,10 +29,8 @@ export class DeleteModuleUseCase {
       throw new ModuleNotFound();
     }
 
-    const { modules } = await this.courseOutline.execute(courseId);
-    const lessons = modules.find((m) => m.id === moduleId)?.lessons ?? [];
-
-    if (lessons.length > 0) {
+    // The count is read strongly here and held again by the delete (Q288).
+    if (module.lessonCount > 0) {
       throw new ModuleNotEmpty();
     }
 

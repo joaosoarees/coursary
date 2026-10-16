@@ -24,6 +24,7 @@ export class ModuleItem {
       courseId: module.courseId,
       title: module.title,
       position: module.position,
+      lessonCount: module.lessonCount,
     });
   }
 
@@ -33,6 +34,7 @@ export class ModuleItem {
       courseId: item.courseId,
       title: item.title,
       position: item.position,
+      lessonCount: item.lessonCount ?? 0,
     });
   }
 
@@ -56,6 +58,8 @@ export namespace ModuleItem {
     courseId: Course.Id;
     title: string;
     position: number;
+    // Absent on modules written before Q288 until the backfill.
+    lessonCount?: number;
   }
 
   export type ItemType = Keys & Attributes & { type: 'Module' };

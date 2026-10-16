@@ -3,7 +3,7 @@ import { GetCommand } from '@aws-sdk/lib-dynamodb';
 import type { UnitOfWork } from '@application/contracts/UnitOfWork';
 import type { Course } from '@application/entities/course/Course';
 import type { Module } from '@application/entities/outline/Module';
-import { ModuleNotFound } from '@application/errors/outline';
+import { ModuleNotEmpty, ModuleNotFound } from '@application/errors/outline';
 import type { ModuleRepository } from '@application/repositories/outline/ModuleRepository';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { DynamoUnitOfWork } from '@infra/database/dynamo/DynamoUnitOfWork';
@@ -17,6 +17,7 @@ export class DynamoModuleRepository implements ModuleRepository {
     const command = new GetCommand({
       TableName: this.config.mainTableName,
       Key: { PK: ModuleItem.getPK(courseId), SK: ModuleItem.getSK(id) },
+      ConsistentRead: true,
     });
 
     const { Item } = await dynamoClient.send(command);
@@ -39,7 +40,7 @@ export class DynamoModuleRepository implements ModuleRepository {
       {
         Update: {
           TableName: this.config.mainTableName,
-          Key: this.keyOf(module),
+          Key: this.keyOf(module.courseId, module.id),
           UpdateExpression: 'SET title = :title',
           ConditionExpression: 'attribute_exists(PK)',
           ExpressionAttributeValues: { ':title': module.title },
@@ -54,31 +55,56 @@ export class DynamoModuleRepository implements ModuleRepository {
       {
         Delete: {
           TableName: this.config.mainTableName,
-          Key: this.keyOf(module),
+          Key: this.keyOf(module.courseId, module.id),
+          ConditionExpression:
+            'attribute_exists(PK) AND (attribute_not_exists(lessonCount) OR lessonCount = :none)',
+          ExpressionAttributeValues: { ':none': 0 },
+          ReturnValuesOnConditionCheckFailure: 'ALL_OLD',
+        },
+      },
+      (stored) => (stored ? new ModuleNotEmpty() : new ModuleNotFound()),
+    );
+  }
+
+  repositionOperation(module: Module, lessonsDelta = 0): UnitOfWork.Operation {
+    return DynamoUnitOfWork.operation(
+      {
+        Update: {
+          TableName: this.config.mainTableName,
+          Key: this.keyOf(module.courseId, module.id),
+          UpdateExpression: 'SET #position = :position ADD lessonCount :delta',
           ConditionExpression: 'attribute_exists(PK)',
+          ExpressionAttributeNames: { '#position': 'position' },
+          ExpressionAttributeValues: {
+            ':position': module.position,
+            ':delta': lessonsDelta,
+          },
         },
       },
       () => new ModuleNotFound(),
     );
   }
 
-  repositionOperation(module: Module): UnitOfWork.Operation {
-    return DynamoUnitOfWork.operation({
-      Update: {
-        TableName: this.config.mainTableName,
-        Key: this.keyOf(module),
-        UpdateExpression: 'SET #position = :position',
-        ConditionExpression: 'attribute_exists(PK)',
-        ExpressionAttributeNames: { '#position': 'position' },
-        ExpressionAttributeValues: { ':position': module.position },
+  addLessonsOperation(
+    courseId: Course.Id,
+    id: Module.Id,
+    delta: number,
+  ): UnitOfWork.Operation {
+    return DynamoUnitOfWork.operation(
+      {
+        Update: {
+          TableName: this.config.mainTableName,
+          Key: this.keyOf(courseId, id),
+          UpdateExpression: 'ADD lessonCount :delta',
+          ConditionExpression: 'attribute_exists(PK)',
+          ExpressionAttributeValues: { ':delta': delta },
+        },
       },
-    });
+      () => new ModuleNotFound(),
+    );
   }
 
-  private keyOf(module: Module) {
-    return {
-      PK: ModuleItem.getPK(module.courseId),
-      SK: ModuleItem.getSK(module.id),
-    };
+  private keyOf(courseId: Course.Id, id: Module.Id) {
+    return { PK: ModuleItem.getPK(courseId), SK: ModuleItem.getSK(id) };
   }
 }

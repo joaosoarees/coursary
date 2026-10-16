@@ -6,12 +6,14 @@ import { ModuleNotFound } from '@application/errors/outline';
 import type { CourseOutlineQuery } from '@application/queries/outline/CourseOutlineQuery';
 import type { CourseRepository } from '@application/repositories/course/CourseRepository';
 import type { LessonRepository } from '@application/repositories/outline/LessonRepository';
+import type { ModuleRepository } from '@application/repositories/outline/ModuleRepository';
 import type { CourseEditor } from '@application/usecases/course/CourseEditor';
 import { LessonDetails } from '@application/usecases/outline/LessonDetails';
 
 export class CreateLessonUseCase {
   constructor(
     private readonly coursesRepository: CourseRepository,
+    private readonly modulesRepository: ModuleRepository,
     private readonly lessonsRepository: LessonRepository,
     private readonly courseOutline: CourseOutlineQuery,
     private readonly unitOfWork: UnitOfWork.Factory,
@@ -27,7 +29,9 @@ export class CreateLessonUseCase {
     const found = await this.coursesRepository.findById(courseId);
     const course = Course.requireFound(found);
     course.requireEditableBy(callerId, callerRole);
-    const { modules } = await this.courseOutline.execute(courseId);
+    const { modules } = await this.courseOutline.execute(courseId, {
+      consistent: true,
+    });
     const module = modules.find((m) => m.id === moduleId);
 
     if (!module) {
@@ -40,6 +44,7 @@ export class CreateLessonUseCase {
     const unit = this.unitOfWork();
     unit.add(
       ...this.lessonsRepository.createOperations(lesson),
+      this.modulesRepository.addLessonsOperation(courseId, moduleId, 1),
       this.coursesRepository.addLessonsOperation(course, 1),
     );
     await unit.commit();

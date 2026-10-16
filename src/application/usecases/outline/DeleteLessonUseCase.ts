@@ -5,11 +5,13 @@ import type { Module } from '@application/entities/outline/Module';
 import { LessonNotFound } from '@application/errors/outline';
 import type { CourseRepository } from '@application/repositories/course/CourseRepository';
 import type { LessonRepository } from '@application/repositories/outline/LessonRepository';
+import type { ModuleRepository } from '@application/repositories/outline/ModuleRepository';
 import type { CourseEditor } from '@application/usecases/course/CourseEditor';
 
 export class DeleteLessonUseCase {
   constructor(
     private readonly coursesRepository: CourseRepository,
+    private readonly modulesRepository: ModuleRepository,
     private readonly lessonsRepository: LessonRepository,
     private readonly unitOfWork: UnitOfWork.Factory,
   ) {}
@@ -38,6 +40,7 @@ export class DeleteLessonUseCase {
     const unit = this.unitOfWork();
     unit.add(
       ...this.lessonsRepository.deleteOperations(lesson),
+      this.modulesRepository.addLessonsOperation(courseId, moduleId, -1),
       this.coursesRepository.addLessonsOperation(course, -1),
     );
     await unit.commit();

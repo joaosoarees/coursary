@@ -14,7 +14,6 @@ beforeEach(async () => {
   remove = new DeleteModuleUseCase(
     world.courses,
     world.modules,
-    world.outline,
     world.unitOfWork,
   );
 });

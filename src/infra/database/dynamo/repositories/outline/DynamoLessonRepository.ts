@@ -183,10 +183,16 @@ export class DynamoLessonRepository implements LessonRepository {
 
     return [
       DynamoUnitOfWork.operation({
+        // Held to what the outline read, so a rename in between is not lost (Q289).
         Delete: {
           TableName,
           Key: this.summaryKeyOf(lesson, fromModuleId),
-          ConditionExpression: 'attribute_exists(PK)',
+          ConditionExpression:
+            'attribute_exists(PK) AND title = :title AND durationMinutes = :durationMinutes',
+          ExpressionAttributeValues: {
+            ':title': lesson.title,
+            ':durationMinutes': lesson.durationMinutes,
+          },
         },
       }),
       DynamoUnitOfWork.operation({

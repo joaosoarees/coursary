@@ -29,7 +29,9 @@ export class ReorderOutlineUseCase {
     const found = await this.coursesRepository.findById(courseId);
     const course = Course.requireFound(found);
     course.requireEditableBy(callerId, callerRole);
-    const current = await this.courseOutline.execute(courseId);
+    const current = await this.courseOutline.execute(courseId, {
+      consistent: true,
+    });
     ReorderOutlineUseCase.requireSameItems(current, order);
 
     const modulesById = new Map(current.modules.map((m) => [m.id, m]));
@@ -40,6 +42,12 @@ export class ReorderOutlineUseCase {
     );
     const operations: UnitOfWork.Operation[] = [];
     const reordered: CourseOutlineQuery.Module[] = [];
+    // A module item is written once: its position and lesson count together.
+    const lessonsDelta = new Map<string, number>();
+    const shift = (moduleId: string, delta: number) => {
+      lessonsDelta.set(moduleId, (lessonsDelta.get(moduleId) ?? 0) + delta);
+    };
+    const repositioned = new Map<string, Module>();
 
     for (const [position, entry] of order.entries()) {
       const stored = modulesById.get(entry.id);
@@ -49,13 +57,16 @@ export class ReorderOutlineUseCase {
       }
 
       if (stored.position !== position) {
-        const module = new Module({
-          id: entry.id,
-          courseId,
-          title: stored.title,
-          position,
-        });
-        operations.push(this.modulesRepository.repositionOperation(module));
+        repositioned.set(
+          entry.id,
+          new Module({
+            id: entry.id,
+            courseId,
+            title: stored.title,
+            position,
+            lessonCount: stored.lessons.length,
+          }),
+        );
       }
 
       const lessons: CourseOutlineQuery.Lesson[] = [];
@@ -79,6 +90,8 @@ export class ReorderOutlineUseCase {
         });
 
         if (summary.moduleId !== entry.id) {
+          shift(summary.moduleId, -1);
+          shift(entry.id, 1);
           operations.push(
             ...this.lessonsRepository.moveOperations(
               lesson,
@@ -98,6 +111,21 @@ export class ReorderOutlineUseCase {
       }
 
       reordered.push({ id: entry.id, title: stored.title, position, lessons });
+    }
+
+    for (const { id } of order) {
+      const delta = lessonsDelta.get(id) ?? 0;
+      const module = repositioned.get(id);
+
+      if (module) {
+        operations.push(
+          this.modulesRepository.repositionOperation(module, delta),
+        );
+      } else if (delta !== 0) {
+        operations.push(
+          this.modulesRepository.addLessonsOperation(courseId, id, delta),
+        );
+      }
     }
 
     if (operations.length + 1 > ReorderOutlineUseCase.maxOperations) {

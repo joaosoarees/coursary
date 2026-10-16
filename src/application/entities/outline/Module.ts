@@ -8,12 +8,15 @@ export class Module {
   readonly courseId: Course.Id;
   title: string;
   position: number;
+  // Held by the lesson writes, so an empty module can be deleted safely (Q288).
+  lessonCount: number;
 
   constructor(attributes: Module.Attributes) {
     this.id = attributes.id;
     this.courseId = attributes.courseId;
     this.title = attributes.title;
     this.position = attributes.position;
+    this.lessonCount = attributes.lessonCount;
   }
 
   static isId(value: unknown): value is Module.Id {
@@ -42,6 +45,7 @@ export class Module {
       courseId,
       title: title.trim(),
       position,
+      lessonCount: 0,
     });
   }
 }
@@ -54,5 +58,6 @@ export namespace Module {
     courseId: Course.Id;
     title: string;
     position: number;
+    lessonCount: number;
   }
 }
