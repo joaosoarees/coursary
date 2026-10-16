@@ -30,6 +30,7 @@ export const ErrorCode = {
   OwnCourse: 'OWN_COURSE',
   EnrollmentNotFound: 'ENROLLMENT_NOT_FOUND',
   AlreadyCompleted: 'ALREADY_COMPLETED',
+  ReviewNotFound: 'REVIEW_NOT_FOUND',
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];

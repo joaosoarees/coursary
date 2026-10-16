@@ -371,6 +371,18 @@ Cada achado:
 - **O que aconteceu**: salvar a posição, a rota mais chamada (a cada 15 a 30 s), lê a matrícula com consistência forte e faz um `Put` simples: 1 RCU + 1 WCU, contra cerca de 4 WCU com `ConditionCheck` em transação. Se o aluno cancelar no meio, sobra só uma posição gravada a mais, sem dano.
 - **Sugestão**: nenhuma.
 
+### `dynamodb-denormalization`, `dynamodb-many-to-many-relationships` (2.5)
+
+#### 2026-10-16 · 2.5.a · acerto
+- **A skill diz**: a soma e a contagem ficam no pai e mudam com `ADD` na mesma transação; editar soma a diferença; a média é calculada na leitura.
+- **O que aconteceu**: criar uma avaliação soma a nota e 1; editar soma só a diferença, com o `Update` condicionado à nota lida (uma trava otimista: duas edições ao mesmo tempo não aplicam a mesma diferença duas vezes). A matrícula ativa entra como `ConditionCheck` na transação, e não como leitura antes, porque a avaliação é rara e mexe num número público. Os cursos antigos não têm `ratingSum`/`ratingCount`, que são lidos como 0, e o `ADD` cria os atributos na primeira avaliação.
+- **Sugestão**: mostrar a trava otimista na edição de um valor que alimenta um contador; sem ela, a diferença é calculada a partir de uma leitura velha.
+
+#### 2026-10-16 · 2.5.d · lacuna
+- **A skill diz**: o lado invertido no `GSI1` lista os pares de um item.
+- **O que aconteceu**: a lista pública não pode expor o `accountId`, que está no SK do índice (`REVIEW#<createdAt>#<accountId>`) e no cursor. O item da resposta é montado sem o id. O cursor, porém, é a chave codificada em base64url e carrega o `accountId` do último item da página.
+- **Sugestão**: avisar que o cursor de uma lista pública carrega a chave da tabela, mesmo quando a lista vem de um índice. Se um id não deve sair da API, ou ele fica fora da chave, ou o cursor é cifrado. Aqui o risco foi aceito (Q286).
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |

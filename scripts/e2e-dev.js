@@ -865,6 +865,78 @@ try {
     200,
   );
 
+  console.log('\n# Reviews (2.5)');
+  const reviewPath = `/courses/${courseId}/review`;
+  check(
+    'the student reviews the course',
+    await call('PUT', reviewPath, {
+      token: learnerToken,
+      body: { rating: 4, comment: 'Good' },
+    }),
+    201,
+  );
+  check(
+    'the student edits the review',
+    await call('PUT', reviewPath, {
+      token: learnerToken,
+      body: { rating: 5, comment: 'Great' },
+    }),
+    200,
+  );
+  check(
+    'a rating of 6 is refused',
+    await call('PUT', reviewPath, {
+      token: learnerToken,
+      body: { rating: 6 },
+    }),
+    400,
+    'VALIDATION',
+  );
+  check(
+    'the owner cannot review their own course',
+    await call('PUT', reviewPath, {
+      token: instructorToken,
+      body: { rating: 5 },
+    }),
+    403,
+    'FORBIDDEN',
+  );
+  const myReview = await call('GET', reviewPath, { token: learnerToken });
+  check(
+    'the student reads their review',
+    { status: myReview.body?.rating === 5 ? 200 : 500, body: myReview.body },
+    200,
+  );
+  const publicReviews = await eventually(
+    () => call('GET', `/courses/${courseId}/reviews`),
+    (r) => r.body?.items?.length === 1,
+  );
+  check(
+    'anyone reads the reviews, with the copied name and no account id',
+    {
+      status:
+        publicReviews.body?.items?.[0]?.studentName === 'E2E Renamed Learner' &&
+        publicReviews.body?.items?.[0]?.rating === 5 &&
+        !('accountId' in (publicReviews.body?.items?.[0] ?? {}))
+          ? 200
+          : 500,
+      body: publicReviews.body,
+    },
+    200,
+  );
+  const rated = await call('GET', `/courses/${courseId}`);
+  check(
+    'the course page shows the rating average',
+    {
+      status:
+        rated.body?.ratingCount === 1 && rated.body?.ratingAverage === 5
+          ? 200
+          : 500,
+      body: rated.body,
+    },
+    200,
+  );
+
   console.log('\n# Archive (1.15, Q52)');
   check(
     'the instructor archives the course',
@@ -895,6 +967,12 @@ try {
     200,
   );
   check('and still records progress there', await completion(l3), 201);
+  check(
+    'an archived course has no public reviews',
+    await call('GET', `/courses/${courseId}/reviews`),
+    404,
+    'COURSE_NOT_FOUND',
+  );
   check(
     'an enrolled student can still leave an archived course',
     await enrollment(learnerToken, 'DELETE'),

@@ -9,12 +9,14 @@ import { DynamoUnitOfWork } from '@infra/database/dynamo/DynamoUnitOfWork';
 import { DynamoCourseProgressQuery } from '@infra/database/dynamo/queries/enrollment/DynamoCourseProgressQuery';
 import { DynamoListCourseStudentsQuery } from '@infra/database/dynamo/queries/enrollment/DynamoListCourseStudentsQuery';
 import { DynamoCourseOutlineQuery } from '@infra/database/dynamo/queries/outline/DynamoCourseOutlineQuery';
+import { DynamoListCourseReviewsQuery } from '@infra/database/dynamo/queries/review/DynamoListCourseReviewsQuery';
 import { DynamoAccountRepository } from '@infra/database/dynamo/repositories/account/DynamoAccountRepository';
 import { DynamoCourseRepository } from '@infra/database/dynamo/repositories/course/DynamoCourseRepository';
 import { DynamoEnrollmentRepository } from '@infra/database/dynamo/repositories/enrollment/DynamoEnrollmentRepository';
 import { DynamoProgressRepository } from '@infra/database/dynamo/repositories/enrollment/DynamoProgressRepository';
 import { DynamoLessonRepository } from '@infra/database/dynamo/repositories/outline/DynamoLessonRepository';
 import { DynamoModuleRepository } from '@infra/database/dynamo/repositories/outline/DynamoModuleRepository';
+import { DynamoReviewRepository } from '@infra/database/dynamo/repositories/review/DynamoReviewRepository';
 import { AppConfig } from '@shared/config/AppConfig';
 
 const config = new AppConfig();
@@ -64,6 +66,8 @@ export async function courseWorld() {
   const students = new DynamoListCourseStudentsQuery(config);
   const progress = new DynamoProgressRepository(config);
   const courseProgress = new DynamoCourseProgressQuery(config);
+  const reviews = new DynamoReviewRepository(config);
+  const courseReviews = new DynamoListCourseReviewsQuery(config);
   const unitOfWork = () => new DynamoUnitOfWork();
   const owner = account('ana', accountRoles.Instructor);
   const other = account('bia', accountRoles.Instructor);
@@ -123,6 +127,8 @@ export async function courseWorld() {
     students,
     progress,
     courseProgress,
+    reviews,
+    courseReviews,
     unitOfWork,
     owner,
     other,

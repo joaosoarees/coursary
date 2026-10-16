@@ -1,8 +1,4 @@
-import {
-  GetCommand,
-  QueryCommand,
-  TransactWriteCommand,
-} from '@aws-sdk/lib-dynamodb';
+import { GetCommand, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 
 import type { UnitOfWork } from '@application/contracts/UnitOfWork';
 import type { Account } from '@application/entities/account/Account';
@@ -15,6 +11,7 @@ import type { EnrollmentRepository } from '@application/repositories/enrollment/
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { DynamoUnitOfWork } from '@infra/database/dynamo/DynamoUnitOfWork';
 import { EnrollmentItem } from '@infra/database/dynamo/items/enrollment/EnrollmentItem';
+import { queryAll } from '@infra/database/dynamo/queryAll';
 import type { AppConfig } from '@shared/config/AppConfig';
 
 export class DynamoEnrollmentRepository implements EnrollmentRepository {
@@ -95,6 +92,18 @@ export class DynamoEnrollmentRepository implements EnrollmentRepository {
     });
   }
 
+  activeOperation(enrollment: Enrollment): UnitOfWork.Operation {
+    return DynamoUnitOfWork.operation({
+      ConditionCheck: {
+        TableName: this.config.mainTableName,
+        Key: this.keyOf(enrollment),
+        ConditionExpression: '#status = :active',
+        ExpressionAttributeNames: { '#status': 'status' },
+        ExpressionAttributeValues: { ':active': enrollmentStatuses.Active },
+      },
+    });
+  }
+
   addCompletedLessonsOperation(
     enrollment: Enrollment,
     delta: number,
@@ -147,24 +156,15 @@ export class DynamoEnrollmentRepository implements EnrollmentRepository {
   private async enrollmentKeysOf(
     accountId: Account.Id,
   ): Promise<Record<string, unknown>[]> {
-    const keys: Record<string, unknown>[] = [];
-    let ExclusiveStartKey: Record<string, unknown> | undefined;
-
-    do {
-      const command = new QueryCommand({
-        TableName: this.config.mainTableName,
-        KeyConditionExpression: 'PK = :pk AND begins_with(SK, :prefix)',
-        ExpressionAttributeValues: {
-          ':pk': EnrollmentItem.getPK(accountId),
-          ':prefix': 'ENROLLMENT#',
-        },
-        ProjectionExpression: 'PK, SK',
-        ExclusiveStartKey,
-      });
-      const page = await dynamoClient.send(command);
-      keys.push(...(page.Items ?? []));
-      ExclusiveStartKey = page.LastEvaluatedKey;
-    } while (ExclusiveStartKey);
+    const keys = await queryAll<Record<string, unknown>>({
+      TableName: this.config.mainTableName,
+      KeyConditionExpression: 'PK = :pk AND begins_with(SK, :prefix)',
+      ExpressionAttributeValues: {
+        ':pk': EnrollmentItem.getPK(accountId),
+        ':prefix': 'ENROLLMENT#',
+      },
+      ProjectionExpression: 'PK, SK',
+    });
 
     return keys;
   }

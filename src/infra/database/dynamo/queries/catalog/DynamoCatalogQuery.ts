@@ -32,14 +32,20 @@ export class DynamoCatalogQuery implements CatalogQuery {
       );
 
     return {
-      items: items.map((item) => ({
-        id: item.id,
-        title: item.title,
-        instructorName: item.instructorName,
-        lessonCount: item.lessonCount,
-        enrollmentCount: item.enrollmentCount,
-        publishedAt: item.publishedAt ?? '',
-      })),
+      items: items.map((item) => {
+        const course = CourseItem.toEntity(item);
+
+        return {
+          id: course.id,
+          title: course.title,
+          instructorName: course.instructorName,
+          lessonCount: course.lessonCount,
+          enrollmentCount: course.enrollmentCount,
+          ratingCount: course.ratingCount,
+          ratingAverage: course.ratingAverage(),
+          publishedAt: item.publishedAt ?? '',
+        };
+      }),
       nextCursor,
     };
   }

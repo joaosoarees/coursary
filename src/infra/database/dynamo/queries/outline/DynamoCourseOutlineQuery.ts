@@ -1,11 +1,9 @@
-import { QueryCommand } from '@aws-sdk/lib-dynamodb';
-
 import type { Course } from '@application/entities/course/Course';
 import type { CourseOutlineQuery } from '@application/queries/outline/CourseOutlineQuery';
-import { dynamoClient } from '@infra/clients/dynamoClient';
 import { CourseItem } from '@infra/database/dynamo/items/course/CourseItem';
 import { LessonItem } from '@infra/database/dynamo/items/outline/LessonItem';
 import { ModuleItem } from '@infra/database/dynamo/items/outline/ModuleItem';
+import { queryAll } from '@infra/database/dynamo/queryAll';
 import type { AppConfig } from '@shared/config/AppConfig';
 
 type OutlineItem = ModuleItem.ItemType | LessonItem.ItemType;
@@ -61,23 +59,14 @@ export class DynamoCourseOutlineQuery implements CourseOutlineQuery {
   }
 
   private async readPartition(courseId: Course.Id): Promise<OutlineItem[]> {
-    const items: OutlineItem[] = [];
-    let ExclusiveStartKey: Record<string, unknown> | undefined;
-
-    do {
-      const command = new QueryCommand({
-        TableName: this.config.mainTableName,
-        KeyConditionExpression: 'PK = :pk AND begins_with(SK, :prefix)',
-        ExpressionAttributeValues: {
-          ':pk': CourseItem.getPK(courseId),
-          ':prefix': 'MODULE#',
-        },
-        ExclusiveStartKey,
-      });
-      const page = await dynamoClient.send(command);
-      items.push(...((page.Items ?? []) as OutlineItem[]));
-      ExclusiveStartKey = page.LastEvaluatedKey;
-    } while (ExclusiveStartKey);
+    const items = await queryAll<OutlineItem>({
+      TableName: this.config.mainTableName,
+      KeyConditionExpression: 'PK = :pk AND begins_with(SK, :prefix)',
+      ExpressionAttributeValues: {
+        ':pk': CourseItem.getPK(courseId),
+        ':prefix': 'MODULE#',
+      },
+    });
 
     return items;
   }
