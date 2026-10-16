@@ -692,6 +692,34 @@
             "url": "{{baseUrl}}/courses/{{courseId}}/enrollment",
             "description": "204, também se já cancelada (a matrícula fica, CANCELLED). Nunca matriculado: 404 ENROLLMENT_NOT_FOUND. Vale em curso arquivado. 401."
           }
+        },
+        {
+          "name": "My enrollments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/me/enrollments?limit=20",
+            "description": "200 { items: [{ courseId, title, instructorName, lessonCount, completedLessons, enrolledAt, courseStatus }], nextCursor }. Só ativas, mais recentes primeiro; limit 1 a 100 (padrão 20); cursor de outro aluno: 400 INVALID_CURSOR. Leitura eventual: uma matrícula recém-feita pode levar uma fração de segundo para aparecer. 401."
+          }
+        },
+        {
+          "name": "Course students",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/courses/{{courseId}}/students?limit=20",
+            "description": "200 { items: [{ accountId, studentName, enrolledAt, completedLessons }], nextCursor }. Só ativos, mais recentes primeiro; vale em curso arquivado. Dono ou admin; outro instrutor: 403 em curso visível, 404 em rascunho; aluno: 403 FORBIDDEN. 401."
+          }
         }
       ]
     }
