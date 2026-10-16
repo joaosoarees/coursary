@@ -352,6 +352,13 @@ Cada achado:
 - **O que aconteceu**: abrir aula lê a matrícula pela chave da tabela (`ACCOUNT#a` / `ENROLLMENT#c`) com `ConsistentRead`, nunca pelo `GSI2` da lista, então quem acabou de se matricular abre a aula na mesma hora. As três leituras (curso, matrícula, conteúdo) não dependem uma da outra e saem em paralelo; nada é devolvido antes da regra de acesso (Q275).
 - **Sugestão**: nenhuma.
 
+### `serverless-http-api-events` (2.3)
+
+#### 2026-10-16 · 2.3 · lacuna
+- **A skill diz**: declare a rota em `events.httpApi` com `{param}` no caminho; o Framework cria a rota e a permissão.
+- **O que aconteceu**: renomear `{id}` para `{accountId}` (Q272) quebrou o deploy, com `ConflictException: conflicting variable on the same hierarchical level`. O nome da variável faz parte do id lógico da rota, então o CloudFormation cria a rota nova antes de apagar a antiga, e o HTTP API não aceita duas variáveis diferentes no mesmo nível. A stack voltou atrás. A saída foram dois deploys: um sem as rotas e outro com os nomes novos (Q277).
+- **Sugestão**: avisar que o nome do parâmetro de rota não muda num deploy só; escolher os nomes certos desde a primeira rota, ou planejar a troca em dois deploys.
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |

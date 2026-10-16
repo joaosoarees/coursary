@@ -1,3 +1,19 @@
+enroll:
+  handler: src/main/functions/enrollment/enroll.handler
+  events:
+    - httpApi:
+        method: PUT
+        path: /courses/{courseId}/enrollment
+        authorizer: CognitoAuthorizer
+
+cancelEnrollment:
+  handler: src/main/functions/enrollment/cancelEnrollment.handler
+  events:
+    - httpApi:
+        method: DELETE
+        path: /courses/{courseId}/enrollment
+        authorizer: CognitoAuthorizer
+
 listMyEnrollments:
   handler: src/main/functions/enrollment/listMyEnrollments.handler
   events:
@@ -6,15 +22,18 @@ listMyEnrollments:
         path: /me/enrollments
         authorizer: CognitoAuthorizer
 
-# Routes off for one deploy so they can come back with renamed parameters (Q277).
-enroll:
-  handler: src/main/functions/enrollment/enroll.handler
-
-cancelEnrollment:
-  handler: src/main/functions/enrollment/cancelEnrollment.handler
-
 listCourseStudents:
   handler: src/main/functions/enrollment/listCourseStudents.handler
+  events:
+    - httpApi:
+        method: GET
+        path: /courses/{courseId}/students
+        authorizer: CognitoAuthorizer
 
 openLesson:
   handler: src/main/functions/enrollment/openLesson.handler
+  events:
+    - httpApi:
+        method: GET
+        path: /courses/{courseId}/lessons/{lessonId}
+        authorizer: CognitoAuthorizer
