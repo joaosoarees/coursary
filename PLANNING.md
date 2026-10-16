@@ -11,7 +11,7 @@ Abra o Claude Code e diga:
 Ao retomar, o assistente deve:
 
 1. Ver no estado acima e na tabela "Fase 1: histórias" qual história é a próxima.
-2. Para a fase 2: quebrar em histórias (como na fase 1, Q112) a partir dos padrões 8 a 14, 8b, 12, 16 e 22 de `docs/data-model.md` e das decisões Q9, Q23, Q47, Q49, Q52, Q55, Q58, Q73, Q74, Q80, Q81, Q83, Q84 e Q235 (arquivado visível para matriculados). Skills: `dynamodb-many-to-many-relationships`, `dynamodb-denormalization`, `dynamodb-item-operations`, `dynamodb-secondary-indexes`. A matrícula abre a aula (padrão 22) e a página de curso arquivado para quem tem matrícula. Estender o `pnpm e2e:dev`.
+2. Para retomar a 2.1 (matrícula): a `feat/2.1-enrollment` (local, sem push) tem a quebra da fase 2, as decisões Q242 a Q244 e a 2.1.a, todas anteriores à R.1. Rebasear sobre a `develop` e adaptar a 2.1.a ao formato novo: entidade em `entities/enrollment/`, item, repositório e testes nas subpastas de domínio, erros por `defineError`, e o `InMemoryEnrollmentRepository` trocado por testes contra o DynamoDB Local (Q250). Antes, responder a pergunta deixada aberta na R.1: os fakes de conta (`InMemoryAccountRepository`), usados pelos use cases de auth e admin, também saem (Q250 dizia "fakes só para o Cognito")? Depois, seguir a Q244 (2.1.b a 2.1.d) e estender o `pnpm e2e:dev`.
 3. Seguir o "Começar tarefa X.X" do `CLAUDE.md`: branch a partir da `develop`, sub-imp propostas e discutidas antes de codar.
 4. Não refazer perguntas já fechadas.
 
