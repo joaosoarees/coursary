@@ -1,20 +1,11 @@
-import { z } from 'zod';
+import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
 import type { Page } from '@application/contracts/Page';
-import { paginationSchema } from '@application/controllers/shared/schemas';
-import {
-  accountRoles,
-  accountStatuses,
-} from '@application/entities/account/Account';
+import { listAccountsSchema } from '@application/controllers/admin/schemas';
 import type { AccountSummary } from '@application/queries/admin/AccountSummary';
 import { permissions } from '@application/security/permissions';
 import type { ListAccountsUseCase } from '@application/usecases/admin/ListAccountsUseCase';
-
-export const listAccountsSchema = paginationSchema.extend({
-  role: z.enum(accountRoles),
-  status: z.enum(accountStatuses).optional(),
-});
 
 export class ListAccountsController extends Controller<
   'private',

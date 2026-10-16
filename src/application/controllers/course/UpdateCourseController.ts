@@ -1,10 +1,8 @@
 import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
-import {
-  courseIdParamsSchema,
-  updateCourseSchema,
-} from '@application/controllers/course/schemas';
+import { updateCourseSchema } from '@application/controllers/course/schemas';
+import { courseIdParamsSchema } from '@application/controllers/shared/schemas';
 import { permissions } from '@application/security/permissions';
 import type { CourseDetails } from '@application/usecases/course/CourseDetails';
 import type { UpdateCourseUseCase } from '@application/usecases/course/UpdateCourseUseCase';

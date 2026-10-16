@@ -1,12 +1,10 @@
-import { z } from 'zod';
+import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
-import { emailSchema } from '@application/controllers/auth/schemas';
+import { findAccountByEmailSchema } from '@application/controllers/admin/schemas';
 import type { AccountSummary } from '@application/queries/admin/AccountSummary';
 import { permissions } from '@application/security/permissions';
 import type { FindAccountByEmailUseCase } from '@application/usecases/admin/FindAccountByEmailUseCase';
-
-export const findAccountByEmailSchema = z.object({ email: emailSchema });
 
 export class FindAccountByEmailController extends Controller<
   'private',

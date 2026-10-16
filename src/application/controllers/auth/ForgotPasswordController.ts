@@ -1,10 +1,8 @@
-import { z } from 'zod';
+import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
-import { emailSchema } from '@application/controllers/auth/schemas';
+import { forgotPasswordSchema } from '@application/controllers/auth/schemas';
 import type { ForgotPasswordUseCase } from '@application/usecases/auth/ForgotPasswordUseCase';
-
-export const forgotPasswordSchema = z.object({ email: emailSchema });
 
 export class ForgotPasswordController extends Controller<'public'> {
   protected override readonly bodySchema = forgotPasswordSchema;

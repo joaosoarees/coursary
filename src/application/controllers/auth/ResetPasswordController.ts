@@ -1,17 +1,8 @@
-import { z } from 'zod';
+import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
-import {
-  emailSchema,
-  passwordSchema,
-} from '@application/controllers/auth/schemas';
+import { resetPasswordSchema } from '@application/controllers/auth/schemas';
 import type { ResetPasswordUseCase } from '@application/usecases/auth/ResetPasswordUseCase';
-
-export const resetPasswordSchema = z.object({
-  email: emailSchema,
-  code: z.string().regex(/^\S{1,2048}$/),
-  newPassword: passwordSchema,
-});
 
 export class ResetPasswordController extends Controller<'public'> {
   protected override readonly bodySchema = resetPasswordSchema;

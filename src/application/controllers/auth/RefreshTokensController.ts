@@ -1,15 +1,9 @@
-import { z } from 'zod';
+import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
+import { refreshTokensSchema } from '@application/controllers/auth/schemas';
 import type { AuthGateway } from '@application/gateways/auth/AuthGateway';
 import type { RefreshTokensUseCase } from '@application/usecases/auth/RefreshTokensUseCase';
-
-export const refreshTokensSchema = z.object({
-  refreshToken: z
-    .string()
-    .max(8192)
-    .regex(/^[A-Za-z0-9\-_=.]+$/),
-});
 
 export class RefreshTokensController extends Controller<
   'public',

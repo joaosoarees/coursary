@@ -1,10 +1,8 @@
-import { z } from 'zod';
+import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
-import { emailSchema } from '@application/controllers/auth/schemas';
+import { resendConfirmationCodeSchema } from '@application/controllers/auth/schemas';
 import type { ResendConfirmationCodeUseCase } from '@application/usecases/auth/ResendConfirmationCodeUseCase';
-
-export const resendConfirmationCodeSchema = z.object({ email: emailSchema });
 
 export class ResendConfirmationCodeController extends Controller<'public'> {
   protected override readonly bodySchema = resendConfirmationCodeSchema;

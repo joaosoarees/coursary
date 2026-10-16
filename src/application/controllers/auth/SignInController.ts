@@ -1,14 +1,9 @@
-import { z } from 'zod';
+import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
-import { emailSchema } from '@application/controllers/auth/schemas';
+import { signInSchema } from '@application/controllers/auth/schemas';
 import type { AuthGateway } from '@application/gateways/auth/AuthGateway';
 import type { SignInUseCase } from '@application/usecases/auth/SignInUseCase';
-
-export const signInSchema = z.object({
-  email: emailSchema,
-  password: z.string().min(1).max(256),
-});
 
 export class SignInController extends Controller<'public', AuthGateway.Tokens> {
   protected override readonly bodySchema = signInSchema;

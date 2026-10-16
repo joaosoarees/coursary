@@ -1,17 +1,8 @@
-import { z } from 'zod';
+import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
-import {
-  emailSchema,
-  passwordSchema,
-} from '@application/controllers/auth/schemas';
+import { signUpSchema } from '@application/controllers/auth/schemas';
 import type { SignUpUseCase } from '@application/usecases/auth/SignUpUseCase';
-
-export const signUpSchema = z.object({
-  name: z.string().trim().min(1).max(100),
-  email: emailSchema,
-  password: passwordSchema,
-});
 
 export class SignUpController extends Controller<
   'public',

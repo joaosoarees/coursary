@@ -1,13 +1,8 @@
-import { z } from 'zod';
+import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
-import { emailSchema } from '@application/controllers/auth/schemas';
+import { confirmSignUpSchema } from '@application/controllers/auth/schemas';
 import type { ConfirmSignUpUseCase } from '@application/usecases/auth/ConfirmSignUpUseCase';
-
-export const confirmSignUpSchema = z.object({
-  email: emailSchema,
-  code: z.string().regex(/^\S{1,2048}$/),
-});
 
 export class ConfirmSignUpController extends Controller<'public'> {
   protected override readonly bodySchema = confirmSignUpSchema;

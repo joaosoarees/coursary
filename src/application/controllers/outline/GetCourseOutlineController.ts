@@ -1,7 +1,7 @@
 import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
-import { outlineParamsSchema } from '@application/controllers/outline/schemas';
+import { courseIdParamsSchema } from '@application/controllers/shared/schemas';
 import type { CourseOutlineQuery } from '@application/queries/outline/CourseOutlineQuery';
 import { permissions } from '@application/security/permissions';
 import type { GetCourseOutlineUseCase } from '@application/usecases/outline/GetCourseOutlineUseCase';
@@ -12,7 +12,7 @@ export class GetCourseOutlineController extends Controller<
 > {
   protected override readonly permission = permissions.CoursesUpdate;
 
-  protected override readonly paramsSchema = outlineParamsSchema;
+  protected override readonly paramsSchema = courseIdParamsSchema;
 
   constructor(private readonly getCourseOutline: GetCourseOutlineUseCase) {
     super();
@@ -38,5 +38,5 @@ export class GetCourseOutlineController extends Controller<
 }
 
 export namespace GetCourseOutlineController {
-  export type Params = z.infer<typeof outlineParamsSchema>;
+  export type Params = z.infer<typeof courseIdParamsSchema>;
 }
