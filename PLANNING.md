@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-16. Estado: **fase 1, R.1 a R.3, 2.1 e 2.2 na `develop` e em `dev`, `pnpm e2e:dev` 69 de 69; 2.3 (abrir aula, Q272 a Q276) na `feat/2.3-open-lesson`, em PR; o `e2e:dev` roda depois do merge**.
+Última atualização: 2026-10-16. Estado: **fase 1, R.1 a R.3, 2.1 a 2.3 na `develop` e em `dev`, `pnpm e2e:dev` 76 de 76; 2.4 (progresso, Q278 a Q281) na `feat/2.4-progress`, em PR; o `e2e:dev` roda depois do merge**.
 
 ## Como retomar
 
@@ -11,7 +11,7 @@ Abra o Claude Code e diga:
 Ao retomar, o assistente deve:
 
 1. Ver no estado acima e na tabela "Fase 1: histórias" qual história é a próxima.
-2. A próxima história é a 2.4 (Q238): progresso (concluir aula uma vez com `completedLessons` na transação, ler o progresso, posição no vídeo em item à parte). Seguir as convenções da R.3 (Q260 a Q267) e passar o `/code-review` antes de abrir o PR.
+2. A próxima história é a 2.5 (Q238): avaliações (`PUT /courses/{courseId}/review`, `GET /courses/{courseId}/reviews` público, `ratingSum`/`ratingCount` na transação, propagação do nome). Seguir as convenções da R.3 (Q260 a Q267), nomes completos nos parâmetros (Q272) e passar o `/code-review` antes de abrir o PR.
 3. Seguir o "Começar tarefa X.X" do `CLAUDE.md`: branch a partir da `develop`, sub-imp propostas e discutidas antes de codar.
 4. Não refazer perguntas já fechadas.
 
@@ -331,6 +331,10 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q275 | Regra de leitura | `Course.requireReadableBy(callerId, callerRole, enrollment)`: dono/admin sempre; matrícula ativa em publicado ou arquivado; demais pela Q95 (rascunho 404, visível 403); cancelada conta como nenhuma. Matrícula com leitura forte (8b), em paralelo com o curso. |
 | Q276 | Sub-imp da 2.3 | a. `courses:learn` e `requireReadableBy`; b. leitura do conteúdo no repositório de aulas; c. use case e rota de abrir aula; d. outline para matriculados e dono/admin em qualquer status; e. Postman, `e2e:dev`, documentação, `/code-review`. |
 | Q277 | Deploy da renomeação dos parâmetros | O HTTP API recusa `{accountId}` ao lado de `{id}` no mesmo nível, e o CloudFormation cria a rota nova antes de apagar a antiga: o deploy da 2.3 voltou atrás. Dois passos pelo CI: um PR tira o `events` das 20 rotas com parâmetro (fora do ar em `dev` por minutos), outro as devolve com os nomes novos. |
+| Q278 | Concluir aula | `PUT /courses/{courseId}/lessons/{lessonId}/completion`: 201 na primeira, 200 sem gravar se já concluída. Transação: `Put` do `LessonProgress` (`attribute_not_exists`) + `ADD completedLessons 1` na matrícula `ACTIVE` + `ConditionCheck` do conteúdo da aula com o `courseId` da rota. Só matrícula ativa; demais pela Q95; aula de outro curso → `404 LESSON_NOT_FOUND`. Sem desfazer. |
+| Q279 | Ler o progresso | `GET /courses/{courseId}/progress` → `{ completedLessons, completedLessonIds, lastLessonId, positionSeconds }`; Query `ACCOUNT#a` com `begins_with PROGRESS#c` seguindo `LastEvaluatedKey`; `completedLessons` da matrícula; só matrícula ativa. |
+| Q280 | Salvar a posição | `PUT /courses/{courseId}/position` `{ lessonId, positionSeconds }` (0 a 86.400) → 204; leitura forte da matrícula ativa + `Put` de `PROGRESS#c` (1 RCU + 1 WCU, sem transação); `lessonId` só gravado. |
+| Q281 | Sub-imp da 2.4 | a. `LessonProgress` e transação de concluir; b. use case e rota de concluir; c. leitura do progresso; d. salvar a posição; e. Postman, `e2e:dev`, documentação, `/code-review`. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)

@@ -1,7 +1,7 @@
 import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
-import { openLessonParamsSchema } from '@application/controllers/enrollment/schemas';
+import { lessonParamsSchema } from '@application/controllers/enrollment/schemas';
 import { permissions } from '@application/security/permissions';
 import type { LessonContentDetails } from '@application/usecases/enrollment/LessonContentDetails';
 import type { OpenLessonUseCase } from '@application/usecases/enrollment/OpenLessonUseCase';
@@ -12,7 +12,7 @@ export class OpenLessonController extends Controller<
 > {
   protected override readonly permission = permissions.CoursesLearn;
 
-  protected override readonly paramsSchema = openLessonParamsSchema;
+  protected override readonly paramsSchema = lessonParamsSchema;
 
   constructor(private readonly openLesson: OpenLessonUseCase) {
     super();
@@ -39,5 +39,5 @@ export class OpenLessonController extends Controller<
 }
 
 export namespace OpenLessonController {
-  export type Params = z.infer<typeof openLessonParamsSchema>;
+  export type Params = z.infer<typeof lessonParamsSchema>;
 }

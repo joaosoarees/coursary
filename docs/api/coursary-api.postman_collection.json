@@ -734,6 +734,56 @@
             "url": "{{baseUrl}}/courses/{{courseId}}/lessons/{{lessonId}}",
             "description": "200 { lessonId, courseId, body }; título e módulo vêm do outline (Q273). Matrícula ativa em curso publicado ou arquivado, ou dono/admin em qualquer status. Os demais: rascunho 404 COURSE_NOT_FOUND, visível 403 FORBIDDEN. Aula que não é do curso: 404 LESSON_NOT_FOUND. 401."
           }
+        },
+        {
+          "name": "Complete lesson",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/courses/{{courseId}}/lessons/{{lessonId}}/completion",
+            "description": "201 { lessonId, completedLessons } na primeira vez; 200 com a mesma contagem se já concluída, sem gravar (Q278). Só matrícula ativa (curso publicado ou arquivado); dono, admin e não matriculados: 403 FORBIDDEN em curso visível, 404 COURSE_NOT_FOUND em rascunho alheio. Aula de outro curso: 404 LESSON_NOT_FOUND. 401."
+          }
+        },
+        {
+          "name": "Course progress",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/courses/{{courseId}}/progress",
+            "description": "200 { completedLessons, completedLessonIds, lastLessonId, positionSeconds }; os dois últimos null enquanto nada foi salvo (Q279). completedLessonIds sem ordem com significado: cruze com o outline. Só matrícula ativa; demais como em Complete lesson. 401."
+          }
+        },
+        {
+          "name": "Save position",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/courses/{{courseId}}/position",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lessonId\": \"{{lessonId}}\",\n  \"positionSeconds\": 120\n}"
+            },
+            "description": "204; guarda só a última posição (Q55, Q280), chamada a cada 15 a 30 s. positionSeconds inteiro de 0 a 86400, senão 400 VALIDATION. Só matrícula ativa; demais como em Complete lesson. 401."
+          }
         }
       ]
     }

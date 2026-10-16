@@ -16,6 +16,12 @@ export interface EnrollmentRepository {
 
   cancelOperation(enrollment: Enrollment): UnitOfWork.Operation;
 
+  // Counts a completed lesson; the enrollment must still be active.
+  addCompletedLessonsOperation(
+    enrollment: Enrollment,
+    delta: number,
+  ): UnitOfWork.Operation;
+
   updateStudentName(accountId: Account.Id, name: string): Promise<void>;
 }
 

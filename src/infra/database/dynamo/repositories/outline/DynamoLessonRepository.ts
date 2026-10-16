@@ -73,6 +73,23 @@ export class DynamoLessonRepository implements LessonRepository {
       : null;
   }
 
+  inCourseOperation(courseId: Course.Id, id: Lesson.Id): UnitOfWork.Operation {
+    return DynamoUnitOfWork.operation(
+      {
+        ConditionCheck: {
+          TableName: this.config.mainTableName,
+          Key: {
+            PK: LessonContentItem.getPK(id),
+            SK: LessonContentItem.getSK(),
+          },
+          ConditionExpression: 'courseId = :courseId',
+          ExpressionAttributeValues: { ':courseId': courseId },
+        },
+      },
+      () => new LessonNotFound(),
+    );
+  }
+
   createOperations(lesson: Lesson): UnitOfWork.Operation[] {
     const TableName = this.config.mainTableName;
 

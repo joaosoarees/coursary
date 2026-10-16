@@ -85,6 +85,25 @@ export class Course {
     }
   }
 
+  // Only an active enrollment records progress; the owner and admins, who
+  // cannot have one, are refused like anyone who knows the course (Q278).
+  requireEnrolledIn(
+    callerId: Account.Id,
+    callerRole: Account.Role,
+    enrollment: Enrollment | null,
+  ): Enrollment {
+    if (enrollment?.isActive() && this.isVisibleToEveryone()) {
+      return enrollment;
+    }
+
+    const known =
+      this.isVisibleToEveryone() ||
+      this.isOwnedBy(callerId) ||
+      Permissions.allows(callerRole, permissions.CoursesUpdateAny);
+
+    throw known ? new Forbidden() : new CourseNotFound();
+  }
+
   // Only a draft loses modules and lessons (Q24, Q223).
   requireDraft(): void {
     if (this.status !== courseStatuses.Draft) {

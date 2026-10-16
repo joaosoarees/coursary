@@ -16,6 +16,10 @@ export interface LessonRepository {
     id: Lesson.Id,
   ): Promise<LessonRepository.Content | null>;
 
+  // Holds the transaction to a lesson that still exists in the course; fails
+  // with LessonNotFound otherwise.
+  inCourseOperation(courseId: Course.Id, id: Lesson.Id): UnitOfWork.Operation;
+
   createOperations(lesson: Lesson): UnitOfWork.Operation[];
 
   updateOperations(lesson: Lesson): UnitOfWork.Operation[];

@@ -95,6 +95,25 @@ export class DynamoEnrollmentRepository implements EnrollmentRepository {
     });
   }
 
+  addCompletedLessonsOperation(
+    enrollment: Enrollment,
+    delta: number,
+  ): UnitOfWork.Operation {
+    return DynamoUnitOfWork.operation({
+      Update: {
+        TableName: this.config.mainTableName,
+        Key: this.keyOf(enrollment),
+        UpdateExpression: 'ADD completedLessons :delta',
+        ConditionExpression: '#status = :active',
+        ExpressionAttributeNames: { '#status': 'status' },
+        ExpressionAttributeValues: {
+          ':delta': delta,
+          ':active': enrollmentStatuses.Active,
+        },
+      },
+    });
+  }
+
   // Copies the name into every enrollment of the student (Q81), at most 100 per
   // transaction; calling it again with the same name finishes what a failure left.
   async updateStudentName(accountId: Account.Id, name: string): Promise<void> {

@@ -29,6 +29,7 @@ export const ErrorCode = {
   TooManyRequests: 'TOO_MANY_REQUESTS',
   OwnCourse: 'OWN_COURSE',
   EnrollmentNotFound: 'ENROLLMENT_NOT_FOUND',
+  AlreadyCompleted: 'ALREADY_COMPLETED',
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
