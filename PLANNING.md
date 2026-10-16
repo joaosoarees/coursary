@@ -355,6 +355,8 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q299 | Apagar curso em rascunho | Na fase 3: `DELETING` + 202, job em fila apaga módulos, aulas e conteúdo com `Delete` condicional um a um (4 em paralelo); idempotente. |
 | Q300 | Limpeza do Cognito (Q41 + revisão) | No `REMOVE` do TTL de conta `PENDING`, apaga o usuário só se `UNCONFIRMED` e com `sub` igual ao `externalId` da imagem antiga. |
 | Q301 | Escopo no JWT (revê a Q169) | Rotas privadas voltam a exigir `aws.cognito.signin.user.admin`; id token recebe 403 do API Gateway. Refatoração R.5, antes da fase 3. |
+| Q302 | Topologia do stream (revê a Q90) | Um leitor: Lambda roteadora com filtro dos tipos de interesse, que envia cada evento para a fila do consumidor (`index`, `cognito-cleanup`, `mail`); cada consumidor com DLQ, redrive e idempotência. |
+| Q304 | Histórias da fase 3 | R.5 escopo no JWT; 3.1 descrição em item à parte; 3.2 catálogo no Algolia (stream, roteador, falhas, fila `index`, indexador, reindexação, chaves); 3.3 `GET /search`; 3.4 limpeza do Cognito; 3.5 boas-vindas (`MailGateway` SES, fila `mail`); 3.6 aviso de arquivamento (fan-out); 3.7 apagar rascunho. O stream nasce na 3.2 (Q112). |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
