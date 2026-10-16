@@ -60,6 +60,8 @@ export default defineConfig([
       '@typescript-eslint/no-namespace': 'off',
       eqeqeq: ['error', 'always'],
       curly: ['error', 'all'],
+      // Ports declare members as properties so parameters are checked strictly.
+      '@typescript-eslint/method-signature-style': ['error', 'property'],
     },
   },
   {

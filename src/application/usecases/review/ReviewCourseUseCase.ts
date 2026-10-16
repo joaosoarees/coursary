@@ -43,21 +43,17 @@ export class ReviewCourseUseCase {
     unit.add(this.enrollmentsRepository.activeOperation(enrollment));
 
     if (existing) {
-      const previousRating = existing.rating;
-      existing.rating = rating;
-      existing.comment = comment;
-      existing.updatedAt = new Date();
+      const previousRating = existing.edit({ rating, comment });
       unit.add(
         this.reviewsRepository.updateOperation(existing, previousRating),
       );
 
       if (rating !== previousRating) {
         unit.add(
-          this.coursesRepository.addRatingsOperation(
-            course,
-            rating - previousRating,
-            0,
-          ),
+          this.coursesRepository.addRatingsOperation(course, {
+            sumDelta: rating - previousRating,
+            countDelta: 0,
+          }),
         );
       }
 
@@ -69,7 +65,10 @@ export class ReviewCourseUseCase {
     const review = Review.create({ student, course, rating, comment });
     unit.add(
       this.reviewsRepository.createOperation(review),
-      this.coursesRepository.addRatingsOperation(course, rating, 1),
+      this.coursesRepository.addRatingsOperation(course, {
+        sumDelta: rating,
+        countDelta: 1,
+      }),
     );
     await unit.commit();
 

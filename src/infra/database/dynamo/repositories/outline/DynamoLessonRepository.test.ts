@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { courseWorld } from '@tests/support/courseWorld';
 
+import { Lesson } from '@application/entities/outline/Lesson';
+import { Conflict } from '@application/errors/common';
 import { LessonNotFound } from '@application/errors/outline';
 
 let world: Awaited<ReturnType<typeof courseWorld>>;
@@ -77,5 +79,45 @@ describe('DynamoLessonRepository', () => {
     await expect(
       world.lessons.findContent(other.course.id, lesson.id),
     ).resolves.toBeNull();
+  });
+
+  it('should refuse to move a lesson renamed after it was read', async () => {
+    const from = await world.addModule('M1', 0);
+    const to = await world.addModule('M2', 1);
+    const lesson = await world.addLesson(from, 0);
+    const read = new Lesson({
+      id: lesson.id,
+      courseId: lesson.courseId,
+      moduleId: to.id,
+      title: lesson.title,
+      body: '',
+      durationMinutes: lesson.durationMinutes,
+      position: 0,
+    });
+    lesson.title = 'Renamed';
+    await commit(
+      world.lessons.updateOperations(lesson, { bodyChanged: false }),
+    );
+
+    await expect(
+      commit(world.lessons.moveOperations(read, from.id)),
+    ).rejects.toBeInstanceOf(Conflict);
+  });
+
+  it('should leave the body alone when only the summary changes', async () => {
+    const module = await world.addModule('M1', 0);
+    const lesson = await world.addLesson(module, 0);
+    lesson.body = '# Kept';
+    await commit(world.lessons.updateOperations(lesson, { bodyChanged: true }));
+
+    lesson.title = 'Renamed';
+    lesson.body = 'not written';
+    await commit(
+      world.lessons.updateOperations(lesson, { bodyChanged: false }),
+    );
+
+    await expect(
+      world.lessons.findById(world.course.id, module.id, lesson.id),
+    ).resolves.toMatchObject({ title: 'Renamed', body: '# Kept' });
   });
 });

@@ -18,6 +18,7 @@ beforeEach(async () => {
   module = await world.addModule('M1', 0);
   create = new CreateLessonUseCase(
     world.courses,
+    world.modules,
     world.lessons,
     world.outline,
     world.unitOfWork,

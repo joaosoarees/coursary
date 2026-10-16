@@ -3,38 +3,46 @@ import type { Account } from '@application/entities/account/Account';
 import type { Course } from '@application/entities/course/Course';
 
 export interface CourseRepository {
-  create(course: Course): Promise<void>;
+  create: (course: Course) => Promise<void>;
 
-  findById(id: Course.Id): Promise<Course | null>;
+  findById: (id: Course.Id) => Promise<Course | null>;
 
-  update(id: Course.Id, changes: Course.Changes): Promise<Course>;
+  update: (id: Course.Id, changes: Course.Changes) => Promise<Course>;
 
-  publish(id: Course.Id, publishedAt: Date): Promise<Course>;
+  publish: (id: Course.Id, publishedAt: Date) => Promise<Course>;
 
-  archive(id: Course.Id): Promise<Course>;
+  archive: (id: Course.Id) => Promise<Course>;
 
-  updateInstructorName(instructorId: Account.Id, name: string): Promise<void>;
+  updateInstructorName: (
+    instructorId: Account.Id,
+    name: string,
+  ) => Promise<void>;
 
   // Holds the transaction to the status the caller checked.
-  statusUnchangedOperation(course: Course): UnitOfWork.Operation;
+  statusUnchangedOperation: (course: Course) => UnitOfWork.Operation;
 
-  addLessonsOperation(course: Course, delta: number): UnitOfWork.Operation;
+  addLessonsOperation: (course: Course, delta: number) => UnitOfWork.Operation;
 
   // A new or renewed enrollment needs a published course; leaving one does not.
-  addEnrollmentsOperation(
+  addEnrollmentsOperation: (
     course: Course,
     delta: number,
     options: CourseRepository.EnrollmentCountOptions,
-  ): UnitOfWork.Operation;
+  ) => UnitOfWork.Operation;
 
-  addRatingsOperation(
+  addRatingsOperation: (
     course: Course,
-    sumDelta: number,
-    countDelta: number,
-  ): UnitOfWork.Operation;
+    deltas: CourseRepository.RatingDeltas,
+  ) => UnitOfWork.Operation;
 }
 
 export namespace CourseRepository {
+  // Named, so a sum and a count cannot trade places.
+  export interface RatingDeltas {
+    sumDelta: number;
+    countDelta: number;
+  }
+
   export interface EnrollmentCountOptions {
     requirePublished: boolean;
   }

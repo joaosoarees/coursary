@@ -3,7 +3,9 @@ import type { Account } from '@application/entities/account/Account';
 import type { RoleChangeSummary } from '@application/queries/admin/RoleChangeSummary';
 
 export interface ListRoleChangesQuery {
-  execute(input: ListRoleChangesQuery.Input): Promise<Page<RoleChangeSummary>>;
+  execute: (
+    input: ListRoleChangesQuery.Input,
+  ) => Promise<Page<RoleChangeSummary>>;
 }
 
 export namespace ListRoleChangesQuery {

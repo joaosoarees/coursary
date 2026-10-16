@@ -41,7 +41,9 @@ export class UpdateLessonUseCase {
     lesson.durationMinutes = changes.durationMinutes ?? lesson.durationMinutes;
     const unit = this.unitOfWork();
     unit.add(
-      ...this.lessonsRepository.updateOperations(lesson),
+      ...this.lessonsRepository.updateOperations(lesson, {
+        bodyChanged: changes.body !== undefined,
+      }),
       this.coursesRepository.statusUnchangedOperation(course),
     );
     await unit.commit();

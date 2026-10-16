@@ -24,7 +24,9 @@ export class CreateModuleUseCase {
     const found = await this.coursesRepository.findById(courseId);
     const course = Course.requireFound(found);
     course.requireEditableBy(callerId, callerRole);
-    const { modules } = await this.courseOutline.execute(courseId);
+    const { modules } = await this.courseOutline.execute(courseId, {
+      consistent: true,
+    });
     const position = Math.max(-1, ...modules.map((m) => m.position)) + 1;
     const module = Module.create({ courseId, title, position });
 

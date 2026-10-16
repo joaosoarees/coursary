@@ -111,10 +111,12 @@ export class DynamoLessonRepository implements LessonRepository {
     ];
   }
 
-  updateOperations(lesson: Lesson): UnitOfWork.Operation[] {
+  updateOperations(
+    lesson: Lesson,
+    { bodyChanged }: { bodyChanged: boolean },
+  ): UnitOfWork.Operation[] {
     const TableName = this.config.mainTableName;
-
-    return [
+    const operations = [
       DynamoUnitOfWork.operation(
         {
           Update: {
@@ -131,15 +133,22 @@ export class DynamoLessonRepository implements LessonRepository {
         },
         () => new LessonNotFound(),
       ),
-      DynamoUnitOfWork.operation({
-        Update: {
-          TableName,
-          Key: this.contentKeyOf(lesson),
-          UpdateExpression: 'SET body = :body',
-          ExpressionAttributeValues: { ':body': lesson.body },
-        },
-      }),
     ];
+
+    if (bodyChanged) {
+      operations.push(
+        DynamoUnitOfWork.operation({
+          Update: {
+            TableName,
+            Key: this.contentKeyOf(lesson),
+            UpdateExpression: 'SET body = :body',
+            ExpressionAttributeValues: { ':body': lesson.body },
+          },
+        }),
+      );
+    }
+
+    return operations;
   }
 
   deleteOperations(lesson: Lesson): UnitOfWork.Operation[] {
@@ -183,10 +192,16 @@ export class DynamoLessonRepository implements LessonRepository {
 
     return [
       DynamoUnitOfWork.operation({
+        // Held to what the outline read, so a rename in between is not lost (Q289).
         Delete: {
           TableName,
           Key: this.summaryKeyOf(lesson, fromModuleId),
-          ConditionExpression: 'attribute_exists(PK)',
+          ConditionExpression:
+            'attribute_exists(PK) AND title = :title AND durationMinutes = :durationMinutes',
+          ExpressionAttributeValues: {
+            ':title': lesson.title,
+            ':durationMinutes': lesson.durationMinutes,
+          },
         },
       }),
       DynamoUnitOfWork.operation({

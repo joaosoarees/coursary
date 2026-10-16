@@ -1,10 +1,5 @@
 import { ConditionalCheckFailedException } from '@aws-sdk/client-dynamodb';
-import {
-  GetCommand,
-  PutCommand,
-  TransactWriteCommand,
-  UpdateCommand,
-} from '@aws-sdk/lib-dynamodb';
+import { GetCommand, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 
 import type { UnitOfWork } from '@application/contracts/UnitOfWork';
 import type { Account } from '@application/entities/account/Account';
@@ -21,6 +16,7 @@ import {
 } from '@application/errors/course';
 import type { CourseRepository } from '@application/repositories/course/CourseRepository';
 import { dynamoClient } from '@infra/clients/dynamoClient';
+import { copyName } from '@infra/database/dynamo/copyName';
 import { DynamoUnitOfWork } from '@infra/database/dynamo/DynamoUnitOfWork';
 import { CourseItem } from '@infra/database/dynamo/items/course/CourseItem';
 import { queryAll } from '@infra/database/dynamo/queryAll';
@@ -148,33 +144,17 @@ export class DynamoCourseRepository implements CourseRepository {
     }
   }
 
-  // Copies the name into every course of the instructor, at most 100 per
-  // transaction; calling it again with the same name finishes what a failure left.
+  // Copies the name into every course of the instructor (Q207, Q290).
   async updateInstructorName(
     instructorId: Account.Id,
     name: string,
   ): Promise<void> {
-    const TableName = this.config.mainTableName;
-    const keys = await this.courseKeysOf(instructorId);
-
-    for (let start = 0; start < keys.length; start += 100) {
-      const command = new TransactWriteCommand({
-        TransactItems: keys.slice(start, start + 100).map((Key) => ({
-          Update: {
-            TableName,
-            Key,
-            UpdateExpression: 'SET instructorName = :name',
-            ConditionExpression: 'instructorId = :instructorId',
-            ExpressionAttributeValues: {
-              ':name': name,
-              ':instructorId': instructorId,
-            },
-          },
-        })),
-      });
-
-      await dynamoClient.send(command);
-    }
+    await copyName({
+      tableName: this.config.mainTableName,
+      keys: await this.courseKeysOf(instructorId),
+      attribute: 'instructorName',
+      name,
+    });
   }
 
   statusUnchangedOperation(course: Course): UnitOfWork.Operation {
@@ -233,8 +213,7 @@ export class DynamoCourseRepository implements CourseRepository {
 
   addRatingsOperation(
     course: Course,
-    sumDelta: number,
-    countDelta: number,
+    { sumDelta, countDelta }: CourseRepository.RatingDeltas,
   ): UnitOfWork.Operation {
     return DynamoUnitOfWork.operation({
       Update: {
@@ -254,7 +233,7 @@ export class DynamoCourseRepository implements CourseRepository {
   private async courseKeysOf(
     instructorId: Account.Id,
   ): Promise<Record<string, unknown>[]> {
-    const keys = await queryAll<Record<string, unknown>>({
+    const keys = (await queryAll({
       TableName: this.config.mainTableName,
       IndexName: 'GSI1',
       KeyConditionExpression: 'GSI1PK = :pk',
@@ -262,7 +241,7 @@ export class DynamoCourseRepository implements CourseRepository {
         ':pk': CourseItem.getGSI1PK(instructorId),
       },
       ProjectionExpression: 'PK, SK',
-    });
+    })) as Record<string, unknown>[];
 
     return keys;
   }

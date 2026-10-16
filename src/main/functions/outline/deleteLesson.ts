@@ -3,13 +3,16 @@ import { DeleteLessonUseCase } from '@application/usecases/outline/DeleteLessonU
 import { lambdaHttpAdapter } from '@main/adapters/lambdaHttpAdapter';
 import { makeCourseRepository } from '@main/factories/makeCourseRepository';
 import { makeLessonRepository } from '@main/factories/makeLessonRepository';
+import { makeModuleRepository } from '@main/factories/makeModuleRepository';
 import { makeResolveCallerUseCase } from '@main/factories/makeResolveCallerUseCase';
 import { makeUnitOfWork } from '@main/factories/makeUnitOfWork';
 
 const coursesRepository = makeCourseRepository();
+const modulesRepository = makeModuleRepository();
 const lessonsRepository = makeLessonRepository();
 const deleteLessonUseCase = new DeleteLessonUseCase(
   coursesRepository,
+  modulesRepository,
   lessonsRepository,
   makeUnitOfWork,
 );

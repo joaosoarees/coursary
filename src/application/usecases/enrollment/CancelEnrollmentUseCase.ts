@@ -17,10 +17,10 @@ export class CancelEnrollmentUseCase {
     callerId,
     courseId,
   }: CancelEnrollmentUseCase.Input): Promise<void> {
-    const enrollment = await this.enrollmentsRepository.find(
-      callerId,
-      courseId,
-    );
+    const [enrollment, found] = await Promise.all([
+      this.enrollmentsRepository.find(callerId, courseId),
+      this.coursesRepository.findById(courseId),
+    ]);
 
     if (!enrollment) {
       throw new EnrollmentNotFound();
@@ -30,7 +30,6 @@ export class CancelEnrollmentUseCase {
       return;
     }
 
-    const found = await this.coursesRepository.findById(courseId);
     const course = Course.requireFound(found);
     const unit = this.unitOfWork();
     unit.add(

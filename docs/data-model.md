@@ -175,14 +175,14 @@ Pontos críticos para o passo 3 (Q68): o padrão 16 grava num item à parte, peq
 
 ## 3. Quadro de entidades
 
-Tabela `MainTable` com `PK` e `SK`, e dois índices globais sobrecarregados, `GSI1` (`GSI1PK`, `GSI1SK`) e `GSI2` (`GSI2PK`, `GSI2SK`). Todo item leva `type` e `id`. Ids são KSUID, que ordenam por tempo (`dynamodb-key-design`), com resolução de um segundo: ids do mesmo segundo ficam na ordem da parte aleatória, então "mais recentes primeiro" vale entre segundos, não dentro de um. Decisões: Q71 a Q78.
+Tabela `MainTable` com `PK` e `SK`, e dois índices globais sobrecarregados, `GSI1` (`GSI1PK`, `GSI1SK`) e `GSI2` (`GSI2PK`, `GSI2SK`). Todo item leva `type`; as entidades com identidade própria levam `id`, e os itens de associação (Enrollment, Review, LessonProgress, CoursePosition) levam os ids das duas pontas. Ids são KSUID, que ordenam por tempo (`dynamodb-key-design`), com resolução de um segundo: ids do mesmo segundo ficam na ordem da parte aleatória, então "mais recentes primeiro" vale entre segundos, não dentro de um. Decisões: Q71 a Q78.
 
 | Entidade | PK | SK | GSI1PK / GSI1SK | GSI2PK / GSI2SK |
 |---|---|---|---|---|
 | Account | `ACCOUNT#<accountId>` | `ACCOUNT#<accountId>` | `ROLE#<role>` / `ACCOUNT#<accountId>` | `EMAIL#<email>` / `ACCOUNT#<accountId>` |
 | RoleChange | `ACCOUNT#<accountId>` | `ROLE_CHANGE#<changeId>` (KSUID) | | |
 | Course | `COURSE#<courseId>` | `COURSE#<courseId>` | `INSTRUCTOR#<instructorId>` / `COURSE#<courseId>` | só publicados: `CATALOG` / `<publishedAt>#<courseId>` |
-| Module | `COURSE#<courseId>` | `MODULE#<moduleId>` | | |
+| Module (com `lessonCount`, Q288) | `COURSE#<courseId>` | `MODULE#<moduleId>` | | |
 | Lesson (sumário) | `COURSE#<courseId>` | `MODULE#<moduleId>#LESSON#<lessonId>` | | |
 | LessonContent | `LESSON#<lessonId>` | `CONTENT` | | |
 | Enrollment | `ACCOUNT#<accountId>` | `ENROLLMENT#<courseId>` | só ativas: `COURSE#<courseId>` / `ENROLLMENT#<enrolledAt>#<accountId>` | só ativas: `ENROLLMENTS#<accountId>` / `<enrolledAt>#<courseId>` (Q268) |
@@ -201,6 +201,8 @@ Tabela `MainTable` com `PK` e `SK`, e dois índices globais sobrecarregados, `GS
 - Toda escrita que toca mais de um item é uma transação (Q71).
 - A troca de papel atualiza `role` e `GSI1PK` da Account, só com a conta `ACTIVE` e ainda no papel de origem, e grava o `RoleChange` na mesma transação (Q173); o primeiro admin tem `changedBy = bootstrap`.
 - A posição de módulos e aulas é atributo; o padrão 6 ordena no código (posição, depois id). Mover aula de módulo é delete + put do sumário em transação; o conteúdo (`LESSON#l`/`CONTENT`) não muda de chave. O `PUT /outline` grava só o que muda e recusa mais de 100 operações (Q227).
+- O módulo conta as próprias aulas (`lessonCount`) nas mesmas transações que criam, apagam e movem aula; o `ADD` exige o módulo, e apagar exige `lessonCount = 0`, então nenhuma aula fica num módulo apagado (Q288). Mover aula é condicionado ao título e à duração lidos (Q289). As rotas de edição leem o outline com leitura forte.
+- Cópias de nome (`instructorName`, `studentName`) são propagadas um item por vez, 4 em paralelo, sem transação, com `<campo> <> :nome` e a condição falha ignorada (Q290).
 - Criar aula grava sumário, conteúdo e `ADD lessonCount` no curso numa transação; apagar faz o inverso, só em rascunho (Q24, Q223). Toda escrita em módulo ou aula leva a condição "curso no mesmo status" na transação.
 - Criações usam `attribute_not_exists(PK)` (aula concluída uma vez, uma avaliação por par, unicidade do e-mail).
 - O e-mail é normalizado (trim, minúsculas) antes de entrar em qualquer chave.
@@ -251,7 +253,7 @@ Cada valor duplicado tem um tipo e um dono (`dynamodb-denormalization`; Q80 a Q8
 
 | Atributo | Em | Tipo | Dono |
 |---|---|---|---|
-| `studentName` | Enrollment, Review | exibição | A rota que renomeia a conta: uma query por prefixo (`ENROLLMENT#`, `REVIEW#`) em `ACCOUNT#a`, transações de até 100 itens |
+| `studentName` | Enrollment, Review | exibição | A rota que renomeia a conta: uma query forte por prefixo (`ENROLLMENT#`, `REVIEW#`) em `ACCOUNT#a`, um `Update` por item (Q290) |
 | `instructorName` | Course | exibição | A rota que renomeia a conta: cursos do instrutor pelo `GSI1` |
 | `cover` (`fileId`, `variants`) | Course | exibição | O processador de imagem, na transação que marca o `FILE` como `PROCESSED` (Q85) |
 | `avatar` (`fileId`, `variants`) | Account | exibição | O mesmo, para o avatar (Q85) |

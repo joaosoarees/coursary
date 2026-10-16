@@ -11,8 +11,11 @@ type OutlineItem = ModuleItem.ItemType | LessonItem.ItemType;
 export class DynamoCourseOutlineQuery implements CourseOutlineQuery {
   constructor(private readonly config: AppConfig) {}
 
-  async execute(courseId: Course.Id): Promise<CourseOutlineQuery.Outline> {
-    const items = await this.readPartition(courseId);
+  async execute(
+    courseId: Course.Id,
+    { consistent = false }: CourseOutlineQuery.ReadOptions = {},
+  ): Promise<CourseOutlineQuery.Outline> {
+    const items = await this.readPartition(courseId, consistent);
 
     return DynamoCourseOutlineQuery.toOutline(items);
   }
@@ -58,15 +61,19 @@ export class DynamoCourseOutlineQuery implements CourseOutlineQuery {
     return { modules: ordered };
   }
 
-  private async readPartition(courseId: Course.Id): Promise<OutlineItem[]> {
-    const items = await queryAll<OutlineItem>({
+  private async readPartition(
+    courseId: Course.Id,
+    consistent: boolean,
+  ): Promise<OutlineItem[]> {
+    const items = (await queryAll({
       TableName: this.config.mainTableName,
       KeyConditionExpression: 'PK = :pk AND begins_with(SK, :prefix)',
       ExpressionAttributeValues: {
         ':pk': CourseItem.getPK(courseId),
         ':prefix': 'MODULE#',
       },
-    });
+      ConsistentRead: consistent,
+    })) as OutlineItem[];
 
     return items;
   }

@@ -1,25 +1,27 @@
 import type { Account } from '@application/entities/account/Account';
 
 export interface AuthGateway {
-  signUp(params: AuthGateway.SignUpParams): Promise<AuthGateway.SignUpResult>;
+  signUp: (
+    params: AuthGateway.SignUpParams,
+  ) => Promise<AuthGateway.SignUpResult>;
 
-  signIn(params: AuthGateway.SignInParams): Promise<AuthGateway.Issued>;
+  signIn: (params: AuthGateway.SignInParams) => Promise<AuthGateway.Issued>;
 
-  refreshTokens(refreshToken: string): Promise<AuthGateway.Issued>;
+  refreshTokens: (refreshToken: string) => Promise<AuthGateway.Issued>;
 
-  forgotPassword(email: string): Promise<void>;
+  forgotPassword: (email: string) => Promise<void>;
 
-  resetPassword(params: AuthGateway.ResetPasswordParams): Promise<void>;
+  resetPassword: (params: AuthGateway.ResetPasswordParams) => Promise<void>;
 
-  confirmSignUp(email: string, code: string): Promise<void>;
+  confirmSignUp: (email: string, code: string) => Promise<void>;
 
-  resendConfirmationCode(email: string): Promise<void>;
+  resendConfirmationCode: (email: string) => Promise<void>;
 
-  isUserConfirmed(email: string): Promise<boolean>;
+  isUserConfirmed: (email: string) => Promise<boolean>;
 
-  deleteUnconfirmedUser(
+  deleteUnconfirmedUser: (
     email: string,
-  ): Promise<AuthGateway.DeleteUnconfirmedResult>;
+  ) => Promise<AuthGateway.DeleteUnconfirmedResult>;
 }
 
 export namespace AuthGateway {

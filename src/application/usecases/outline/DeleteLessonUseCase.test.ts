@@ -13,6 +13,7 @@ beforeEach(async () => {
   world = await courseWorld();
   remove = new DeleteLessonUseCase(
     world.courses,
+    world.modules,
     world.lessons,
     world.unitOfWork,
   );

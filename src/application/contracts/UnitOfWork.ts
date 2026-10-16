@@ -1,7 +1,7 @@
 export interface UnitOfWork {
-  add(...operations: UnitOfWork.Operation[]): void;
+  add: (...operations: UnitOfWork.Operation[]) => void;
 
-  commit(): Promise<void>;
+  commit: () => Promise<void>;
 }
 
 export namespace UnitOfWork {

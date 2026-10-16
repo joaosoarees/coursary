@@ -3,9 +3,9 @@ import type { Course } from '@application/entities/course/Course';
 import type { Lesson } from '@application/entities/outline/Lesson';
 
 export interface CourseProgressQuery {
-  execute(
+  execute: (
     input: CourseProgressQuery.Input,
-  ): Promise<CourseProgressQuery.Result>;
+  ) => Promise<CourseProgressQuery.Result>;
 }
 
 export namespace CourseProgressQuery {

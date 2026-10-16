@@ -108,6 +108,7 @@ export async function courseWorld() {
     const unit = unitOfWork();
     unit.add(
       ...lessons.createOperations(lesson),
+      modules.addLessonsOperation(course.id, module.id, 1),
       courses.addLessonsOperation(course, 1),
     );
     await unit.commit();

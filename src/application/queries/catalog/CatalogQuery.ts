@@ -1,7 +1,7 @@
 import type { Page } from '@application/contracts/Page';
 
 export interface CatalogQuery {
-  execute(page: Page.Options): Promise<Page<CatalogQuery.Item>>;
+  execute: (page: Page.Options) => Promise<Page<CatalogQuery.Item>>;
 }
 
 export namespace CatalogQuery {

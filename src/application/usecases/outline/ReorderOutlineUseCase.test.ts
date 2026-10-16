@@ -42,6 +42,10 @@ describe('ReorderOutlineUseCase', () => {
       [m2.id, [c.id, a.id]],
       [m1.id, [b.id]],
     ]);
+    const counts = await Promise.all(
+      [m1, m2].map((m) => world.modules.findById(world.course.id, m.id)),
+    );
+    expect(counts.map((m) => m?.lessonCount)).toEqual([1, 2]);
   });
 
   it('should refuse an outline that leaves out or repeats an item', async () => {

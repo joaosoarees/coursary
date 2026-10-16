@@ -3,7 +3,9 @@ import type { Course } from '@application/entities/course/Course';
 import type { StudentSummary } from '@application/queries/enrollment/StudentSummary';
 
 export interface ListCourseStudentsQuery {
-  execute(input: ListCourseStudentsQuery.Input): Promise<Page<StudentSummary>>;
+  execute: (
+    input: ListCourseStudentsQuery.Input,
+  ) => Promise<Page<StudentSummary>>;
 }
 
 export namespace ListCourseStudentsQuery {

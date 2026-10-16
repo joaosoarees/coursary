@@ -14,7 +14,7 @@ type TransactItem = NonNullable<
 
 interface DynamoOperation {
   item: TransactItem;
-  onConditionFailed: (() => Error) | undefined;
+  onConditionFailed: ((stored: unknown) => Error) | undefined;
 }
 
 export class DynamoUnitOfWork implements UnitOfWork {
@@ -60,7 +60,9 @@ export class DynamoUnitOfWork implements UnitOfWork {
 
         if (failed >= 0) {
           throw (
-            this.operations[failed]?.onConditionFailed?.() ?? new Conflict()
+            this.operations[failed]?.onConditionFailed?.(
+              reasons[failed]?.Item,
+            ) ?? new Conflict()
           );
         }
 
@@ -79,7 +81,8 @@ export class DynamoUnitOfWork implements UnitOfWork {
 
   static operation(
     item: TransactItem,
-    onConditionFailed?: () => Error,
+    // Gets the stored item when the operation asked for ALL_OLD on failure.
+    onConditionFailed?: (stored: unknown) => Error,
   ): UnitOfWork.Operation {
     const operation: DynamoOperation = { item, onConditionFailed };
 

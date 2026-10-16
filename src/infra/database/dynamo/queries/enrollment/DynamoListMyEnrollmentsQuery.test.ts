@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { BatchGetCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
+import { describe, expect, it, vi } from 'vitest';
 
 import { uniqueEmail } from '@tests/support/accountWorld';
 import { setCourseFields } from '@tests/support/courseWorld';
@@ -7,6 +8,7 @@ import { Account } from '@application/entities/account/Account';
 import { Course } from '@application/entities/course/Course';
 import { Enrollment } from '@application/entities/enrollment/Enrollment';
 import { InvalidCursor } from '@application/errors/common';
+import { dynamoClient } from '@infra/clients/dynamoClient';
 import { DynamoUnitOfWork } from '@infra/database/dynamo/DynamoUnitOfWork';
 import { DynamoListMyEnrollmentsQuery } from '@infra/database/dynamo/queries/enrollment/DynamoListMyEnrollmentsQuery';
 import { DynamoCourseRepository } from '@infra/database/dynamo/repositories/course/DynamoCourseRepository';
@@ -102,5 +104,56 @@ describe('DynamoListMyEnrollmentsQuery', () => {
         page: { limit: 1, cursor: nextCursor ?? undefined },
       }),
     ).rejects.toBeInstanceOf(InvalidCursor);
+  });
+
+  it('should leave out an enrollment whose course is gone, and log it', async () => {
+    const student = newStudent();
+    const { course } = await enrollOn(student, 1);
+    await enrollOn(student, 2);
+    await dynamoClient.send(
+      new DeleteCommand({
+        TableName: config.mainTableName,
+        Key: { PK: `COURSE#${course.id}`, SK: `COURSE#${course.id}` },
+      }),
+    );
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    const { items } = await query.execute({
+      accountId: student.id,
+      page: { limit: 10 },
+    });
+
+    expect(items.map((item) => item.title)).toEqual(['Day 2']);
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('EnrollmentWithoutCourse'),
+    );
+  });
+
+  it('should ask again for the courses BatchGet left unread, and fail when they stay unread', async () => {
+    const student = newStudent();
+    await enrollOn(student, 1);
+    const send = dynamoClient.send.bind(dynamoClient);
+    let unread = 1;
+    // Answers the first BatchGet as if DynamoDB had read nothing.
+    const fakeSend = (command: unknown): Promise<unknown> => {
+      if (command instanceof BatchGetCommand && unread > 0) {
+        unread -= 1;
+        const requested = command.input.RequestItems ?? {};
+
+        return Promise.resolve({ Responses: {}, UnprocessedKeys: requested });
+      }
+
+      return send(command as BatchGetCommand);
+    };
+    vi.spyOn(dynamoClient, 'send').mockImplementation(fakeSend as never);
+
+    await expect(
+      query.execute({ accountId: student.id, page: { limit: 10 } }),
+    ).resolves.toMatchObject({ items: [{ title: 'Day 1' }] });
+
+    unread = DynamoListMyEnrollmentsQuery.maxBatchRounds;
+    await expect(
+      query.execute({ accountId: student.id, page: { limit: 10 } }),
+    ).rejects.toThrow('BatchGet left 1 courses unread.');
   });
 });

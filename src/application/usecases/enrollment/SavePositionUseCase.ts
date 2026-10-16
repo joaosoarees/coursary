@@ -13,8 +13,10 @@ export class SavePositionUseCase {
     private readonly progressRepository: ProgressRepository,
   ) {}
 
-  // Called every 15 to 30 s: a read and a put, no transaction; the lesson id
-  // is only stored (Q55, Q280).
+  // Called every 15 to 30 s: one read and a put, no transaction; the lesson id
+  // is only stored (Q55, Q280). An active enrollment already proves the course
+  // is visible (a course never goes back to draft), so the course is read only
+  // to word a refusal.
   async execute({
     callerId,
     callerRole,
@@ -22,12 +24,19 @@ export class SavePositionUseCase {
     lessonId,
     positionSeconds,
   }: SavePositionUseCase.Input): Promise<void> {
-    const [found, stored] = await Promise.all([
-      this.coursesRepository.findById(courseId),
-      this.enrollmentsRepository.find(callerId, courseId),
-    ]);
-    const course = Course.requireFound(found);
-    course.requireEnrolledIn(callerId, callerRole, stored);
+    const enrollment = await this.enrollmentsRepository.find(
+      callerId,
+      courseId,
+    );
+
+    if (!enrollment?.isActive()) {
+      const found = await this.coursesRepository.findById(courseId);
+      Course.requireFound(found).requireEnrolledIn(
+        callerId,
+        callerRole,
+        enrollment,
+      );
+    }
 
     await this.progressRepository.savePosition(
       CoursePosition.create({

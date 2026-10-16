@@ -71,9 +71,9 @@ export class DynamoListMyEnrollmentsQuery implements ListMyEnrollmentsQuery {
     };
   }
 
-  private async coursesOf(ids: Course.Id[]): Promise<Map<string, Course>> {
+  private async coursesOf(ids: Course.Id[]): Promise<Map<Course.Id, Course>> {
     const TableName = this.config.mainTableName;
-    const courses = new Map<string, Course>();
+    const courses = new Map<Course.Id, Course>();
     let keys: Record<string, unknown>[] = ids.map((id) => ({
       PK: CourseItem.getPK(id),
       SK: CourseItem.getSK(id),

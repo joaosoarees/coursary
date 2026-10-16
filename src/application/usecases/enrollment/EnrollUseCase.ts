@@ -1,10 +1,7 @@
 import type { UnitOfWork } from '@application/contracts/UnitOfWork';
 import type { Account } from '@application/entities/account/Account';
 import { Course, courseStatuses } from '@application/entities/course/Course';
-import {
-  Enrollment,
-  enrollmentStatuses,
-} from '@application/entities/enrollment/Enrollment';
+import { Enrollment } from '@application/entities/enrollment/Enrollment';
 import { CourseArchived, CourseNotFound } from '@application/errors/course';
 import { OwnCourse } from '@application/errors/enrollment';
 import type { CourseRepository } from '@application/repositories/course/CourseRepository';
@@ -41,7 +38,6 @@ export class EnrollUseCase {
     const existing = await this.enrollmentsRepository.find(
       student.id,
       courseId,
-      { consistent: true },
     );
 
     if (existing?.isActive()) {
@@ -62,7 +58,7 @@ export class EnrollUseCase {
       }),
     );
     await unit.commit();
-    enrollment.status = enrollmentStatuses.Active;
+    enrollment.activate();
 
     return {
       enrollment: EnrollmentDetails.fromEnrollment(enrollment),
