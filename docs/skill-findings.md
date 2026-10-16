@@ -420,6 +420,13 @@ Cada achado:
 - **O que aconteceu**: o editor de outline decidia sobre uma leitura eventual ("o módulo está vazio?", "o módulo existe?", "os itens batem?"), e a escrita não segurava a decisão. Uma aula podia ficar num módulo apagado, invisível mas contada no curso. A correção foi um contador no módulo, segurado pelas próprias transações, e leitura forte nas rotas de edição (Q288). O `/code-review` achou; as auditorias por skill, não.
 - **Sugestão**: avisar que uma checagem de "vazio" ou "existe" feita por query precisa ser segurada na escrita (contador condicional ou `ConditionCheck`), não só lida com consistência forte.
 
+### `serverless-lambda-functions` (R.4)
+
+#### 2026-10-16 · Q291 · acerto
+- **A skill diz**: não deixar rotas simples no padrão de 1024 MB; baixar a memória em passos, comparando a duração.
+- **O que aconteceu**: medido em `dev` com o `e2e:dev` (linhas `REPORT` no Logs Insights, por função). 512 MB deu as mesmas durações que 1024 MB. 256 MB deixou 31 de 34 funções de 1,6 a 3,2 vezes mais lentas, porque a CPU acompanha a memória e o trabalho é CPU (SDK, JSON, Zod). Com o dobro do tempo e metade da memória, o custo empata e a latência dobra. Ficou 512 MB, com metade do custo de 1024 MB. O pico de memória usada (cerca de 156 MB) não decide o valor; quem decide é a CPU.
+- **Sugestão**: dizer que o passo é julgado por função, e não no agregado; e que, abaixo do ponto em que a duração dobra, a economia some.
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |
