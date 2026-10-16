@@ -49,12 +49,18 @@ export class ReviewCourseUseCase {
       existing.updatedAt = new Date();
       unit.add(
         this.reviewsRepository.updateOperation(existing, previousRating),
-        this.coursesRepository.addRatingsOperation(
-          course,
-          rating - previousRating,
-          0,
-        ),
       );
+
+      if (rating !== previousRating) {
+        unit.add(
+          this.coursesRepository.addRatingsOperation(
+            course,
+            rating - previousRating,
+            0,
+          ),
+        );
+      }
+
       await unit.commit();
 
       return { review: ReviewDetails.fromReview(existing), created: false };

@@ -20,9 +20,11 @@ export class UpdateMeUseCase {
     const { id } = Account.requireActive(account);
 
     const updated = await this.accountsRepository.updateName(id, name);
-    await this.coursesRepository.updateInstructorName(id, updated.name);
-    await this.enrollmentsRepository.updateStudentName(id, updated.name);
-    await this.reviewsRepository.updateStudentName(id, updated.name);
+    await Promise.all([
+      this.coursesRepository.updateInstructorName(id, updated.name),
+      this.enrollmentsRepository.updateStudentName(id, updated.name),
+      this.reviewsRepository.updateStudentName(id, updated.name),
+    ]);
 
     return AccountProfile.fromAccount(updated);
   }
