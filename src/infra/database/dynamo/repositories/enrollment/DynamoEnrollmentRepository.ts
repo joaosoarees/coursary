@@ -1,4 +1,4 @@
-import { GetCommand, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
+import { GetCommand } from '@aws-sdk/lib-dynamodb';
 
 import type { UnitOfWork } from '@application/contracts/UnitOfWork';
 import type { Account } from '@application/entities/account/Account';
@@ -9,6 +9,7 @@ import {
 } from '@application/entities/enrollment/Enrollment';
 import type { EnrollmentRepository } from '@application/repositories/enrollment/EnrollmentRepository';
 import { dynamoClient } from '@infra/clients/dynamoClient';
+import { copyName } from '@infra/database/dynamo/copyName';
 import { DynamoUnitOfWork } from '@infra/database/dynamo/DynamoUnitOfWork';
 import { EnrollmentItem } from '@infra/database/dynamo/items/enrollment/EnrollmentItem';
 import { queryAll } from '@infra/database/dynamo/queryAll';
@@ -123,27 +124,14 @@ export class DynamoEnrollmentRepository implements EnrollmentRepository {
     });
   }
 
-  // Copies the name into every enrollment of the student (Q81), at most 100 per
-  // transaction; calling it again with the same name finishes what a failure left.
+  // Copies the name into every enrollment of the student (Q81, Q290).
   async updateStudentName(accountId: Account.Id, name: string): Promise<void> {
-    const TableName = this.config.mainTableName;
-    const keys = await this.enrollmentKeysOf(accountId);
-
-    for (let start = 0; start < keys.length; start += 100) {
-      const command = new TransactWriteCommand({
-        TransactItems: keys.slice(start, start + 100).map((Key) => ({
-          Update: {
-            TableName,
-            Key,
-            UpdateExpression: 'SET studentName = :name',
-            ConditionExpression: 'attribute_exists(PK)',
-            ExpressionAttributeValues: { ':name': name },
-          },
-        })),
-      });
-
-      await dynamoClient.send(command);
-    }
+    await copyName({
+      tableName: this.config.mainTableName,
+      keys: await this.enrollmentKeysOf(accountId),
+      attribute: 'studentName',
+      name,
+    });
   }
 
   private keyOf(enrollment: Enrollment) {
@@ -164,6 +152,7 @@ export class DynamoEnrollmentRepository implements EnrollmentRepository {
         ':prefix': 'ENROLLMENT#',
       },
       ProjectionExpression: 'PK, SK',
+      ConsistentRead: true,
     });
 
     return keys;

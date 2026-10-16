@@ -1,4 +1,4 @@
-import { GetCommand, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
+import { GetCommand } from '@aws-sdk/lib-dynamodb';
 
 import type { UnitOfWork } from '@application/contracts/UnitOfWork';
 import type { Account } from '@application/entities/account/Account';
@@ -6,6 +6,7 @@ import type { Course } from '@application/entities/course/Course';
 import type { Review } from '@application/entities/review/Review';
 import type { ReviewRepository } from '@application/repositories/review/ReviewRepository';
 import { dynamoClient } from '@infra/clients/dynamoClient';
+import { copyName } from '@infra/database/dynamo/copyName';
 import { DynamoUnitOfWork } from '@infra/database/dynamo/DynamoUnitOfWork';
 import { ReviewItem } from '@infra/database/dynamo/items/review/ReviewItem';
 import { queryAll } from '@infra/database/dynamo/queryAll';
@@ -61,35 +62,25 @@ export class DynamoReviewRepository implements ReviewRepository {
     });
   }
 
-  // Copies the name into every review of the student (Q81), at most 100 per
-  // transaction; calling it again with the same name finishes what a failure left.
+  // Copies the name into every review of the student (Q81, Q290).
   async updateStudentName(accountId: Account.Id, name: string): Promise<void> {
-    const TableName = this.config.mainTableName;
     const keys = await queryAll<Record<string, unknown>>({
-      TableName,
+      TableName: this.config.mainTableName,
       KeyConditionExpression: 'PK = :pk AND begins_with(SK, :prefix)',
       ExpressionAttributeValues: {
         ':pk': ReviewItem.getPK(accountId),
         ':prefix': 'REVIEW#',
       },
       ProjectionExpression: 'PK, SK',
+      ConsistentRead: true,
     });
 
-    for (let start = 0; start < keys.length; start += 100) {
-      const command = new TransactWriteCommand({
-        TransactItems: keys.slice(start, start + 100).map((Key) => ({
-          Update: {
-            TableName,
-            Key,
-            UpdateExpression: 'SET studentName = :name',
-            ConditionExpression: 'attribute_exists(PK)',
-            ExpressionAttributeValues: { ':name': name },
-          },
-        })),
-      });
-
-      await dynamoClient.send(command);
-    }
+    await copyName({
+      tableName: this.config.mainTableName,
+      keys,
+      attribute: 'studentName',
+      name,
+    });
   }
 
   private keyOf(accountId: Account.Id, courseId: Course.Id) {
