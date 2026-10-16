@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
-import { anAccountId } from '@tests/ids';
+import { anAccountId } from '@tests/support/ids';
 
 import { Account, accountRoles } from '@application/entities/account/Account';
 import { AccountNotActive, AccountNotFound } from '@application/errors/account';

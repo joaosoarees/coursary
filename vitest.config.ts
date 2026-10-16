@@ -27,7 +27,7 @@ export default defineConfig({
         test: {
           name: 'integration',
           include: ['src/**/*.test.ts'],
-          globalSetup: ['./__tests__/dynamodb/globalSetup.ts'],
+          globalSetup: ['./__tests__/support/dynamodbGlobalSetup.ts'],
         },
       },
     ],

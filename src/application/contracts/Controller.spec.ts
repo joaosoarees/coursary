@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { z, ZodError } from 'zod';
 
-import { anAccountId } from '@tests/ids';
+import { anAccountId } from '@tests/support/ids';
 
 import { Controller } from '@application/contracts/Controller';
 import { Account, accountRoles } from '@application/entities/account/Account';

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
-import { anAccountId } from '@tests/ids';
+import { anAccountId } from '@tests/support/ids';
 
 import type { Page } from '@application/contracts/Page';
 import { Account, accountRoles } from '@application/entities/account/Account';

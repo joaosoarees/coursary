@@ -1,7 +1,7 @@
 import { GetCommand, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { describe, expect, test } from 'vitest';
 
-import { anAccountId } from '@tests/ids';
+import { anAccountId } from '@tests/support/ids';
 
 import { Account, accountRoles } from '@application/entities/account/Account';
 import {
