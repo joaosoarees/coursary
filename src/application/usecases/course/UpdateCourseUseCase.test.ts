@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { courseWorld } from '@tests/support/courseWorld';
 
@@ -20,7 +20,7 @@ const update = (caller: Account) =>
   });
 
 describe('UpdateCourseUseCase', () => {
-  test('lets the owner and an admin change the course', async () => {
+  it('should let the owner and an admin change the course', async () => {
     await expect(update(world.owner)).resolves.toMatchObject({
       title: 'New title',
     });
@@ -29,14 +29,14 @@ describe('UpdateCourseUseCase', () => {
     });
   });
 
-  test('hides a draft of another instructor (404) and refuses a visible one (403)', async () => {
+  it('should hide a draft of another instructor (404) and refuse a visible one (403)', async () => {
     await expect(update(world.other)).rejects.toBeInstanceOf(CourseNotFound);
 
     await world.setCourse({ status: 'PUBLISHED' });
     await expect(update(world.other)).rejects.toBeInstanceOf(Forbidden);
   });
 
-  test('refuses an archived course, also to an admin', async () => {
+  it('should refuse an archived course, also to an admin', async () => {
     await world.setCourse({ status: 'ARCHIVED' });
 
     await expect(update(world.owner)).rejects.toBeInstanceOf(CourseArchived);

@@ -19,7 +19,7 @@ beforeEach(async () => {
   world = accountWorld();
   auth = new FakeAuthGateway();
   account = await world.addAccount({ session });
-  resetPassword = new ResetPasswordUseCase(auth, world.accounts);
+  resetPassword = new ResetPasswordUseCase(world.accounts, auth);
   params = {
     email: ` ${account.email.toUpperCase()} `,
     code: '012345',

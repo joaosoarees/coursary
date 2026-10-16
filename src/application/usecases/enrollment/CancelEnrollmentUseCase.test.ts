@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { uniqueEmail } from '@tests/support/accountWorld';
 import { courseWorld } from '@tests/support/courseWorld';
@@ -24,10 +24,10 @@ beforeEach(async () => {
 });
 
 const cancelStudent = () =>
-  cancel.execute({ studentId: student.id, courseId: world.course.id });
+  cancel.execute({ callerId: student.id, courseId: world.course.id });
 
 describe('CancelEnrollmentUseCase', () => {
-  test('cancels once, keeps the enrollment and uncounts the student', async () => {
+  it('should cancel once, keep the enrollment and uncount the student', async () => {
     await new EnrollUseCase(
       world.courses,
       world.enrollments,
@@ -45,7 +45,7 @@ describe('CancelEnrollmentUseCase', () => {
     });
   });
 
-  test('lets an enrolled student leave an archived course', async () => {
+  it('should let an enrolled student leave an archived course', async () => {
     await new EnrollUseCase(
       world.courses,
       world.enrollments,
@@ -60,7 +60,7 @@ describe('CancelEnrollmentUseCase', () => {
     });
   });
 
-  test('answers not found for a student who never enrolled', async () => {
+  it('should answer not found for a student who never enrolled', async () => {
     await expect(cancelStudent()).rejects.toBeInstanceOf(EnrollmentNotFound);
   });
 });

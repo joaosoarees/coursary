@@ -1,7 +1,7 @@
 import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
-import { courseIdParamsSchema } from '@application/controllers/course/schemas';
+import { courseIdParamsSchema } from '@application/controllers/shared/schemas';
 import { permissions } from '@application/security/permissions';
 import type { CourseDetails } from '@application/usecases/course/CourseDetails';
 import type { PublishCourseUseCase } from '@application/usecases/course/PublishCourseUseCase';
@@ -14,7 +14,7 @@ export class PublishCourseController extends Controller<
 
   protected override readonly paramsSchema = courseIdParamsSchema;
 
-  constructor(private readonly useCase: PublishCourseUseCase) {
+  constructor(private readonly publishCourse: PublishCourseUseCase) {
     super();
   }
 
@@ -27,7 +27,7 @@ export class PublishCourseController extends Controller<
     Record<string, unknown>,
     PublishCourseController.Params
   >): Promise<Controller.Response<CourseDetails>> {
-    const course = await this.useCase.execute({
+    const course = await this.publishCourse.execute({
       callerId: accountId,
       callerRole: role,
       courseId: params.id,

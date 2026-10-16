@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { courseWorld } from '@tests/support/courseWorld';
 
@@ -19,7 +19,7 @@ const commit = async (
 };
 
 describe('DynamoLessonRepository', () => {
-  test('creates a lesson with its body and counts it on the course', async () => {
+  it('should create a lesson with its body and count it on the course', async () => {
     const module = await world.addModule('M1', 0);
     const lesson = await world.addLesson(module, 0);
 
@@ -31,7 +31,7 @@ describe('DynamoLessonRepository', () => {
     ).toMatchObject({ title: 'L0', body: '' });
   });
 
-  test('moves a lesson to another module, body included', async () => {
+  it('should move a lesson to another module, body included', async () => {
     const from = await world.addModule('M1', 0);
     const to = await world.addModule('M2', 1);
     const lesson = await world.addLesson(from, 0);
@@ -47,7 +47,7 @@ describe('DynamoLessonRepository', () => {
     ).not.toBeNull();
   });
 
-  test('deletes a lesson with its content, and refuses one that is gone', async () => {
+  it('should delete a lesson with its content, and refuse one that is gone', async () => {
     const module = await world.addModule('M1', 0);
     const lesson = await world.addLesson(module, 0);
 

@@ -1,7 +1,7 @@
 import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
-import { courseIdParamsSchema } from '@application/controllers/course/schemas';
+import { courseIdParamsSchema } from '@application/controllers/shared/schemas';
 import { permissions } from '@application/security/permissions';
 import type { CancelEnrollmentUseCase } from '@application/usecases/enrollment/CancelEnrollmentUseCase';
 
@@ -10,7 +10,7 @@ export class CancelEnrollmentController extends Controller<'private'> {
 
   protected override readonly paramsSchema = courseIdParamsSchema;
 
-  constructor(private readonly useCase: CancelEnrollmentUseCase) {
+  constructor(private readonly cancelEnrollment: CancelEnrollmentUseCase) {
     super();
   }
 
@@ -22,7 +22,10 @@ export class CancelEnrollmentController extends Controller<'private'> {
     Record<string, unknown>,
     CancelEnrollmentController.Params
   >): Promise<Controller.Response<undefined>> {
-    await this.useCase.execute({ studentId: accountId, courseId: params.id });
+    await this.cancelEnrollment.execute({
+      callerId: accountId,
+      courseId: params.id,
+    });
 
     return { statusCode: 204 };
   }

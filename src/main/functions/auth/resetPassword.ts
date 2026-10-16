@@ -7,8 +7,8 @@ import { makeAuthGateway } from '@main/factories/makeAuthGateway';
 const authGateway = makeAuthGateway();
 const accountsRepository = makeAccountRepository();
 const resetPasswordUseCase = new ResetPasswordUseCase(
-  authGateway,
   accountsRepository,
+  authGateway,
 );
 const controller = new ResetPasswordController(resetPasswordUseCase);
 

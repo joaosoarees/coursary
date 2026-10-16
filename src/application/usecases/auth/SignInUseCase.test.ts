@@ -20,8 +20,8 @@ beforeEach(async () => {
   auth = new FakeAuthGateway();
   account = await world.addAccount();
   auth.accountIds.set(account.email, account.id);
-  signIn = new SignInUseCase(auth, world.accounts);
-  refresh = new RefreshTokensUseCase(auth, world.accounts);
+  signIn = new SignInUseCase(world.accounts, auth);
+  refresh = new RefreshTokensUseCase(world.accounts, auth);
   credentials = {
     email: ` ${account.email.toUpperCase()} `,
     password: 'secret123',

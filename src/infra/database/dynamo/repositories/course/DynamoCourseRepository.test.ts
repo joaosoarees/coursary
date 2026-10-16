@@ -1,5 +1,7 @@
-import { GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
-import { describe, expect, test } from 'vitest';
+import { GetCommand } from '@aws-sdk/lib-dynamodb';
+import { describe, expect, it } from 'vitest';
+
+import { setCourseFields } from '@tests/support/courseWorld';
 
 import { Account } from '@application/entities/account/Account';
 import { Course } from '@application/entities/course/Course';
@@ -29,13 +31,13 @@ const newCourse = async () => {
 };
 
 describe('DynamoCourseRepository', () => {
-  test('creates a course and finds it by id', async () => {
+  it('should create a course and find it by id', async () => {
     const course = await newCourse();
 
     await expect(repository.findById(course.id)).resolves.toEqual(course);
   });
 
-  test('updates only the fields given and returns the whole course', async () => {
+  it('should update only the fields given and return the whole course', async () => {
     const course = await newCourse();
 
     const updated = await repository.update(course.id, { title: 'Streams' });
@@ -47,24 +49,16 @@ describe('DynamoCourseRepository', () => {
     });
   });
 
-  test('refuses to change an archived course', async () => {
+  it('should refuse to change an archived course', async () => {
     const course = await newCourse();
-    await dynamoClient.send(
-      new UpdateCommand({
-        TableName: config.mainTableName,
-        Key: { PK: `COURSE#${course.id}`, SK: `COURSE#${course.id}` },
-        UpdateExpression: 'SET #status = :archived',
-        ExpressionAttributeNames: { '#status': 'status' },
-        ExpressionAttributeValues: { ':archived': 'ARCHIVED' },
-      }),
-    );
+    await setCourseFields(course, { status: 'ARCHIVED' });
 
     await expect(
       repository.update(course.id, { title: 'X' }),
     ).rejects.toBeInstanceOf(CourseArchived);
   });
 
-  test('refuses to change a course that does not exist', async () => {
+  it('should refuse to change a course that does not exist', async () => {
     const missing = Course.create({ instructor, title: 'T', description: '' });
 
     await expect(
@@ -72,7 +66,7 @@ describe('DynamoCourseRepository', () => {
     ).rejects.toBeInstanceOf(CourseNotFound);
   });
 
-  test('copies a new instructor name into every course of the instructor only', async () => {
+  it('should copy a new instructor name into every course of the instructor only', async () => {
     const ana = Account.create({ name: 'Ana', email: 'a@example.com' });
     const bia = Account.create({ name: 'Bia', email: 'b@example.com' });
     const anaCourses = [
@@ -112,16 +106,9 @@ describe('DynamoCourseRepository', () => {
     return Item?.GSI2PK as string | undefined;
   };
 
-  test('publishes a course with lessons into the catalog and archives it out', async () => {
+  it('should publish a course with lessons into the catalog and archive it out', async () => {
     const course = await newCourse();
-    await dynamoClient.send(
-      new UpdateCommand({
-        TableName: config.mainTableName,
-        Key: { PK: `COURSE#${course.id}`, SK: `COURSE#${course.id}` },
-        UpdateExpression: 'SET lessonCount = :one',
-        ExpressionAttributeValues: { ':one': 1 },
-      }),
-    );
+    await setCourseFields(course, { lessonCount: 1 });
 
     const published = await repository.publish(course.id, new Date());
     expect(published.status).toBe('PUBLISHED');
@@ -132,7 +119,7 @@ describe('DynamoCourseRepository', () => {
     expect(await catalogEntry(course)).toBeUndefined();
   });
 
-  test('refuses to publish a course without lessons, and to archive a draft', async () => {
+  it('should refuse to publish a course without lessons, and to archive a draft', async () => {
     const course = await newCourse();
 
     await expect(

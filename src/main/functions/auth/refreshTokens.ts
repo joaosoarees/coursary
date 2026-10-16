@@ -7,8 +7,8 @@ import { makeAuthGateway } from '@main/factories/makeAuthGateway';
 const authGateway = makeAuthGateway();
 const accountsRepository = makeAccountRepository();
 const refreshTokensUseCase = new RefreshTokensUseCase(
-  authGateway,
   accountsRepository,
+  authGateway,
 );
 const controller = new RefreshTokensController(refreshTokensUseCase);
 

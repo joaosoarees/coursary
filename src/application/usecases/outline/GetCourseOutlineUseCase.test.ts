@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { courseWorld } from '@tests/support/courseWorld';
 
@@ -12,7 +12,7 @@ beforeEach(async () => {
 });
 
 describe('GetCourseOutlineUseCase', () => {
-  test('hides the outline of a draft from another instructor', async () => {
+  it('should hide the outline of a draft from another instructor', async () => {
     await expect(
       new GetCourseOutlineUseCase(world.courses, world.outline).execute(
         world.as(world.other),

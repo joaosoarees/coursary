@@ -35,11 +35,29 @@ export class Lesson {
     return value;
   }
 
-  static create(attributes: Omit<Lesson.Attributes, 'id'>): Lesson {
+  static create({
+    courseId,
+    moduleId,
+    title,
+    body,
+    durationMinutes,
+    position,
+  }: {
+    courseId: Course.Id;
+    moduleId: Module.Id;
+    title: string;
+    body: string;
+    durationMinutes: number;
+    position: number;
+  }): Lesson {
     return new Lesson({
-      ...attributes,
       id: Lesson.toId(KSUID.randomSync().string),
-      title: attributes.title.trim(),
+      courseId,
+      moduleId,
+      title: title.trim(),
+      body,
+      durationMinutes,
+      position,
     });
   }
 }

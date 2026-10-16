@@ -1,9 +1,7 @@
 import { z } from 'zod';
 
-import { Course } from '@application/entities/course/Course';
-import { KSUID_PATTERN } from '@application/entities/shared/ksuid';
+import { titleSchema } from '@application/controllers/shared/schemas';
 
-const titleSchema = z.string().trim().min(3).max(120);
 const descriptionSchema = z.string().max(5000);
 
 export const createCourseSchema = z.object({
@@ -21,10 +19,3 @@ export const updateCourseSchema = z
       changes.title !== undefined || changes.description !== undefined,
     { message: 'Send a title, a description or both.' },
   );
-
-export const courseIdParamsSchema = z.object({
-  id: z
-    .string()
-    .regex(KSUID_PATTERN)
-    .transform((value) => Course.toId(value)),
-});

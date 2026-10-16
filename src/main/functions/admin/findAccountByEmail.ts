@@ -9,7 +9,6 @@ const findAccountByEmailUseCase = new FindAccountByEmailUseCase(
   accountsRepository,
 );
 const controller = new FindAccountByEmailController(findAccountByEmailUseCase);
-
 const resolveCaller = makeResolveCallerUseCase();
 
 export const handler = lambdaHttpAdapter(controller, resolveCaller);

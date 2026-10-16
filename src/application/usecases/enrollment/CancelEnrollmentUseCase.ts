@@ -12,15 +12,14 @@ export class CancelEnrollmentUseCase {
     private readonly unitOfWork: UnitOfWork.Factory,
   ) {}
 
-  // Q242: cancelling twice answers the same; the enrollment stays, cancelled.
+  // Cancelling twice answers the same; the enrollment stays, cancelled (Q242).
   async execute({
-    studentId,
+    callerId,
     courseId,
   }: CancelEnrollmentUseCase.Input): Promise<void> {
     const enrollment = await this.enrollmentsRepository.find(
-      studentId,
+      callerId,
       courseId,
-      { consistent: true },
     );
 
     if (!enrollment) {
@@ -46,7 +45,7 @@ export class CancelEnrollmentUseCase {
 
 export namespace CancelEnrollmentUseCase {
   export interface Input {
-    studentId: Account.Id;
+    callerId: Account.Id;
     courseId: Course.Id;
   }
 }

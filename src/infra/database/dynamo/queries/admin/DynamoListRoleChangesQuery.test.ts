@@ -1,5 +1,5 @@
 import { PutCommand } from '@aws-sdk/lib-dynamodb';
-import { describe, expect, test } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { anAccountId } from '@tests/support/ids';
 
@@ -61,7 +61,7 @@ async function readAll<TItem>(
 }
 
 describe('DynamoListRoleChangesQuery', () => {
-  test('lists the role changes of an account, newest first', async () => {
+  it('should list the role changes of an account, newest first', async () => {
     const account = await putAccount('ACTIVE');
     const changes = [];
 

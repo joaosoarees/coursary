@@ -10,7 +10,7 @@ export class DeleteLessonController extends Controller<'private'> {
 
   protected override readonly paramsSchema = lessonParamsSchema;
 
-  constructor(private readonly useCase: DeleteLessonUseCase) {
+  constructor(private readonly deleteLesson: DeleteLessonUseCase) {
     super();
   }
 
@@ -23,7 +23,7 @@ export class DeleteLessonController extends Controller<'private'> {
     Record<string, unknown>,
     DeleteLessonController.Params
   >): Promise<Controller.Response<undefined>> {
-    await this.useCase.execute({
+    await this.deleteLesson.execute({
       callerId: accountId,
       callerRole: role,
       courseId: params.id,

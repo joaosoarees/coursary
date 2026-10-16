@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { courseWorld } from '@tests/support/courseWorld';
 
@@ -11,7 +11,7 @@ beforeEach(async () => {
 });
 
 describe('UpdateModuleUseCase', () => {
-  test('renames a module', async () => {
+  it('should rename a module', async () => {
     const module = await world.addModule('Old', 0);
 
     await new UpdateModuleUseCase(

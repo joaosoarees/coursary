@@ -15,7 +15,6 @@ const updateMeUseCase = new UpdateMeUseCase(
   enrollmentsRepository,
 );
 const controller = new UpdateMeController(updateMeUseCase);
-
 const resolveCaller = makeResolveCallerUseCase();
 
 export const handler = lambdaHttpAdapter(controller, resolveCaller);

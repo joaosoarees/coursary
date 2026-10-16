@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { courseWorld } from '@tests/support/courseWorld';
 
@@ -20,7 +20,7 @@ beforeEach(async () => {
 });
 
 describe('ReorderOutlineUseCase', () => {
-  test('swaps modules and moves a lesson to another module', async () => {
+  it('should swap modules and move a lesson to another module', async () => {
     const m1 = await world.addModule('M1', 0);
     const m2 = await world.addModule('M2', 1);
     const [a, b, c] = [
@@ -44,7 +44,7 @@ describe('ReorderOutlineUseCase', () => {
     ]);
   });
 
-  test('refuses an outline that leaves out or repeats an item', async () => {
+  it('should refuse an outline that leaves out or repeats an item', async () => {
     const m1 = await world.addModule('M1', 0);
     const m2 = await world.addModule('M2', 1);
     const [a, b, c] = [
@@ -68,7 +68,7 @@ describe('ReorderOutlineUseCase', () => {
     }
   });
 
-  test('refuses an outline that moves more than one transaction holds', async () => {
+  it('should refuse an outline that moves more than one transaction holds', async () => {
     const m1 = await world.addModule('M1', 0);
     const m2 = await world.addModule('M2', 1);
     const fromM1 = [];

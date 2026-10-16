@@ -1,10 +1,8 @@
 import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
-import {
-  moduleBodySchema,
-  outlineParamsSchema,
-} from '@application/controllers/outline/schemas';
+import { moduleBodySchema } from '@application/controllers/outline/schemas';
+import { courseIdParamsSchema } from '@application/controllers/shared/schemas';
 import { permissions } from '@application/security/permissions';
 import type { CreateModuleUseCase } from '@application/usecases/outline/CreateModuleUseCase';
 import type { ModuleDetails } from '@application/usecases/outline/ModuleDetails';
@@ -15,11 +13,11 @@ export class CreateModuleController extends Controller<
 > {
   protected override readonly permission = permissions.CoursesUpdate;
 
-  protected override readonly paramsSchema = outlineParamsSchema;
+  protected override readonly paramsSchema = courseIdParamsSchema;
 
   protected override readonly bodySchema = moduleBodySchema;
 
-  constructor(private readonly useCase: CreateModuleUseCase) {
+  constructor(private readonly createModule: CreateModuleUseCase) {
     super();
   }
 
@@ -33,7 +31,7 @@ export class CreateModuleController extends Controller<
     CreateModuleController.Body,
     CreateModuleController.Params
   >): Promise<Controller.Response<ModuleDetails>> {
-    const result = await this.useCase.execute({
+    const result = await this.createModule.execute({
       callerId: accountId,
       callerRole: role,
       courseId: params.id,
@@ -45,7 +43,7 @@ export class CreateModuleController extends Controller<
 }
 
 export namespace CreateModuleController {
-  export type Params = z.infer<typeof outlineParamsSchema>;
+  export type Params = z.infer<typeof courseIdParamsSchema>;
 
   export type Body = z.infer<typeof moduleBodySchema>;
 }

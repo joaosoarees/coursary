@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  courseIdParamsSchema,
   createCourseSchema,
   updateCourseSchema,
 } from '@application/controllers/course/schemas';
@@ -28,11 +27,5 @@ describe('updateCourseSchema', () => {
     expect(updateCourseSchema.safeParse({ description: 'x' }).success).toBe(
       true,
     );
-  });
-});
-
-describe('courseIdParamsSchema', () => {
-  it('should refuse a malformed id', () => {
-    expect(courseIdParamsSchema.safeParse({ id: 'nope' }).success).toBe(false);
   });
 });

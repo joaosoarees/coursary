@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { Account } from '@application/entities/account/Account';
 import { Course } from '@application/entities/course/Course';
@@ -59,7 +59,7 @@ const readCatalog = async () => {
 };
 
 describe('DynamoCatalogQuery', () => {
-  test('the catalog lists published courses, newest first, and nothing else', async () => {
+  it('should list published courses in the catalog, newest first, and nothing else', async () => {
     const draft = await courseWithLesson('Draft');
     const older = await courseWithLesson('Older');
     const newer = await courseWithLesson('Newer');

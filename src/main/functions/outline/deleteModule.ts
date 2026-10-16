@@ -7,16 +7,16 @@ import { makeModuleRepository } from '@main/factories/makeModuleRepository';
 import { makeResolveCallerUseCase } from '@main/factories/makeResolveCallerUseCase';
 import { makeUnitOfWork } from '@main/factories/makeUnitOfWork';
 
-const courseRepository = makeCourseRepository();
-const moduleRepository = makeModuleRepository();
+const coursesRepository = makeCourseRepository();
+const modulesRepository = makeModuleRepository();
 const courseOutlineQuery = makeCourseOutlineQuery();
-const useCase = new DeleteModuleUseCase(
-  courseRepository,
-  moduleRepository,
+const deleteModuleUseCase = new DeleteModuleUseCase(
+  coursesRepository,
+  modulesRepository,
   courseOutlineQuery,
   makeUnitOfWork,
 );
-const controller = new DeleteModuleController(useCase);
+const controller = new DeleteModuleController(deleteModuleUseCase);
 const resolveCaller = makeResolveCallerUseCase();
 
 export const handler = lambdaHttpAdapter(controller, resolveCaller);

@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { changeRoleSchema } from '@application/controllers/admin/ChangeRoleController';
-import { listAccountsSchema } from '@application/controllers/admin/ListAccountsController';
+import {
+  changeRoleSchema,
+  listAccountsSchema,
+} from '@application/controllers/admin/schemas';
 import { accountIdParamsSchema } from '@application/controllers/admin/schemas';
 
 describe('listAccountsSchema', () => {

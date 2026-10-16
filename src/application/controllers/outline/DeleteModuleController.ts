@@ -10,7 +10,7 @@ export class DeleteModuleController extends Controller<'private'> {
 
   protected override readonly paramsSchema = moduleParamsSchema;
 
-  constructor(private readonly useCase: DeleteModuleUseCase) {
+  constructor(private readonly deleteModule: DeleteModuleUseCase) {
     super();
   }
 
@@ -23,7 +23,7 @@ export class DeleteModuleController extends Controller<'private'> {
     Record<string, unknown>,
     DeleteModuleController.Params
   >): Promise<Controller.Response<undefined>> {
-    await this.useCase.execute({
+    await this.deleteModule.execute({
       callerId: accountId,
       callerRole: role,
       courseId: params.id,

@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { Account } from '@application/entities/account/Account';
 import { Course } from '@application/entities/course/Course';
@@ -46,7 +46,7 @@ const courseWithLesson = async (title: string) => {
 };
 
 describe('DynamoCoursePageQuery', () => {
-  test('the course page shows a published course and its outline, without bodies', async () => {
+  it('should show a published course and its outline on the course page, without bodies', async () => {
     const { course, module, lesson } = await courseWithLesson('Public');
     expect(await coursePage.execute(course.id)).toBeNull();
 

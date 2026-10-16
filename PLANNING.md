@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-16. Estado: **fase 1 completa (1.0 a 1.15), refatorações R.1 e R.2 na `develop` e em `dev`; fase 2 quebrada em 2.1 a 2.5 (Q238); 2.1 (matrícula) na `feat/2.1-enrollment-v2`, em PR; o `e2e:dev` roda depois do merge**.
+Última atualização: 2026-10-16. Estado: **fase 1 completa (1.0 a 1.15), R.1, R.2 e 2.1 (matrícula) na `develop` e em `dev`, `pnpm e2e:dev` 63 de 63; R.3 (padrões entre arquivos irmãos, Q260 a Q267) na `refactor/r3-patterns`, em PR; próxima: 2.2 (listas de matrículas e alunos)**.
 
 ## Como retomar
 
@@ -11,7 +11,7 @@ Abra o Claude Code e diga:
 Ao retomar, o assistente deve:
 
 1. Ver no estado acima e na tabela "Fase 1: histórias" qual história é a próxima.
-2. A 2.1 (matrícula) está na `feat/2.1-enrollment-v2`, criada da `develop` depois da R.2, com a quebra da fase 2 e as decisões Q238 a Q244 trazidas por cherry-pick. A 2.1.a é reescrita no domínio `enrollment` (Q259), com erros por `defineError` e testes contra o DynamoDB Local (Q250); o commit `6cf5dfd` da antiga `feat/2.1-enrollment` (local) serve só de referência. Depois, seguir a Q244 (2.1.b a 2.1.d) e estender o `pnpm e2e:dev`.
+2. A próxima história é a 2.2 (Q238): `GET /me/enrollments` com `BatchGet` dos cursos (Q80) e `GET /courses/{id}/students` pelo índice esparso. Seguir as convenções da R.3 (Q260 a Q267) e passar o `/code-review` antes de abrir o PR.
 3. Seguir o "Começar tarefa X.X" do `CLAUDE.md`: branch a partir da `develop`, sub-imp propostas e discutidas antes de codar.
 4. Não refazer perguntas já fechadas.
 
@@ -313,6 +313,14 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q257 | Mapa da reorganização | Entidades, erros, portas, use cases, schemas e itens/repositórios/queries Dynamo em subpastas de domínio (`account`, `admin`, `auth`, `catalog`, `course`, `outline`, `shared`); `usecases/admin` separado; `ResolveCaller` em `usecases/auth`; `CourseEditor` em `usecases/course`; schemas em `controllers/<domínio>/schemas.ts`. Ordem: versões, erros, fábricas, conta no controller, pastas, testes. |
 | Q258 | Fakes de conta | Saem também: o `InMemoryAccountRepository` reimplementava as condições de papel, status e sessão. Os specs que o usavam rodam contra o DynamoDB Local; só o `FakeAuthGateway` fica (Cognito). Feito na história de refatoração R.2, antes de retomar a 2.1. |
 | Q259 | Domínio da matrícula | `enrollment` em todas as camadas (entidade, erros, use cases, controllers, itens e repositórios Dynamo, `sls/functions/enrollment.yml`); o que é do curso, como `addEnrollmentsOperation`, fica em `course`. |
+| Q260 | Chaves de índice esparso | `NonNullable<XItem.Keys['GSI…']>` como tipo de retorno, mantendo o padrão `Keys[...]` (`EnrollmentItem` `GSI1`, `CourseItem` `GSI2`). |
+| Q261 | Nomes de repositórios e use cases | Repositórios no plural (`coursesRepository`) e use cases pelo nome completo (`archiveCourseUseCase`; no controller, o campo `archiveCourse`) em funções, controllers e construtores. |
+| Q262 | Estilo dos testes | `it('should …')` em todos os arquivos (complementa a Q253). |
+| Q263 | Lugar dos schemas | Sempre em `controllers/<domínio>/schemas.ts`; o que mais de um domínio usa (ids, título, nome, código) em `controllers/shared/schemas.ts`. |
+| Q264 | Leitura no `find` de repositório | `consistent = true` por padrão (conta e matrícula): esses `find` decidem escritas; listas seguem eventuais nas queries. |
+| Q265 | Erro `OwnCourse` | Fica: `OWN_COURSE` 409 é contrato da Q239 (conflito com o estado do recurso, não ação proibida ao papel). |
+| Q266 | `promoteAdmin` | `timeout: 5` e role própria de menor privilégio, como as outras funções sem HTTP. |
+| Q267 | Refatoração R.3 | Alinha os desvios entre arquivos irmãos achados na varredura de 2026-10-16 (Q260 a Q266 e os mecânicos), sem mudança de comportamento, `e2e:dev` igual no fim. Ficam de fora: ordem dos erros, `CatalogQuery.Item`, laço de paginação repetido (vira helper na quinta cópia). Daqui em diante, todo PR passa pelo `/code-review` antes de abrir. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)

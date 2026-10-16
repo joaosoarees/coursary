@@ -24,6 +24,12 @@ export interface CourseRepository {
   addEnrollmentsOperation(
     course: Course,
     delta: number,
-    options: { requirePublished: boolean },
+    options: CourseRepository.EnrollmentCountOptions,
   ): UnitOfWork.Operation;
+}
+
+export namespace CourseRepository {
+  export interface EnrollmentCountOptions {
+    requirePublished: boolean;
+  }
 }

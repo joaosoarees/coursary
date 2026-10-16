@@ -1,12 +1,9 @@
-import { z } from 'zod';
+import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
+import { updateMeSchema } from '@application/controllers/account/schemas';
 import type { AccountProfile } from '@application/usecases/account/AccountProfile';
 import type { UpdateMeUseCase } from '@application/usecases/account/UpdateMeUseCase';
-
-export const updateMeSchema = z.object({
-  name: z.string().trim().min(1).max(100),
-});
 
 export class UpdateMeController extends Controller<'private', AccountProfile> {
   protected override readonly bodySchema = updateMeSchema;

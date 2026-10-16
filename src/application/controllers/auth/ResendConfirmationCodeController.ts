@@ -1,15 +1,15 @@
-import { z } from 'zod';
+import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
-import { emailSchema } from '@application/controllers/auth/schemas';
-import { ResendConfirmationCodeUseCase } from '@application/usecases/auth/ResendConfirmationCodeUseCase';
-
-export const resendConfirmationCodeSchema = z.object({ email: emailSchema });
+import { resendConfirmationCodeSchema } from '@application/controllers/auth/schemas';
+import type { ResendConfirmationCodeUseCase } from '@application/usecases/auth/ResendConfirmationCodeUseCase';
 
 export class ResendConfirmationCodeController extends Controller<'public'> {
   protected override readonly bodySchema = resendConfirmationCodeSchema;
 
-  constructor(private readonly resendCode: ResendConfirmationCodeUseCase) {
+  constructor(
+    private readonly resendConfirmationCode: ResendConfirmationCodeUseCase,
+  ) {
     super();
   }
 
@@ -19,7 +19,7 @@ export class ResendConfirmationCodeController extends Controller<'public'> {
       ResendConfirmationCodeController.Body
     >,
   ): Promise<Controller.Response<undefined>> {
-    await this.resendCode.execute(request.body);
+    await this.resendConfirmationCode.execute(request.body);
 
     return { statusCode: 204 };
   }

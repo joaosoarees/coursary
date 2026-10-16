@@ -181,6 +181,8 @@ Atualizado ao fim de cada história (no Épico 0 e na implementação).
   - A organização de pastas é parte do que o dono chama de "confuso": três convenções para a mesma coisa pesam mais que a escolha entre camada e domínio.
   - **Refatoração mecânica por script, conferida pelo compilador**: mover 62 arquivos e reescrever imports a partir de um mapa único; levar a montagem das fábricas para os arquivos de função; dividir testes por bloco e limpar imports pelo relatório do lint. O typecheck, os testes e o carregamento de cada pacote provam que nada mudou.
   - **Uma pergunta deixada aberta vira uma refatoração curta própria** (R.2, Q258): os fakes de conta saíram num PR só de testes, antes de retomar a história de produto, para que ela não carregasse a mudança.
+  - **Varredura de irmãos** (R.3, Q260 a Q267): um agente lê todos os arquivos de cada grupo (itens, repositórios, use cases, controllers, funções, testes) e aponta só o que destoa da maioria, com a contagem. O que é gosto vira pergunta; o resto entra em lote. Achou cerca de 30 desvios que o lint não pega.
+  - **Revisão antes do PR**: depois da R.3, todo PR passa pelo `/code-review` antes de abrir.
   - **Uma branch anterior à refatoração não é rebaseada; é refeita** (2.1): nova branch da `develop`, os commits de documentação trazidos por cherry-pick e o código portado reescrevendo os caminhos por um mapa, com o commit antigo como referência.
   - **Uma ambiguidade na pergunta aparece na execução** (a Q250 falava dos use cases com transação; o resumo, de "fakes só para o Cognito"): fazer o escopo sem dúvida e perguntar o resto, em vez de escolher em silêncio.
 

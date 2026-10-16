@@ -8,18 +8,18 @@ import { makeModuleRepository } from '@main/factories/makeModuleRepository';
 import { makeResolveCallerUseCase } from '@main/factories/makeResolveCallerUseCase';
 import { makeUnitOfWork } from '@main/factories/makeUnitOfWork';
 
-const courseRepository = makeCourseRepository();
-const moduleRepository = makeModuleRepository();
-const lessonRepository = makeLessonRepository();
+const coursesRepository = makeCourseRepository();
+const modulesRepository = makeModuleRepository();
+const lessonsRepository = makeLessonRepository();
 const courseOutlineQuery = makeCourseOutlineQuery();
-const useCase = new ReorderOutlineUseCase(
-  courseRepository,
-  moduleRepository,
-  lessonRepository,
+const reorderOutlineUseCase = new ReorderOutlineUseCase(
+  coursesRepository,
+  modulesRepository,
+  lessonsRepository,
   courseOutlineQuery,
   makeUnitOfWork,
 );
-const controller = new ReorderOutlineController(useCase);
+const controller = new ReorderOutlineController(reorderOutlineUseCase);
 const resolveCaller = makeResolveCallerUseCase();
 
 export const handler = lambdaHttpAdapter(controller, resolveCaller);

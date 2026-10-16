@@ -1,18 +1,18 @@
 import { z } from 'zod';
 
-import { Course } from '@application/entities/course/Course';
+import {
+  courseIdSchema,
+  ksuidSchema,
+  titleSchema,
+} from '@application/controllers/shared/schemas';
 import { Lesson } from '@application/entities/outline/Lesson';
 import { Module } from '@application/entities/outline/Module';
-import { KSUID_PATTERN } from '@application/entities/shared/ksuid';
 
-const ksuid = z.string().regex(KSUID_PATTERN);
-const courseId = ksuid.transform((value) => Course.toId(value));
-const moduleId = ksuid.transform((value) => Module.toId(value));
-const lessonId = ksuid.transform((value) => Lesson.toId(value));
+const moduleId = ksuidSchema.transform((value) => Module.toId(value));
+const lessonId = ksuidSchema.transform((value) => Lesson.toId(value));
 
 const MAX_BODY_BYTES = 32 * 1024;
 
-const titleSchema = z.string().trim().min(3).max(120);
 const bodySchema = z
   .string()
   .refine((body) => Buffer.byteLength(body, 'utf8') <= MAX_BODY_BYTES, {
@@ -20,12 +20,13 @@ const bodySchema = z
   });
 const durationSchema = z.number().int().min(1).max(600);
 
-export const outlineParamsSchema = z.object({ id: courseId });
-
-export const moduleParamsSchema = z.object({ id: courseId, mid: moduleId });
+export const moduleParamsSchema = z.object({
+  id: courseIdSchema,
+  mid: moduleId,
+});
 
 export const lessonParamsSchema = z.object({
-  id: courseId,
+  id: courseIdSchema,
   mid: moduleId,
   lid: lessonId,
 });

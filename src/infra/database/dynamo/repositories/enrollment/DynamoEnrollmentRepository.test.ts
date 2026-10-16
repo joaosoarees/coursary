@@ -1,5 +1,7 @@
-import { GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
-import { describe, expect, test } from 'vitest';
+import { GetCommand } from '@aws-sdk/lib-dynamodb';
+import { describe, expect, it } from 'vitest';
+
+import { setCourseFields } from '@tests/support/courseWorld';
 
 import { Account } from '@application/entities/account/Account';
 import { Course } from '@application/entities/course/Course';
@@ -25,14 +27,7 @@ const commit = async (...operations: Parameters<DynamoUnitOfWork['add']>) => {
 const publishedCourse = async () => {
   const course = Course.create({ instructor, title: 'T', description: '' });
   await courses.create(course);
-  await dynamoClient.send(
-    new UpdateCommand({
-      TableName: config.mainTableName,
-      Key: { PK: `COURSE#${course.id}`, SK: `COURSE#${course.id}` },
-      UpdateExpression: 'SET lessonCount = :one',
-      ExpressionAttributeValues: { ':one': 1 },
-    }),
-  );
+  await setCourseFields(course, { lessonCount: 1 });
 
   return courses.publish(course.id, new Date());
 };
@@ -56,7 +51,7 @@ const count = async (course: Course) =>
   (await courses.findById(course.id))?.enrollmentCount;
 
 describe('DynamoEnrollmentRepository', () => {
-  test('enrolls, cancels and enrolls again, keeping the count and the place in the list', async () => {
+  it('should enroll, cancel and enroll again, keeping the count and the place in the list', async () => {
     const course = await publishedCourse();
     const student = Account.create({ name: 'Bia', email: 'b@example.com' });
     const enrollment = Enrollment.create({ student, course });
@@ -87,7 +82,7 @@ describe('DynamoEnrollmentRepository', () => {
     ).toBe('ACTIVE');
   });
 
-  test('counts two enrollments of the same student at once only once', async () => {
+  it('should count two enrollments of the same student at once only once', async () => {
     const course = await publishedCourse();
     const student = Account.create({ name: 'Bia', email: 'b@example.com' });
     const enroll = () =>
@@ -102,7 +97,7 @@ describe('DynamoEnrollmentRepository', () => {
     expect(await count(course)).toBe(1);
   });
 
-  test('refuses an enrollment in a course that is not published', async () => {
+  it('should refuse an enrollment in a course that is not published', async () => {
     const course = Course.create({ instructor, title: 'T', description: '' });
     await courses.create(course);
     const student = Account.create({ name: 'Bia', email: 'b@example.com' });

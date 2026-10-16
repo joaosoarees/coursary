@@ -1,10 +1,8 @@
 import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
-import {
-  outlineBodySchema,
-  outlineParamsSchema,
-} from '@application/controllers/outline/schemas';
+import { outlineBodySchema } from '@application/controllers/outline/schemas';
+import { courseIdParamsSchema } from '@application/controllers/shared/schemas';
 import type { CourseOutlineQuery } from '@application/queries/outline/CourseOutlineQuery';
 import { permissions } from '@application/security/permissions';
 import type { ReorderOutlineUseCase } from '@application/usecases/outline/ReorderOutlineUseCase';
@@ -15,11 +13,11 @@ export class ReorderOutlineController extends Controller<
 > {
   protected override readonly permission = permissions.CoursesUpdate;
 
-  protected override readonly paramsSchema = outlineParamsSchema;
+  protected override readonly paramsSchema = courseIdParamsSchema;
 
   protected override readonly bodySchema = outlineBodySchema;
 
-  constructor(private readonly useCase: ReorderOutlineUseCase) {
+  constructor(private readonly reorderOutline: ReorderOutlineUseCase) {
     super();
   }
 
@@ -33,7 +31,7 @@ export class ReorderOutlineController extends Controller<
     ReorderOutlineController.Body,
     ReorderOutlineController.Params
   >): Promise<Controller.Response<CourseOutlineQuery.Outline>> {
-    const result = await this.useCase.execute({
+    const result = await this.reorderOutline.execute({
       callerId: accountId,
       callerRole: role,
       courseId: params.id,
@@ -45,7 +43,7 @@ export class ReorderOutlineController extends Controller<
 }
 
 export namespace ReorderOutlineController {
-  export type Params = z.infer<typeof outlineParamsSchema>;
+  export type Params = z.infer<typeof courseIdParamsSchema>;
 
   export type Body = z.infer<typeof outlineBodySchema>;
 }

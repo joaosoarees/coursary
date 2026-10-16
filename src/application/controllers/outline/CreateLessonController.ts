@@ -19,7 +19,7 @@ export class CreateLessonController extends Controller<
 
   protected override readonly bodySchema = createLessonSchema;
 
-  constructor(private readonly useCase: CreateLessonUseCase) {
+  constructor(private readonly createLesson: CreateLessonUseCase) {
     super();
   }
 
@@ -33,7 +33,7 @@ export class CreateLessonController extends Controller<
     CreateLessonController.Body,
     CreateLessonController.Params
   >): Promise<Controller.Response<LessonDetails>> {
-    const result = await this.useCase.execute({
+    const result = await this.createLesson.execute({
       callerId: accountId,
       callerRole: role,
       courseId: params.id,

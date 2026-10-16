@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { courseWorld } from '@tests/support/courseWorld';
 
@@ -19,7 +19,7 @@ beforeEach(async () => {
 });
 
 describe('CreateModuleUseCase', () => {
-  test('puts each new module at the end', async () => {
+  it('should put each new module at the end', async () => {
     const first = await create.execute({
       ...world.as(world.owner),
       title: 'A1 ',
@@ -33,7 +33,7 @@ describe('CreateModuleUseCase', () => {
     expect(first.title).toBe('A1');
   });
 
-  test('lets an admin add a module and hides the draft from another instructor', async () => {
+  it('should let an admin add a module and hide the draft from another instructor', async () => {
     await expect(
       create.execute({ ...world.as(world.admin), title: 'Adm' }),
     ).resolves.toMatchObject({ title: 'Adm' });
@@ -42,7 +42,7 @@ describe('CreateModuleUseCase', () => {
     ).rejects.toBeInstanceOf(CourseNotFound);
   });
 
-  test('refuses any change to an archived course', async () => {
+  it('should refuse any change to an archived course', async () => {
     await world.setCourse({ status: 'ARCHIVED' });
 
     await expect(

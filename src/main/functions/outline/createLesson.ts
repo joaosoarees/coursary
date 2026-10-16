@@ -7,16 +7,16 @@ import { makeLessonRepository } from '@main/factories/makeLessonRepository';
 import { makeResolveCallerUseCase } from '@main/factories/makeResolveCallerUseCase';
 import { makeUnitOfWork } from '@main/factories/makeUnitOfWork';
 
-const courseRepository = makeCourseRepository();
-const lessonRepository = makeLessonRepository();
+const coursesRepository = makeCourseRepository();
+const lessonsRepository = makeLessonRepository();
 const courseOutlineQuery = makeCourseOutlineQuery();
-const useCase = new CreateLessonUseCase(
-  courseRepository,
-  lessonRepository,
+const createLessonUseCase = new CreateLessonUseCase(
+  coursesRepository,
+  lessonsRepository,
   courseOutlineQuery,
   makeUnitOfWork,
 );
-const controller = new CreateLessonController(useCase);
+const controller = new CreateLessonController(createLessonUseCase);
 const resolveCaller = makeResolveCallerUseCase();
 
 export const handler = lambdaHttpAdapter(controller, resolveCaller);

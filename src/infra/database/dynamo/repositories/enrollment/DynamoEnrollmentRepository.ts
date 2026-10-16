@@ -23,7 +23,7 @@ export class DynamoEnrollmentRepository implements EnrollmentRepository {
   async find(
     accountId: Account.Id,
     courseId: Course.Id,
-    { consistent = false }: EnrollmentRepository.ReadOptions = {},
+    { consistent = true }: EnrollmentRepository.ReadOptions = {},
   ): Promise<Enrollment | null> {
     const command = new GetCommand({
       TableName: this.config.mainTableName,
@@ -112,6 +112,13 @@ export class DynamoEnrollmentRepository implements EnrollmentRepository {
     }
   }
 
+  private keyOf(enrollment: Enrollment) {
+    return {
+      PK: EnrollmentItem.getPK(enrollment.accountId),
+      SK: EnrollmentItem.getSK(enrollment.courseId),
+    };
+  }
+
   private async enrollmentKeysOf(
     accountId: Account.Id,
   ): Promise<Record<string, unknown>[]> {
@@ -135,12 +142,5 @@ export class DynamoEnrollmentRepository implements EnrollmentRepository {
     } while (ExclusiveStartKey);
 
     return keys;
-  }
-
-  private keyOf(enrollment: Enrollment) {
-    return {
-      PK: EnrollmentItem.getPK(enrollment.accountId),
-      SK: EnrollmentItem.getSK(enrollment.courseId),
-    };
   }
 }

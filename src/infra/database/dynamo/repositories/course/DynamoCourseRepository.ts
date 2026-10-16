@@ -148,25 +148,6 @@ export class DynamoCourseRepository implements CourseRepository {
     }
   }
 
-  // The item as it was when the condition failed tells why (Q232, Q233).
-  private static refusal(
-    error: ConditionalCheckFailedException,
-    whenDraft: Error,
-  ): Error {
-    if (!error.Item) {
-      return new CourseNotFound();
-    }
-
-    switch (error.Item.status?.S) {
-      case courseStatuses.Archived:
-        return new CourseArchived();
-      case courseStatuses.Draft:
-        return whenDraft;
-      default:
-        return new Conflict();
-    }
-  }
-
   // Copies the name into every course of the instructor, at most 100 per
   // transaction; calling it again with the same name finishes what a failure left.
   async updateInstructorName(
@@ -227,7 +208,7 @@ export class DynamoCourseRepository implements CourseRepository {
   addEnrollmentsOperation(
     course: Course,
     delta: number,
-    { requirePublished }: { requirePublished: boolean },
+    { requirePublished }: CourseRepository.EnrollmentCountOptions,
   ): UnitOfWork.Operation {
     return DynamoUnitOfWork.operation({
       Update: {
@@ -277,5 +258,24 @@ export class DynamoCourseRepository implements CourseRepository {
     } while (ExclusiveStartKey);
 
     return keys;
+  }
+
+  // The item as it was when the condition failed tells why (Q232, Q233).
+  private static refusal(
+    error: ConditionalCheckFailedException,
+    whenDraft: Error,
+  ): Error {
+    if (!error.Item) {
+      return new CourseNotFound();
+    }
+
+    switch (error.Item.status?.S) {
+      case courseStatuses.Archived:
+        return new CourseArchived();
+      case courseStatuses.Draft:
+        return whenDraft;
+      default:
+        return new Conflict();
+    }
   }
 }

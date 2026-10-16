@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { courseWorld } from '@tests/support/courseWorld';
 
@@ -25,7 +25,7 @@ beforeEach(async () => {
 });
 
 describe('CreateLessonUseCase', () => {
-  test('adds lessons at the end of the module and counts them on the course', async () => {
+  it('should add lessons at the end of the module and count them on the course', async () => {
     const first = await create.execute({
       ...world.as(world.owner),
       moduleId: module.id,
@@ -41,7 +41,7 @@ describe('CreateLessonUseCase', () => {
     expect((await world.storedCourse())?.lessonCount).toBe(2);
   });
 
-  test('refuses a module that is not in the course', async () => {
+  it('should refuse a module that is not in the course', async () => {
     const elsewhere = Module.create({
       courseId: world.course.id,
       title: 'X',
@@ -57,7 +57,7 @@ describe('CreateLessonUseCase', () => {
     ).rejects.toBeInstanceOf(ModuleNotFound);
   });
 
-  test('hides the draft from another instructor', async () => {
+  it('should hide the draft from another instructor', async () => {
     await expect(
       create.execute({
         ...world.as(world.other),

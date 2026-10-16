@@ -7,7 +7,6 @@ import { makeResolveCallerUseCase } from '@main/factories/makeResolveCallerUseCa
 const listAccountsByRoleQuery = makeListAccountsByRoleQuery();
 const listAccountsUseCase = new ListAccountsUseCase(listAccountsByRoleQuery);
 const controller = new ListAccountsController(listAccountsUseCase);
-
 const resolveCaller = makeResolveCallerUseCase();
 
 export const handler = lambdaHttpAdapter(controller, resolveCaller);

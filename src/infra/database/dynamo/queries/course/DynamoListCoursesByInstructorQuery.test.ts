@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { Account } from '@application/entities/account/Account';
 import { Course } from '@application/entities/course/Course';
@@ -24,7 +24,7 @@ const instructorWith = async (count: number) => {
 };
 
 describe('DynamoListCoursesByInstructorQuery', () => {
-  test('lists only the courses of the instructor, newest first, across pages', async () => {
+  it('should list only the courses of the instructor, newest first, across pages', async () => {
     const ana = await instructorWith(3);
     await instructorWith(2);
     const ids: string[] = [];
@@ -43,7 +43,7 @@ describe('DynamoListCoursesByInstructorQuery', () => {
     expect(ids).toEqual([...ids].sort().reverse());
   });
 
-  test('refuses a cursor from another instructor', async () => {
+  it('should refuse a cursor from another instructor', async () => {
     const ana = await instructorWith(2);
     const bia = await instructorWith(2);
     const { nextCursor } = await query.execute({

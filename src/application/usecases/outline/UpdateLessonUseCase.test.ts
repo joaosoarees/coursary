@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { courseWorld } from '@tests/support/courseWorld';
 
@@ -11,7 +11,7 @@ beforeEach(async () => {
 });
 
 describe('UpdateLessonUseCase', () => {
-  test('changes only the fields given, also for an admin', async () => {
+  it('should change only the fields given, also for an admin', async () => {
     const module = await world.addModule('M1', 0);
     const lesson = await world.addLesson(module, 0);
 
