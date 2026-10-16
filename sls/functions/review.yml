@@ -1,0 +1,15 @@
+reviewCourse:
+  handler: src/main/functions/review/reviewCourse.handler
+  events:
+    - httpApi:
+        method: PUT
+        path: /courses/{courseId}/review
+        authorizer: CognitoAuthorizer
+
+getMyReview:
+  handler: src/main/functions/review/getMyReview.handler
+  events:
+    - httpApi:
+        method: GET
+        path: /courses/{courseId}/review
+        authorizer: CognitoAuthorizer
