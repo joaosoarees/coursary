@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-16. Estado: **fase 1, R.1 a R.3, 2.1 a 2.4 na `develop` e em `dev`, `pnpm e2e:dev` 83 de 83; 2.5 (avaliações, Q282 a Q285) na `feat/2.5-reviews`, em PR; o `e2e:dev` roda depois do merge; com ela a fase 2 fecha**.
+Última atualização: 2026-10-16. Estado: **fases 1 e 2, R.1 a R.3 na `develop` e em `dev`, `pnpm e2e:dev` 91 de 91; em andamento: R.4 (correções da revisão, Q287 a Q292) na `refactor/r4-review-fixes`; depois, quebrar a fase 3**.
 
 ## Como retomar
 
@@ -340,6 +340,12 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q284 | Minha avaliação | `GET /courses/{courseId}/review` → a do próprio aluno ou `404 REVIEW_NOT_FOUND`; `courses:review` no aluno; não exige matrícula ativa. |
 | Q285 | Sub-imp da 2.5 | a. `Review` e transações; b. `courses:review`, use cases e rotas `PUT`/`GET /review`; c. propagação do nome para as avaliações; d. lista pública e média na página e no catálogo; e. Postman, `e2e:dev`, documentação, `/code-review`. |
 | Q286 | Cursor da lista pública de avaliações (revê a Q283) | Aceito: o `nextCursor` carrega o `accountId` do último item (a chave da tabela é exigida para continuar). O id é um KSUID aleatório que nenhuma rota pública aceita; o que vaza é que duas avaliações são do mesmo aluno, o que o nome copiado já mostra. Cifrar os cursores (AES-GCM, chave no SSM) volta se um id interno ficar sensível ou uma rota pública passar a aceitar `accountId`. |
+| Q287 | Escopo da R.4 | Depois da análise das skills e do `/code-review` de `src/` (2026-10-16): bugs do outline e do `PATCH /me`, riscos (specs, `restoreMocks`, compensação do cadastro), custo (memória, corpo da aula, propagação, posição), estilo e documentação. Ficam fora: descrição do curso em item à parte (fase 3, com backfill), `DeletionPolicy` (antes de `prod`), limpeza do Cognito pelo `sub` (fase 3), custo do `ConditionCheck` no conteúdo (medir). |
+| Q288 | Aula órfã no outline | `lessonCount` no módulo, mantido nas transações de criar, apagar e mover aula (`ADD` exige o módulo); apagar módulo exige `lessonCount = 0`; ausente lido como 0, backfill em `dev`. Rotas de edição leem o outline com leitura forte. |
+| Q289 | Mover aula | O `Delete` do sumário na origem exige título e duração lidos; mudou no meio → `409 CONFLICT`. |
+| Q290 | Propagação de nomes (revê Q81, Q207) | Um `Update` por item, 4 em paralelo, condição `attribute_exists(PK) AND <campo> <> :name`, condição falha ignorada; query das chaves com leitura forte; segue na requisição, assíncrono na fase 3. Vale para aluno (matrículas, avaliações) e instrutor (cursos). |
+| Q291 | Memória das funções | Medida no `e2e:dev` com 1024, 512 e 256 MB (Logs Insights das linhas `REPORT`); fica o menor valor sem piorar a duração em mais de 15%, no provider. |
+| Q292 | Sub-imp da R.4 | a. contador no módulo, leitura forte nas edições, trava ao mover, backfill; b. propagação por item; c. compensação do cadastro e corpo da aula; d. specs e `restoreMocks`; e. estilo; f. memória; g. documentação, skills de DynamoDB, consolidado em `docs/reviews/2026-10-16.md`, `/code-review`, `e2e:dev`. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
