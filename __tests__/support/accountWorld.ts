@@ -71,5 +71,15 @@ export function accountWorld() {
     return items;
   };
 
-  return { accounts, addAccount, save, stored, roleChanges };
+  // True when a new account may claim the e-mail.
+  const isEmailFree = async (email: string) => {
+    try {
+      await accounts.create(Account.create({ name: 'probe', email }));
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  return { accounts, addAccount, save, stored, roleChanges, isEmailFree };
 }

@@ -1,30 +1,34 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { FakeAuthGateway } from '@tests/fakes/FakeAuthGateway';
-import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
+import { accountWorld } from '@tests/support/accountWorld';
 
 import { Account } from '@application/entities/account/Account';
 import { InvalidSession } from '@application/errors/auth';
 import { RefreshTokensUseCase } from '@application/usecases/auth/RefreshTokensUseCase';
 import { SignInUseCase } from '@application/usecases/auth/SignInUseCase';
 
+let world: ReturnType<typeof accountWorld>;
 let auth: FakeAuthGateway;
-let accounts: InMemoryAccountRepository;
 let account: Account;
 let signIn: SignInUseCase;
 let refresh: RefreshTokensUseCase;
+let credentials: { email: string; password: string };
 
 beforeEach(async () => {
+  world = accountWorld();
   auth = new FakeAuthGateway();
-  accounts = new InMemoryAccountRepository();
-  account = Account.create({ name: 'Ana', email: 'ana@example.com' });
-  await accounts.create(account);
-  auth.accountIds.set('ana@example.com', account.id);
-  signIn = new SignInUseCase(auth, accounts);
-  refresh = new RefreshTokensUseCase(auth, accounts);
+  account = await world.addAccount();
+  auth.accountIds.set(account.email, account.id);
+  signIn = new SignInUseCase(auth, world.accounts);
+  refresh = new RefreshTokensUseCase(auth, world.accounts);
+  credentials = {
+    email: ` ${account.email.toUpperCase()} `,
+    password: 'secret123',
+  };
 });
 
-const credentials = { email: ' Ana@Example.com ', password: 'secret123' };
+const storedSession = async () => (await world.stored(account))?.session;
 
 describe('SignInUseCase', () => {
   it('should sign in with the normalized e-mail and keep the new session', async () => {
@@ -32,12 +36,12 @@ describe('SignInUseCase', () => {
 
     expect(tokens).toEqual({
       accessToken: 'access',
-      refreshToken: 'refresh-ana@example.com-0',
+      refreshToken: `refresh-${account.email}-0`,
       expiresIn: 3600,
     });
-    expect(account.session).toEqual({
+    await expect(storedSession()).resolves.toEqual({
       accessJti: 'jti-1',
-      refreshTokenHash: Account.hashRefreshToken('refresh-ana@example.com-0'),
+      refreshTokenHash: Account.hashRefreshToken(`refresh-${account.email}-0`),
     });
   });
 
@@ -45,7 +49,9 @@ describe('SignInUseCase', () => {
     const first = await signIn.execute(credentials);
     await signIn.execute(credentials);
 
-    expect(account.session?.accessJti).toBe('jti-2');
+    await expect(storedSession()).resolves.toMatchObject({
+      accessJti: 'jti-2',
+    });
     await expect(
       refresh.execute({ refreshToken: first.refreshToken }),
     ).rejects.toBeInstanceOf(InvalidSession);
@@ -58,7 +64,7 @@ describe('RefreshTokensUseCase', () => {
 
     const tokens = await refresh.execute({ refreshToken: first.refreshToken });
 
-    expect(account.session).toEqual({
+    await expect(storedSession()).resolves.toEqual({
       accessJti: 'jti-2',
       refreshTokenHash: Account.hashRefreshToken(tokens.refreshToken),
     });
