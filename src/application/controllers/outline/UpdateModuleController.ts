@@ -36,8 +36,8 @@ export class UpdateModuleController extends Controller<
     const result = await this.updateModule.execute({
       callerId: accountId,
       callerRole: role,
-      courseId: params.id,
-      moduleId: params.mid,
+      courseId: params.courseId,
+      moduleId: params.moduleId,
       title: body.title,
     });
 

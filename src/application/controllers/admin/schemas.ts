@@ -12,7 +12,7 @@ import {
 } from '@application/entities/account/Account';
 
 export const accountIdParamsSchema = z.object({
-  id: ksuidSchema.transform((value) => Account.toId(value)),
+  accountId: ksuidSchema.transform((value) => Account.toId(value)),
 });
 
 export const changeRoleSchema = z.object({ role: z.enum(accountRoles) });

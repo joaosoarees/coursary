@@ -11,7 +11,7 @@ updateCourse:
   events:
     - httpApi:
         method: PATCH
-        path: /courses/{id}
+        path: /courses/{courseId}
         authorizer: CognitoAuthorizer
 
 listMyCourses:
@@ -27,7 +27,7 @@ publishCourse:
   events:
     - httpApi:
         method: POST
-        path: /courses/{id}/publish
+        path: /courses/{courseId}/publish
         authorizer: CognitoAuthorizer
 
 archiveCourse:
@@ -35,5 +35,5 @@ archiveCourse:
   events:
     - httpApi:
         method: POST
-        path: /courses/{id}/archive
+        path: /courses/{courseId}/archive
         authorizer: CognitoAuthorizer

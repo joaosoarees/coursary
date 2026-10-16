@@ -22,7 +22,9 @@ export class GetCoursePageController extends Controller<
     Record<string, unknown>,
     GetCoursePageController.Params
   >): Promise<Controller.Response<CoursePageQuery.Page>> {
-    const page = await this.getCoursePage.execute({ courseId: params.id });
+    const page = await this.getCoursePage.execute({
+      courseId: params.courseId,
+    });
 
     return { statusCode: 200, body: page };
   }

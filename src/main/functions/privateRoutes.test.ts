@@ -112,7 +112,7 @@ const publicRoutes = [
   'POST /auth/forgot-password',
   'POST /auth/reset-password',
   'GET /courses',
-  'GET /courses/{id}',
+  'GET /courses/{courseId}',
 ];
 
 describe('public routes', () => {

@@ -56,6 +56,23 @@ export class DynamoLessonRepository implements LessonRepository {
       : null;
   }
 
+  async findContent(
+    courseId: Course.Id,
+    id: Lesson.Id,
+  ): Promise<LessonRepository.Content | null> {
+    const command = new GetCommand({
+      TableName: this.config.mainTableName,
+      Key: { PK: LessonContentItem.getPK(id), SK: LessonContentItem.getSK() },
+    });
+
+    const { Item } = await dynamoClient.send(command);
+    const item = Item as LessonContentItem.ItemType | undefined;
+
+    return item?.courseId === courseId
+      ? { lessonId: item.id, courseId: item.courseId, body: item.body }
+      : null;
+  }
+
   createOperations(lesson: Lesson): UnitOfWork.Operation[] {
     const TableName = this.config.mainTableName;
 

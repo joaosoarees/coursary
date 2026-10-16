@@ -31,7 +31,7 @@ export class ChangeRoleController extends Controller<
   >): Promise<Controller.Response<ChangeRoleUseCase.Output>> {
     const changed = await this.changeRole.execute({
       callerId: accountId,
-      accountId: params.id,
+      accountId: params.accountId,
       role: body.role,
     });
 

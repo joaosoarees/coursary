@@ -1,22 +1,28 @@
 import { Course } from '@application/entities/course/Course';
 import type { CourseOutlineQuery } from '@application/queries/outline/CourseOutlineQuery';
 import type { CourseRepository } from '@application/repositories/course/CourseRepository';
+import type { EnrollmentRepository } from '@application/repositories/enrollment/EnrollmentRepository';
 import type { CourseEditor } from '@application/usecases/course/CourseEditor';
 
 export class GetCourseOutlineUseCase {
   constructor(
     private readonly coursesRepository: CourseRepository,
+    private readonly enrollmentsRepository: EnrollmentRepository,
     private readonly courseOutline: CourseOutlineQuery,
   ) {}
 
+  // Whoever may open its lessons sees the outline, archived included (Q274).
   async execute({
     callerId,
     callerRole,
     courseId,
   }: GetCourseOutlineUseCase.Input): Promise<CourseOutlineQuery.Outline> {
-    const found = await this.coursesRepository.findById(courseId);
+    const [found, enrollment] = await Promise.all([
+      this.coursesRepository.findById(courseId),
+      this.enrollmentsRepository.find(callerId, courseId),
+    ]);
     const course = Course.requireFound(found);
-    course.requireEditableBy(callerId, callerRole);
+    course.requireReadableBy(callerId, callerRole, enrollment);
 
     return this.courseOutline.execute(courseId);
   }

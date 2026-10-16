@@ -10,4 +10,4 @@ getCoursePage:
   events:
     - httpApi:
         method: GET
-        path: /courses/{id}
+        path: /courses/{courseId}

@@ -776,6 +776,47 @@ try {
     'FORBIDDEN',
   );
 
+  console.log('\n# Open a lesson (2.3)');
+  const lessonPath = `/courses/${courseId}/lessons/${l1}`;
+  const opened = await call('GET', lessonPath, { token: learnerToken });
+  check(
+    'an enrolled student opens a lesson with its body',
+    {
+      status:
+        opened.status === 200 &&
+        opened.body?.lessonId === l1 &&
+        typeof opened.body?.body === 'string'
+          ? 200
+          : 500,
+      body: opened.body,
+    },
+    200,
+  );
+  check(
+    'an enrolled student sees the outline',
+    await call('GET', outlinePath, { token: learnerToken }),
+    200,
+  );
+  check(
+    'someone not enrolled cannot open it',
+    await call('GET', lessonPath, { token: otherToken }),
+    403,
+    'FORBIDDEN',
+  );
+  check(
+    'the owner opens it too',
+    await call('GET', lessonPath, { token: instructorToken }),
+    200,
+  );
+  check(
+    'a lesson id from nowhere is not found',
+    await call('GET', `/courses/${courseId}/lessons/${emptyCourse.id}`, {
+      token: instructorToken,
+    }),
+    404,
+    'LESSON_NOT_FOUND',
+  );
+
   console.log('\n# Archive (1.15, Q52)');
   check(
     'the instructor archives the course',
@@ -793,6 +834,16 @@ try {
   check(
     'the owner still lists the students of an archived course',
     await students(instructorToken),
+    200,
+  );
+  check(
+    'an enrolled student still opens a lesson of the archived course',
+    await call('GET', lessonPath, { token: learnerToken }),
+    200,
+  );
+  check(
+    'and still sees its outline',
+    await call('GET', outlinePath, { token: learnerToken }),
     200,
   );
   check(

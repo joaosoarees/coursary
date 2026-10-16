@@ -24,7 +24,7 @@ export class CancelEnrollmentController extends Controller<'private'> {
   >): Promise<Controller.Response<undefined>> {
     await this.cancelEnrollment.execute({
       callerId: accountId,
-      courseId: params.id,
+      courseId: params.courseId,
     });
 
     return { statusCode: 204 };

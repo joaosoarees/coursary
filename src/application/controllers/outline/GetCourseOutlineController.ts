@@ -10,7 +10,7 @@ export class GetCourseOutlineController extends Controller<
   'private',
   CourseOutlineQuery.Outline
 > {
-  protected override readonly permission = permissions.CoursesUpdate;
+  protected override readonly permission = permissions.CoursesLearn;
 
   protected override readonly paramsSchema = courseIdParamsSchema;
 
@@ -30,7 +30,7 @@ export class GetCourseOutlineController extends Controller<
     const result = await this.getCourseOutline.execute({
       callerId: accountId,
       callerRole: role,
-      courseId: params.id,
+      courseId: params.courseId,
     });
 
     return { statusCode: 200, body: result };

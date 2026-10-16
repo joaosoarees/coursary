@@ -32,7 +32,7 @@ changeRole:
   events:
     - httpApi:
         method: PUT
-        path: /admin/users/{id}/role
+        path: /admin/users/{accountId}/role
         authorizer: CognitoAuthorizer
 
 listRoleChanges:
@@ -40,7 +40,7 @@ listRoleChanges:
   events:
     - httpApi:
         method: GET
-        path: /admin/users/{id}/role-changes
+        path: /admin/users/{accountId}/role-changes
         authorizer: CognitoAuthorizer
 
 disableAccount:
@@ -48,7 +48,7 @@ disableAccount:
   events:
     - httpApi:
         method: POST
-        path: /admin/users/{id}/disable
+        path: /admin/users/{accountId}/disable
         authorizer: CognitoAuthorizer
 
 enableAccount:
@@ -56,5 +56,5 @@ enableAccount:
   events:
     - httpApi:
         method: POST
-        path: /admin/users/{id}/enable
+        path: /admin/users/{accountId}/enable
         authorizer: CognitoAuthorizer

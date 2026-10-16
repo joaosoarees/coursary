@@ -38,7 +38,7 @@ export class ListCourseStudentsController extends Controller<
     const page = await this.listCourseStudents.execute({
       callerId: accountId,
       callerRole: role,
-      courseId: params.id,
+      courseId: params.courseId,
       ...queryParams,
     });
 

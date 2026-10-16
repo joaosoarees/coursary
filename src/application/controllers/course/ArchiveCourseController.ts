@@ -30,7 +30,7 @@ export class ArchiveCourseController extends Controller<
     const course = await this.archiveCourse.execute({
       callerId: accountId,
       callerRole: role,
-      courseId: params.id,
+      courseId: params.courseId,
     });
 
     return { statusCode: 200, body: course };

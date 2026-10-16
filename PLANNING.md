@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-16. Estado: **fase 1, R.1 a R.3 e 2.1 na `develop` e em `dev`, `pnpm e2e:dev` 63 de 63; 2.2 (listas de matrículas e alunos, Q268 a Q271) na `feat/2.2-enrollment-lists`, em PR; o `e2e:dev` roda depois do merge**.
+Última atualização: 2026-10-16. Estado: **fase 1, R.1 a R.3, 2.1 e 2.2 na `develop` e em `dev`, `pnpm e2e:dev` 69 de 69; 2.3 (abrir aula, Q272 a Q276) na `feat/2.3-open-lesson`, em PR; o `e2e:dev` roda depois do merge**.
 
 ## Como retomar
 
@@ -11,7 +11,7 @@ Abra o Claude Code e diga:
 Ao retomar, o assistente deve:
 
 1. Ver no estado acima e na tabela "Fase 1: histórias" qual história é a próxima.
-2. A próxima história é a 2.3 (Q238): abrir aula (`GET /courses/{id}/lessons/{lid}`, leitura forte da matrícula; curso arquivado aberto para matriculados, Q240). Seguir as convenções da R.3 (Q260 a Q267) e passar o `/code-review` antes de abrir o PR.
+2. A próxima história é a 2.4 (Q238): progresso (concluir aula uma vez com `completedLessons` na transação, ler o progresso, posição no vídeo em item à parte). Seguir as convenções da R.3 (Q260 a Q267) e passar o `/code-review` antes de abrir o PR.
 3. Seguir o "Começar tarefa X.X" do `CLAUDE.md`: branch a partir da `develop`, sub-imp propostas e discutidas antes de codar.
 4. Não refazer perguntas já fechadas.
 
@@ -325,6 +325,11 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q269 | `GET /me/enrollments` | Paginado 20/100, cursor preso ao aluno; item `{ courseId, title, instructorName, lessonCount, completedLessons, enrolledAt, courseStatus }`, curso por `BatchGet` (Q80) numa chamada por página, `UnprocessedKeys` pedidas de novo; curso ausente fica fora com log. |
 | Q270 | `GET /courses/{id}/students` | Dono ou admin, permissão `courses:list-students` no instrutor; demais pela Q95; arquivado continua listável. `requireManagedBy` (dono ou admin) separado de `requireEditableBy`. Item `{ accountId, studentName, enrolledAt, completedLessons }`, mais recente primeiro, 20/100, cursor preso a `COURSE#c`. |
 | Q271 | Sub-imp da 2.2 | a. `GSI2` na matrícula e query de "minhas matrículas"; b. `findManyByIds` com `BatchGetItem` e IAM no mesmo commit (na execução, o `BatchGet` ficou dentro da query de leitura, que já é o modelo de leitura da lista, sem método novo no repositório); c. use case e rota `GET /me/enrollments`; d. `courses:list-students`, `requireManagedBy`, query e rota `GET /courses/{id}/students`; e. Postman, `e2e:dev`, documentação; `/code-review` antes do PR. |
+| Q272 | Nomes dos parâmetros de rota | Nome completo em todas as rotas: `{courseId}`, `{moduleId}`, `{lessonId}`, `{accountId}` (as URLs não mudam); refatoração no início da 2.3. |
+| Q273 | Resposta de abrir aula | `GET /courses/{courseId}/lessons/{lessonId}` → `{ lessonId, courseId, body }`, uma leitura de `LESSON#l`; título e módulo vêm do outline; `courseId` do conteúdo diferente do da rota → `404 LESSON_NOT_FOUND`. |
+| Q274 | Outline para quem estuda | `GET /courses/{courseId}/outline` com `courses:learn`: matrícula ativa em publicado ou arquivado, dono/admin em qualquer status (inclusive arquivado); edição segue em `requireEditableBy`. |
+| Q275 | Regra de leitura | `Course.requireReadableBy(callerId, callerRole, enrollment)`: dono/admin sempre; matrícula ativa em publicado ou arquivado; demais pela Q95 (rascunho 404, visível 403); cancelada conta como nenhuma. Matrícula com leitura forte (8b), em paralelo com o curso. |
+| Q276 | Sub-imp da 2.3 | a. `courses:learn` e `requireReadableBy`; b. leitura do conteúdo no repositório de aulas; c. use case e rota de abrir aula; d. outline para matriculados e dono/admin em qualquer status; e. Postman, `e2e:dev`, documentação, `/code-review`. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)

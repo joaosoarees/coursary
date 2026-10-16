@@ -1,6 +1,7 @@
 import KSUID from 'ksuid';
 
 import type { Account } from '@application/entities/account/Account';
+import type { Enrollment } from '@application/entities/enrollment/Enrollment';
 import { KSUID_PATTERN } from '@application/entities/shared/ksuid';
 import { Forbidden } from '@application/errors/common';
 import {
@@ -67,6 +68,20 @@ export class Course {
 
     if (this.status === courseStatuses.Archived) {
       throw new CourseArchived();
+    }
+  }
+
+  // Who studies a course: the owner or an admin in any status, or an active
+  // enrollment once it is visible; anyone else as in Q95 (Q240, Q275).
+  requireReadableBy(
+    callerId: Account.Id,
+    callerRole: Account.Role,
+    enrollment: Enrollment | null,
+  ): void {
+    const enrolled = enrollment?.isActive() && this.isVisibleToEveryone();
+
+    if (!enrolled) {
+      this.requireManagedBy(callerId, callerRole);
     }
   }
 
