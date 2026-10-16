@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-16. Estado: **fase 1 completa (1.0 a 1.15), refatorações R.1 e R.2 na `develop` e em `dev`; fase 2 quebrada em 2.1 a 2.5 (Q238); 2.1 (matrícula) na `feat/2.1-enrollment-v2`**.
+Última atualização: 2026-10-16. Estado: **fase 1 completa (1.0 a 1.15), refatorações R.1 e R.2 na `develop` e em `dev`; fase 2 quebrada em 2.1 a 2.5 (Q238); 2.1 (matrícula) na `feat/2.1-enrollment-v2`, em PR; o `e2e:dev` roda depois do merge**.
 
 ## Como retomar
 
