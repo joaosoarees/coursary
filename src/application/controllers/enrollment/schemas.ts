@@ -5,7 +5,7 @@ import {
   lessonIdSchema,
 } from '@application/controllers/shared/schemas';
 
-export const openLessonParamsSchema = z.object({
+export const lessonParamsSchema = z.object({
   courseId: courseIdSchema,
   lessonId: lessonIdSchema,
 });
