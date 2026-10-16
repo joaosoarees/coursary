@@ -1,7 +1,7 @@
 import type { Page } from '@application/contracts/Page';
-import type { Account } from '@application/entities/Account';
-import type { CourseSummary } from '@application/queries/CourseSummary';
-import type { ListCoursesByInstructorQuery } from '@application/queries/ListCoursesByInstructorQuery';
+import type { Account } from '@application/entities/account/Account';
+import type { CourseSummary } from '@application/queries/course/CourseSummary';
+import type { ListCoursesByInstructorQuery } from '@application/queries/course/ListCoursesByInstructorQuery';
 
 export class ListMyCoursesUseCase {
   constructor(

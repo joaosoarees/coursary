@@ -1,6 +1,6 @@
-import type { Course } from '@application/entities/Course';
-import { CourseNotFound } from '@application/errors/CourseNotFound';
-import type { CoursePageQuery } from '@application/queries/CoursePageQuery';
+import type { Course } from '@application/entities/course/Course';
+import { CourseNotFound } from '@application/errors/course';
+import type { CoursePageQuery } from '@application/queries/catalog/CoursePageQuery';
 
 export class GetCoursePageUseCase {
   constructor(private readonly coursePage: CoursePageQuery) {}

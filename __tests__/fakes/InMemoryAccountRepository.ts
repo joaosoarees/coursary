@@ -2,13 +2,12 @@ import {
   Account,
   accountRoles,
   accountStatuses,
-} from '@application/entities/Account';
-import type { RoleChange } from '@application/entities/RoleChange';
-import { AccountConflict } from '@application/errors/AccountConflict';
-import { EmailInUse } from '@application/errors/EmailInUse';
-import { Forbidden } from '@application/errors/Forbidden';
-import { InvalidSession } from '@application/errors/InvalidSession';
-import type { AccountRepository } from '@application/repositories/AccountRepository';
+} from '@application/entities/account/Account';
+import type { RoleChange } from '@application/entities/account/RoleChange';
+import { AccountConflict } from '@application/errors/account';
+import { EmailInUse, InvalidSession } from '@application/errors/auth';
+import { Forbidden } from '@application/errors/common';
+import type { AccountRepository } from '@application/repositories/account/AccountRepository';
 
 export class InMemoryAccountRepository implements AccountRepository {
   readonly accounts = new Map<string, Account>();

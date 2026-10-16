@@ -1,7 +1,7 @@
 import type { ZodType } from 'zod';
 
-import type { Account } from '@application/entities/Account';
-import { Forbidden } from '@application/errors/Forbidden';
+import type { Account } from '@application/entities/account/Account';
+import { Forbidden } from '@application/errors/common';
 import {
   type Permission,
   Permissions,
@@ -73,8 +73,8 @@ export namespace Controller {
     TQueryParams = Record<string, unknown>,
   > = BaseRequest<TBody, TParams, TQueryParams> &
     (TType extends 'private'
-      ? { accountId: Account.Id; role: Account.Role }
-      : { accountId: null; role: null });
+      ? { accountId: Account.Id; role: Account.Role; account: Account }
+      : { accountId: null; role: null; account: null });
 
   export interface Response<TBody> {
     statusCode: number;

@@ -7,13 +7,13 @@ export class GetMeController extends Controller<'private', AccountProfile> {
     super();
   }
 
-  protected async handle({
-    accountId,
+  protected handle({
+    account,
   }: Controller.Request<'private'>): Promise<
     Controller.Response<AccountProfile>
   > {
-    const profile = await this.getMe.execute({ accountId });
+    const profile = this.getMe.execute({ account });
 
-    return { statusCode: 200, body: profile };
+    return Promise.resolve({ statusCode: 200, body: profile });
   }
 }

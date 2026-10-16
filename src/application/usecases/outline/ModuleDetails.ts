@@ -1,4 +1,4 @@
-import type { Module } from '@application/entities/Module';
+import type { Module } from '@application/entities/outline/Module';
 
 export class ModuleDetails {
   readonly id: string;

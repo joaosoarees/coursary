@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
-import { accountIdParamsSchema } from '@application/controllers/admin/accountIdParamsSchema';
-import { accountRoles } from '@application/entities/Account';
+import { accountIdParamsSchema } from '@application/controllers/admin/schemas';
+import { accountRoles } from '@application/entities/account/Account';
 import { permissions } from '@application/security/permissions';
-import type { ChangeRoleUseCase } from '@application/usecases/account/ChangeRoleUseCase';
+import type { ChangeRoleUseCase } from '@application/usecases/admin/ChangeRoleUseCase';
 
 export const changeRoleSchema = z.object({ role: z.enum(accountRoles) });
 

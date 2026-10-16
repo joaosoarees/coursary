@@ -291,6 +291,19 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q235 | Página pública do curso | `GET /courses/{id}`, público: curso, módulos e sumários das aulas (sem corpo) numa `Query` da partição `COURSE#c` (padrão 6); só publicado (rascunho e arquivado → 404; arquivado para matriculados entra com as matrículas). |
 | Q236 | Ordem dos deploys | PR só com o `GSI2` (projeção `ALL`) e `Query` em `…/index/GSI2`, mergeado, deployado e conferido `ACTIVE` antes do PR do código (Q192). As contas já gravam `GSI2PK = EMAIL#…` e entram no índice, sem efeito. |
 | Q237 | Sub-imp da 1.15 | a. `GSI2` e `Query` no índice, PR próprio deployado e conferido `ACTIVE`; b. chaves do `GSI2` só em publicado, `publish`/`archive` condicionados no repositório; c. `PublishCourse` e `ArchiveCourse` com `courses:publish`/`courses:archive`; d. queries públicas do catálogo e da página do curso; e. quatro rotas, Yaak e `e2e:dev`. |
+| Q245 | Schemas por decorator | Não. O decorator padrão funcionaria sem `reflect-metadata`, mas não tira a duplicação de tipos; o controller fica como está (Q251). |
+| Q246 | Versões das Lambdas | `provider.versionFunctions: false` (nada usa versões); apagar as versões antigas de `dev` uma vez. |
+| Q247 | Uma Lambda por rota | Mantida (Q97); reavaliar se o template passar de 400 recursos (teto de 500 por stack). |
+| Q248 | Conta entregue ao controller (revê a Q201) | O adapter entrega a `Account` lida com leitura forte; os use cases deixam de reler a conta. |
+| Q249 | Erros e fábricas | Erros por `defineError`, um arquivo por domínio; as fábricas por controller saem e a montagem vai para o arquivo da função; ficam só as fábricas de infraestrutura. |
+| Q250 | Fakes de transação | Use cases que escrevem pela `UnitOfWork` testados contra o DynamoDB Local; fakes só para o que não roda local (Cognito). |
+| Q251 | Forma do controller | Fica como está; as alternativas (função `controller({...})`, classe com `Controller.Request<Classe>`) foram recusadas. |
+| Q252 | Organização das pastas | Por camada, com a mesma subpasta de domínio em todas as camadas e os arquivos fora do lugar realocados. |
+| Q253 | Convenção dos testes | Um arquivo por unidade ao lado dela (`.spec.ts` unitário, `.test.ts` integração); auxiliares em `__tests__/support/` e `__tests__/fakes/`. |
+| Q254 | Quando | História de refatoração R.1 a partir da `develop`, sem mudança de comportamento, `e2e:dev` igual e verde no fim; depois, rebase da `feat/2.1-enrollment`. |
+| Q255 | Fonte da skill de projeto | `docs/process-log.md` atualizado com as etapas 12 a 15 e, daqui em diante, no fechamento de cada história. |
+| Q256 | Modelos de resposta | Ficam como hoje, cada um na subpasta de domínio da sua camada. |
+| Q257 | Mapa da reorganização | Entidades, erros, portas, use cases, schemas e itens/repositórios/queries Dynamo em subpastas de domínio (`account`, `admin`, `auth`, `catalog`, `course`, `outline`, `shared`); `usecases/admin` separado; `ResolveCaller` em `usecases/auth`; `CourseEditor` em `usecases/course`; schemas em `controllers/<domínio>/schemas.ts`. Ordem: versões, erros, fábricas, conta no controller, pastas, testes. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)

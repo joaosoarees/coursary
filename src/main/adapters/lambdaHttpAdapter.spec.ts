@@ -8,10 +8,10 @@ import { z } from 'zod';
 import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
 
 import { Controller } from '@application/contracts/Controller';
-import { Account, accountRoles } from '@application/entities/Account';
-import { EmailInUse } from '@application/errors/EmailInUse';
+import { Account, accountRoles } from '@application/entities/account/Account';
+import { EmailInUse } from '@application/errors/auth';
 import { permissions } from '@application/security/permissions';
-import { ResolveCallerUseCase } from '@application/usecases/account/ResolveCallerUseCase';
+import { ResolveCallerUseCase } from '@application/usecases/auth/ResolveCallerUseCase';
 import { lambdaHttpAdapter } from '@main/adapters/lambdaHttpAdapter';
 
 const makeEvent = (body?: string, isBase64Encoded = false) =>

@@ -4,8 +4,8 @@ import { Controller } from '@application/contracts/Controller';
 import {
   outlineBodySchema,
   outlineParamsSchema,
-} from '@application/controllers/outline/outlineSchemas';
-import type { CourseOutlineQuery } from '@application/queries/CourseOutlineQuery';
+} from '@application/controllers/outline/schemas';
+import type { CourseOutlineQuery } from '@application/queries/outline/CourseOutlineQuery';
 import { permissions } from '@application/security/permissions';
 import type { ReorderOutlineUseCase } from '@application/usecases/outline/ReorderOutlineUseCase';
 

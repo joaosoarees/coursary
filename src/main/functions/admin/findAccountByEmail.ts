@@ -1,8 +1,14 @@
+import { FindAccountByEmailController } from '@application/controllers/admin/FindAccountByEmailController';
+import { FindAccountByEmailUseCase } from '@application/usecases/admin/FindAccountByEmailUseCase';
 import { lambdaHttpAdapter } from '@main/adapters/lambdaHttpAdapter';
-import { makeResolveCallerUseCase } from '@main/factories/account/makeResolveCallerUseCase';
-import { makeFindAccountByEmailController } from '@main/factories/admin/makeFindAccountByEmailController';
+import { makeAccountRepository } from '@main/factories/makeAccountRepository';
+import { makeResolveCallerUseCase } from '@main/factories/makeResolveCallerUseCase';
 
-const controller = makeFindAccountByEmailController();
+const accountsRepository = makeAccountRepository();
+const findAccountByEmailUseCase = new FindAccountByEmailUseCase(
+  accountsRepository,
+);
+const controller = new FindAccountByEmailController(findAccountByEmailUseCase);
 
 const resolveCaller = makeResolveCallerUseCase();
 

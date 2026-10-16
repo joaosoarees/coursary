@@ -1,14 +1,8 @@
-import { Account } from '@application/entities/Account';
-import type { AccountRepository } from '@application/repositories/AccountRepository';
+import { Account } from '@application/entities/account/Account';
 import { AccountProfile } from '@application/usecases/account/AccountProfile';
 
 export class GetMeUseCase {
-  constructor(private readonly accountsRepository: AccountRepository) {}
-
-  async execute({ accountId }: GetMeUseCase.Input): Promise<AccountProfile> {
-    const account = await this.accountsRepository.findById(accountId, {
-      consistent: false,
-    });
+  execute({ account }: GetMeUseCase.Input): AccountProfile {
     const activeAccount = Account.requireActive(account);
 
     return AccountProfile.fromAccount(activeAccount);
@@ -17,6 +11,6 @@ export class GetMeUseCase {
 
 export namespace GetMeUseCase {
   export interface Input {
-    accountId: Account.Id;
+    account: Account;
   }
 }

@@ -1,8 +1,12 @@
+import { ListAccountsController } from '@application/controllers/admin/ListAccountsController';
+import { ListAccountsUseCase } from '@application/usecases/admin/ListAccountsUseCase';
 import { lambdaHttpAdapter } from '@main/adapters/lambdaHttpAdapter';
-import { makeResolveCallerUseCase } from '@main/factories/account/makeResolveCallerUseCase';
-import { makeListAccountsController } from '@main/factories/admin/makeListAccountsController';
+import { makeListAccountsByRoleQuery } from '@main/factories/makeListAccountsByRoleQuery';
+import { makeResolveCallerUseCase } from '@main/factories/makeResolveCallerUseCase';
 
-const controller = makeListAccountsController();
+const listAccountsByRoleQuery = makeListAccountsByRoleQuery();
+const listAccountsUseCase = new ListAccountsUseCase(listAccountsByRoleQuery);
+const controller = new ListAccountsController(listAccountsUseCase);
 
 const resolveCaller = makeResolveCallerUseCase();
 

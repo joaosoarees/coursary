@@ -1,10 +1,12 @@
 import { z } from 'zod';
 
-import { emailSchema } from '@application/controllers/auth/emailSchema';
+import { emailSchema } from '@application/controllers/auth/schemas';
+import { PromoteFirstAdminUseCase } from '@application/usecases/admin/PromoteFirstAdminUseCase';
 import { lambdaInvokeAdapter } from '@main/adapters/lambdaInvokeAdapter';
-import { makePromoteFirstAdminUseCase } from '@main/factories/admin/makePromoteFirstAdminUseCase';
+import { makeAccountRepository } from '@main/factories/makeAccountRepository';
 
 const schema = z.object({ email: emailSchema });
-const useCase = makePromoteFirstAdminUseCase();
+const accountsRepository = makeAccountRepository();
+const useCase = new PromoteFirstAdminUseCase(accountsRepository);
 
 export const handler = lambdaInvokeAdapter(schema, useCase);

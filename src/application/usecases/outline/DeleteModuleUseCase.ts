@@ -1,12 +1,11 @@
 import type { UnitOfWork } from '@application/contracts/UnitOfWork';
-import { Course } from '@application/entities/Course';
-import type { Module } from '@application/entities/Module';
-import { ModuleNotEmpty } from '@application/errors/ModuleNotEmpty';
-import { ModuleNotFound } from '@application/errors/ModuleNotFound';
-import type { CourseOutlineQuery } from '@application/queries/CourseOutlineQuery';
-import type { CourseRepository } from '@application/repositories/CourseRepository';
-import type { ModuleRepository } from '@application/repositories/ModuleRepository';
-import type { CourseEditor } from '@application/usecases/outline/CourseEditor';
+import { Course } from '@application/entities/course/Course';
+import type { Module } from '@application/entities/outline/Module';
+import { ModuleNotEmpty, ModuleNotFound } from '@application/errors/outline';
+import type { CourseOutlineQuery } from '@application/queries/outline/CourseOutlineQuery';
+import type { CourseRepository } from '@application/repositories/course/CourseRepository';
+import type { ModuleRepository } from '@application/repositories/outline/ModuleRepository';
+import type { CourseEditor } from '@application/usecases/course/CourseEditor';
 
 export class DeleteModuleUseCase {
   constructor(

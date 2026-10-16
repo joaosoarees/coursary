@@ -6,11 +6,11 @@ import type {
 import { ZodError } from 'zod';
 
 import type { Controller } from '@application/contracts/Controller';
-import type { Account } from '@application/entities/Account';
-import { ApplicationError } from '@application/errors/ApplicationError';
-import { ErrorCode } from '@application/errors/ErrorCode';
-import { InvalidSession } from '@application/errors/InvalidSession';
-import type { ResolveCallerUseCase } from '@application/usecases/account/ResolveCallerUseCase';
+import type { Account } from '@application/entities/account/Account';
+import { InvalidSession } from '@application/errors/auth';
+import { ApplicationError } from '@application/errors/shared/ApplicationError';
+import { ErrorCode } from '@application/errors/shared/ErrorCode';
+import type { ResolveCallerUseCase } from '@application/usecases/auth/ResolveCallerUseCase';
 import { lambdaBodyParser } from '@main/utils/lambdaBodyParser';
 import { lambdaErrorResponse } from '@main/utils/lambdaErrorResponse';
 
@@ -88,15 +88,15 @@ export function lambdaHttpAdapter(
 }
 
 type Caller =
-  | { accountId: Account.Id; role: Account.Role }
-  | { accountId: null; role: null };
+  | { accountId: Account.Id; role: Account.Role; account: Account }
+  | { accountId: null; role: null; account: null };
 
 async function lambdaCaller(
   event: Event,
   resolveCaller: ResolveCallerUseCase | undefined,
 ): Promise<Caller> {
   if (!('authorizer' in event.requestContext)) {
-    return { accountId: null, role: null };
+    return { accountId: null, role: null, account: null };
   }
 
   if (!resolveCaller) {
@@ -113,5 +113,10 @@ async function lambdaCaller(
     throw new InvalidSession();
   }
 
-  return resolveCaller.execute({ accountId: internalId, accessJti: jti });
+  const account = await resolveCaller.execute({
+    accountId: internalId,
+    accessJti: jti,
+  });
+
+  return { accountId: account.id, role: account.role, account };
 }

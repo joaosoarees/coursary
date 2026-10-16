@@ -9,9 +9,9 @@ import type {
 import { beforeAll, describe, expect, it } from 'vitest';
 import { parse } from 'yaml';
 
-import { Account, accountRoles } from '@application/entities/Account';
+import { Account, accountRoles } from '@application/entities/account/Account';
 import { dynamoClient } from '@infra/clients/dynamoClient';
-import { AccountItem } from '@infra/database/dynamo/items/AccountItem';
+import { AccountItem } from '@infra/database/dynamo/items/account/AccountItem';
 import { AppConfig } from '@shared/config/AppConfig';
 
 interface FunctionDefinition {

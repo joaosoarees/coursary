@@ -1,7 +1,7 @@
-import { Course } from '@application/entities/Course';
-import type { CourseOutlineQuery } from '@application/queries/CourseOutlineQuery';
-import type { CourseRepository } from '@application/repositories/CourseRepository';
-import type { CourseEditor } from '@application/usecases/outline/CourseEditor';
+import { Course } from '@application/entities/course/Course';
+import type { CourseOutlineQuery } from '@application/queries/outline/CourseOutlineQuery';
+import type { CourseRepository } from '@application/repositories/course/CourseRepository';
+import type { CourseEditor } from '@application/usecases/course/CourseEditor';
 
 export class GetCourseOutlineUseCase {
   constructor(

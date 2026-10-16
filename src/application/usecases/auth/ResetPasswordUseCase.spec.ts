@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FakeAuthGateway } from '@tests/fakes/FakeAuthGateway';
 import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
 
-import { Account } from '@application/entities/Account';
-import { InvalidCode } from '@application/errors/InvalidCode';
+import { Account } from '@application/entities/account/Account';
+import { InvalidCode } from '@application/errors/auth';
 import { ResetPasswordUseCase } from '@application/usecases/auth/ResetPasswordUseCase';
 
 const params = {

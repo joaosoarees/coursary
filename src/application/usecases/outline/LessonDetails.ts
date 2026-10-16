@@ -1,4 +1,4 @@
-import type { Lesson } from '@application/entities/Lesson';
+import type { Lesson } from '@application/entities/outline/Lesson';
 
 export class LessonDetails {
   readonly id: string;

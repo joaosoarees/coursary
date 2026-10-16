@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 
-import { InvalidCursor } from '@application/errors/InvalidCursor';
+import { InvalidCursor } from '@application/errors/common';
 import { DynamoPagination } from '@infra/database/dynamo/DynamoPagination';
 
 const pagination = new DynamoPagination(

@@ -2,8 +2,11 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
 
-import { Account, accountStatuses } from '@application/entities/Account';
-import { AccountUnavailable } from '@application/errors/AccountUnavailable';
+import {
+  Account,
+  accountStatuses,
+} from '@application/entities/account/Account';
+import { AccountUnavailable } from '@application/errors/auth';
 import { IssueTokenClaimsUseCase } from '@application/usecases/auth/IssueTokenClaimsUseCase';
 
 let accounts: InMemoryAccountRepository;

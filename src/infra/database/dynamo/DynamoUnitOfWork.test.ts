@@ -2,8 +2,8 @@ import { TransactionCanceledException } from '@aws-sdk/client-dynamodb';
 import { GetCommand } from '@aws-sdk/lib-dynamodb';
 import { describe, expect, test, vi } from 'vitest';
 
-import { Conflict } from '@application/errors/Conflict';
-import { CourseArchived } from '@application/errors/CourseArchived';
+import { Conflict } from '@application/errors/common';
+import { CourseArchived } from '@application/errors/course';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { DynamoUnitOfWork } from '@infra/database/dynamo/DynamoUnitOfWork';
 import { AppConfig } from '@shared/config/AppConfig';

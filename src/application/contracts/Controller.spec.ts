@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { z, ZodError } from 'zod';
 
-import { anAccountId } from '@tests/ids';
+import { anAccountId } from '@tests/support/ids';
 
 import { Controller } from '@application/contracts/Controller';
-import { accountRoles } from '@application/entities/Account';
-import { Forbidden } from '@application/errors/Forbidden';
+import { Account, accountRoles } from '@application/entities/account/Account';
+import { Forbidden } from '@application/errors/common';
 import { permissions } from '@application/security/permissions';
 
 class ListUsersController extends Controller<'private', unknown> {
@@ -29,6 +29,7 @@ const makeRequest = (
 ): Controller.Request<'private'> => ({
   accountId: anAccountId(),
   role: accountRoles.Admin,
+  account: Account.create({ name: 'Ana', email: 'ana@example.com' }),
   params: { id: 'acc-2' },
   queryParams: { limit: '20' },
   body: { name: 'Ana' },

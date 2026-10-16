@@ -1,8 +1,10 @@
-import { Account } from '@application/entities/Account';
-import { AuthUserExists } from '@application/errors/AuthUserExists';
-import { AuthUserNotPending } from '@application/errors/AuthUserNotPending';
-import { InvalidCode } from '@application/errors/InvalidCode';
-import type { AuthGateway } from '@application/gateways/AuthGateway';
+import { Account } from '@application/entities/account/Account';
+import {
+  AuthUserExists,
+  AuthUserNotPending,
+  InvalidCode,
+} from '@application/errors/auth';
+import type { AuthGateway } from '@application/gateways/auth/AuthGateway';
 
 export class FakeAuthGateway implements AuthGateway {
   static readonly unknownAccount = Account.toId('0'.repeat(27));

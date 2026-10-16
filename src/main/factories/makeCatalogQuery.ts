@@ -1,5 +1,5 @@
-import type { CatalogQuery } from '@application/queries/CatalogQuery';
-import { DynamoCatalogQuery } from '@infra/database/dynamo/queries/DynamoCatalogQuery';
+import type { CatalogQuery } from '@application/queries/catalog/CatalogQuery';
+import { DynamoCatalogQuery } from '@infra/database/dynamo/queries/catalog/DynamoCatalogQuery';
 import { makeAppConfig } from '@main/factories/makeAppConfig';
 
 export function makeCatalogQuery(): CatalogQuery {

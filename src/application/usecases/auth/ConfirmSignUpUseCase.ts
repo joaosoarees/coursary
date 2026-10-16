@@ -1,8 +1,10 @@
-import { type Account, accountStatuses } from '@application/entities/Account';
-import { AuthUserNotPending } from '@application/errors/AuthUserNotPending';
-import { InvalidCode } from '@application/errors/InvalidCode';
-import type { AuthGateway } from '@application/gateways/AuthGateway';
-import type { AccountRepository } from '@application/repositories/AccountRepository';
+import {
+  type Account,
+  accountStatuses,
+} from '@application/entities/account/Account';
+import { AuthUserNotPending, InvalidCode } from '@application/errors/auth';
+import type { AuthGateway } from '@application/gateways/auth/AuthGateway';
+import type { AccountRepository } from '@application/repositories/account/AccountRepository';
 
 export class ConfirmSignUpUseCase {
   constructor(

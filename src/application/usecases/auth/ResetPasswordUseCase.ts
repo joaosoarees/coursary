@@ -1,6 +1,6 @@
-import { Account } from '@application/entities/Account';
-import type { AuthGateway } from '@application/gateways/AuthGateway';
-import type { AccountRepository } from '@application/repositories/AccountRepository';
+import { Account } from '@application/entities/account/Account';
+import type { AuthGateway } from '@application/gateways/auth/AuthGateway';
+import type { AccountRepository } from '@application/repositories/account/AccountRepository';
 
 export class ResetPasswordUseCase {
   constructor(

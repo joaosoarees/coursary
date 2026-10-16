@@ -1,6 +1,6 @@
-import { Account } from '@application/entities/Account';
-import type { AccountRepository } from '@application/repositories/AccountRepository';
-import type { CourseRepository } from '@application/repositories/CourseRepository';
+import { Account } from '@application/entities/account/Account';
+import type { AccountRepository } from '@application/repositories/account/AccountRepository';
+import type { CourseRepository } from '@application/repositories/course/CourseRepository';
 import { AccountProfile } from '@application/usecases/account/AccountProfile';
 
 export class UpdateMeUseCase {
@@ -10,16 +10,13 @@ export class UpdateMeUseCase {
   ) {}
 
   async execute({
-    accountId,
+    account,
     name,
   }: UpdateMeUseCase.Input): Promise<AccountProfile> {
-    const account = await this.accountsRepository.findById(accountId, {
-      consistent: false,
-    });
-    Account.requireActive(account);
+    const { id } = Account.requireActive(account);
 
-    const updated = await this.accountsRepository.updateName(accountId, name);
-    await this.coursesRepository.updateInstructorName(accountId, updated.name);
+    const updated = await this.accountsRepository.updateName(id, name);
+    await this.coursesRepository.updateInstructorName(id, updated.name);
 
     return AccountProfile.fromAccount(updated);
   }
@@ -27,7 +24,7 @@ export class UpdateMeUseCase {
 
 export namespace UpdateMeUseCase {
   export interface Input {
-    accountId: Account.Id;
+    account: Account;
     name: string;
   }
 }

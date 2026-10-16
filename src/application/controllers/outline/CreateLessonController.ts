@@ -4,7 +4,7 @@ import { Controller } from '@application/contracts/Controller';
 import {
   createLessonSchema,
   moduleParamsSchema,
-} from '@application/controllers/outline/outlineSchemas';
+} from '@application/controllers/outline/schemas';
 import { permissions } from '@application/security/permissions';
 import type { CreateLessonUseCase } from '@application/usecases/outline/CreateLessonUseCase';
 import type { LessonDetails } from '@application/usecases/outline/LessonDetails';

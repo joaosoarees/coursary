@@ -1,7 +1,7 @@
-import { Course } from '@application/entities/Course';
-import type { CourseRepository } from '@application/repositories/CourseRepository';
+import { Course } from '@application/entities/course/Course';
+import type { CourseRepository } from '@application/repositories/course/CourseRepository';
 import { CourseDetails } from '@application/usecases/course/CourseDetails';
-import type { CourseEditor } from '@application/usecases/outline/CourseEditor';
+import type { CourseEditor } from '@application/usecases/course/CourseEditor';
 
 export class ArchiveCourseUseCase {
   constructor(private readonly coursesRepository: CourseRepository) {}

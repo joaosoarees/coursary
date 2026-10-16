@@ -1,6 +1,6 @@
 import type { APIGatewayProxyStructuredResultV2 } from 'aws-lambda';
 
-import type { ErrorCode } from '@application/errors/ErrorCode';
+import type { ErrorCode } from '@application/errors/shared/ErrorCode';
 
 export function lambdaErrorResponse(
   statusCode: number,

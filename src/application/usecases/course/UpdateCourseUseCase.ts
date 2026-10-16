@@ -1,6 +1,6 @@
-import type { Account } from '@application/entities/Account';
-import { Course } from '@application/entities/Course';
-import type { CourseRepository } from '@application/repositories/CourseRepository';
+import type { Account } from '@application/entities/account/Account';
+import { Course } from '@application/entities/course/Course';
+import type { CourseRepository } from '@application/repositories/course/CourseRepository';
 import { CourseDetails } from '@application/usecases/course/CourseDetails';
 
 export class UpdateCourseUseCase {

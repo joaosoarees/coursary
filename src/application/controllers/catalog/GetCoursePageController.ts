@@ -1,8 +1,8 @@
 import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
-import { courseIdParamsSchema } from '@application/controllers/course/courseSchemas';
-import type { CoursePageQuery } from '@application/queries/CoursePageQuery';
+import { courseIdParamsSchema } from '@application/controllers/course/schemas';
+import type { CoursePageQuery } from '@application/queries/catalog/CoursePageQuery';
 import type { GetCoursePageUseCase } from '@application/usecases/catalog/GetCoursePageUseCase';
 
 export class GetCoursePageController extends Controller<

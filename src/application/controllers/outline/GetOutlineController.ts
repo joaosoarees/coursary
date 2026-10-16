@@ -1,8 +1,8 @@
 import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
-import { outlineParamsSchema } from '@application/controllers/outline/outlineSchemas';
-import type { CourseOutlineQuery } from '@application/queries/CourseOutlineQuery';
+import { outlineParamsSchema } from '@application/controllers/outline/schemas';
+import type { CourseOutlineQuery } from '@application/queries/outline/CourseOutlineQuery';
 import { permissions } from '@application/security/permissions';
 import type { GetCourseOutlineUseCase } from '@application/usecases/outline/GetCourseOutlineUseCase';
 

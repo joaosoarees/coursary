@@ -1,5 +1,5 @@
-import type { ListAccountsByRoleQuery } from '@application/queries/ListAccountsByRoleQuery';
-import { DynamoListAccountsByRoleQuery } from '@infra/database/dynamo/queries/DynamoListAccountsByRoleQuery';
+import type { ListAccountsByRoleQuery } from '@application/queries/admin/ListAccountsByRoleQuery';
+import { DynamoListAccountsByRoleQuery } from '@infra/database/dynamo/queries/admin/DynamoListAccountsByRoleQuery';
 import { makeAppConfig } from '@main/factories/makeAppConfig';
 
 export function makeListAccountsByRoleQuery(): ListAccountsByRoleQuery {

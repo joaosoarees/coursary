@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
-import type { AuthGateway } from '@application/gateways/AuthGateway';
+import type { AuthGateway } from '@application/gateways/auth/AuthGateway';
 import { RefreshTokensUseCase } from '@application/usecases/auth/RefreshTokensUseCase';
 
 export const refreshTokensSchema = z.object({
