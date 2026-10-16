@@ -6,7 +6,6 @@ import { Lesson } from '@application/entities/outline/Lesson';
 import { Module } from '@application/entities/outline/Module';
 import { DynamoUnitOfWork } from '@infra/database/dynamo/DynamoUnitOfWork';
 import { DynamoCatalogQuery } from '@infra/database/dynamo/queries/catalog/DynamoCatalogQuery';
-import { DynamoCoursePageQuery } from '@infra/database/dynamo/queries/catalog/DynamoCoursePageQuery';
 import { DynamoCourseRepository } from '@infra/database/dynamo/repositories/course/DynamoCourseRepository';
 import { DynamoLessonRepository } from '@infra/database/dynamo/repositories/outline/DynamoLessonRepository';
 import { DynamoModuleRepository } from '@infra/database/dynamo/repositories/outline/DynamoModuleRepository';
@@ -17,7 +16,6 @@ const courses = new DynamoCourseRepository(config);
 const modules = new DynamoModuleRepository(config);
 const lessons = new DynamoLessonRepository(config);
 const catalog = new DynamoCatalogQuery(config);
-const coursePage = new DynamoCoursePageQuery(config);
 const instructor = Account.create({ name: 'Ana', email: 'ana@example.com' });
 
 const courseWithLesson = async (title: string) => {
@@ -60,7 +58,7 @@ const readCatalog = async () => {
   return ids;
 };
 
-describe('public queries', () => {
+describe('DynamoCatalogQuery', () => {
   test('the catalog lists published courses, newest first, and nothing else', async () => {
     const draft = await courseWithLesson('Draft');
     const older = await courseWithLesson('Older');
@@ -78,26 +76,5 @@ describe('public queries', () => {
     expect(ids.indexOf(newer.course.id)).toBeLessThan(
       ids.indexOf(older.course.id),
     );
-  });
-
-  test('the course page shows a published course and its outline, without bodies', async () => {
-    const { course, module, lesson } = await courseWithLesson('Public');
-    expect(await coursePage.execute(course.id)).toBeNull();
-
-    await courses.publish(course.id, new Date());
-    const page = await coursePage.execute(course.id);
-
-    expect(page).toMatchObject({
-      id: course.id,
-      title: 'Public',
-      lessonCount: 1,
-      modules: [
-        {
-          id: module.id,
-          lessons: [{ id: lesson.id, title: 'L1', durationMinutes: 5 }],
-        },
-      ],
-    });
-    expect(JSON.stringify(page)).not.toContain('Secret body');
   });
 });
