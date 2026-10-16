@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-16. Estado: **fase 1 completa (1.0 a 1.15), R.1, R.2 e 2.1 (matrícula) na `develop` e em `dev`, `pnpm e2e:dev` 63 de 63; em andamento: R.3 (padrões entre arquivos irmãos, Q260 a Q267) na `refactor/r3-patterns`; depois, a 2.2**.
+Última atualização: 2026-10-16. Estado: **fase 1 completa (1.0 a 1.15), R.1, R.2 e 2.1 (matrícula) na `develop` e em `dev`, `pnpm e2e:dev` 63 de 63; R.3 (padrões entre arquivos irmãos, Q260 a Q267) na `refactor/r3-patterns`, em PR; próxima: 2.2 (listas de matrículas e alunos)**.
 
 ## Como retomar
 
@@ -11,7 +11,7 @@ Abra o Claude Code e diga:
 Ao retomar, o assistente deve:
 
 1. Ver no estado acima e na tabela "Fase 1: histórias" qual história é a próxima.
-2. A 2.1 (matrícula) está na `feat/2.1-enrollment-v2`, criada da `develop` depois da R.2, com a quebra da fase 2 e as decisões Q238 a Q244 trazidas por cherry-pick. A 2.1.a é reescrita no domínio `enrollment` (Q259), com erros por `defineError` e testes contra o DynamoDB Local (Q250); o commit `6cf5dfd` da antiga `feat/2.1-enrollment` (local) serve só de referência. Depois, seguir a Q244 (2.1.b a 2.1.d) e estender o `pnpm e2e:dev`.
+2. A próxima história é a 2.2 (Q238): `GET /me/enrollments` com `BatchGet` dos cursos (Q80) e `GET /courses/{id}/students` pelo índice esparso. Seguir as convenções da R.3 (Q260 a Q267) e passar o `/code-review` antes de abrir o PR.
 3. Seguir o "Começar tarefa X.X" do `CLAUDE.md`: branch a partir da `develop`, sub-imp propostas e discutidas antes de codar.
 4. Não refazer perguntas já fechadas.
 
