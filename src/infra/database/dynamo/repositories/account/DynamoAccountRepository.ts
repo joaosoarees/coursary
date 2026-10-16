@@ -23,7 +23,7 @@ import { AccountItem } from '@infra/database/dynamo/items/account/AccountItem';
 import { EmailClaimItem } from '@infra/database/dynamo/items/account/EmailClaimItem';
 import { RoleChangeItem } from '@infra/database/dynamo/items/account/RoleChangeItem';
 import { nowInSeconds } from '@infra/database/dynamo/ttl';
-import { AppConfig } from '@shared/config/AppConfig';
+import type { AppConfig } from '@shared/config/AppConfig';
 
 export class DynamoAccountRepository implements AccountRepository {
   constructor(private readonly config: AppConfig) {}
@@ -79,10 +79,7 @@ export class DynamoAccountRepository implements AccountRepository {
         {
           Delete: {
             TableName,
-            Key: {
-              PK: AccountItem.getPK(account.id),
-              SK: AccountItem.getSK(account.id),
-            },
+            Key: this.keyOf(account.id),
           },
         },
         {
@@ -105,10 +102,7 @@ export class DynamoAccountRepository implements AccountRepository {
   async saveExternalId(account: Account): Promise<void> {
     const command = new UpdateCommand({
       TableName: this.config.mainTableName,
-      Key: {
-        PK: AccountItem.getPK(account.id),
-        SK: AccountItem.getSK(account.id),
-      },
+      Key: this.keyOf(account.id),
       UpdateExpression: 'SET externalId = :externalId',
       ConditionExpression: 'attribute_exists(PK)',
       ExpressionAttributeValues: { ':externalId': account.externalId },
@@ -122,7 +116,7 @@ export class DynamoAccountRepository implements AccountRepository {
     { consistent = true }: AccountRepository.ReadOptions = {},
   ): Promise<Account | null> {
     const item = await this.getLive<AccountItem.ItemType>(
-      { PK: AccountItem.getPK(id), SK: AccountItem.getSK(id) },
+      this.keyOf(id),
       consistent,
     );
 
@@ -147,10 +141,7 @@ export class DynamoAccountRepository implements AccountRepository {
         {
           Update: {
             TableName,
-            Key: {
-              PK: AccountItem.getPK(account.id),
-              SK: AccountItem.getSK(account.id),
-            },
+            Key: this.keyOf(account.id),
             UpdateExpression: 'SET #status = :status REMOVE expiresAt',
             ConditionExpression: '#status = :pending',
             ExpressionAttributeNames: { '#status': 'status' },
@@ -181,7 +172,7 @@ export class DynamoAccountRepository implements AccountRepository {
   async updateName(id: Account.Id, name: string): Promise<Account> {
     const command = new UpdateCommand({
       TableName: this.config.mainTableName,
-      Key: { PK: AccountItem.getPK(id), SK: AccountItem.getSK(id) },
+      Key: this.keyOf(id),
       UpdateExpression: 'SET #name = :name',
       ConditionExpression: 'attribute_exists(PK)',
       ExpressionAttributeNames: { '#name': 'name' },
@@ -209,10 +200,7 @@ export class DynamoAccountRepository implements AccountRepository {
         {
           Update: {
             TableName,
-            Key: {
-              PK: AccountItem.getPK(roleChange.accountId),
-              SK: AccountItem.getSK(roleChange.accountId),
-            },
+            Key: this.keyOf(roleChange.accountId),
             UpdateExpression: 'SET #role = :toRole, GSI1PK = :gsi1pk',
             ConditionExpression: '#status = :active AND #role = :fromRole',
             ExpressionAttributeNames: {
@@ -247,10 +235,7 @@ export class DynamoAccountRepository implements AccountRepository {
   ): Promise<void> {
     const command = new UpdateCommand({
       TableName: this.config.mainTableName,
-      Key: {
-        PK: AccountItem.getPK(accountId),
-        SK: AccountItem.getSK(accountId),
-      },
+      Key: this.keyOf(accountId),
       UpdateExpression: 'SET #session = :session',
       ConditionExpression: 'attribute_exists(PK)',
       ExpressionAttributeNames: { '#session': 'session' },
@@ -267,10 +252,7 @@ export class DynamoAccountRepository implements AccountRepository {
   ): Promise<void> {
     const command = new UpdateCommand({
       TableName: this.config.mainTableName,
-      Key: {
-        PK: AccountItem.getPK(accountId),
-        SK: AccountItem.getSK(accountId),
-      },
+      Key: this.keyOf(accountId),
       UpdateExpression: 'SET #session = :session',
       ConditionExpression: '#session.refreshTokenHash = :previous',
       ExpressionAttributeNames: { '#session': 'session' },
@@ -294,10 +276,7 @@ export class DynamoAccountRepository implements AccountRepository {
   async clearSession(accountId: Account.Id): Promise<void> {
     const command = new UpdateCommand({
       TableName: this.config.mainTableName,
-      Key: {
-        PK: AccountItem.getPK(accountId),
-        SK: AccountItem.getSK(accountId),
-      },
+      Key: this.keyOf(accountId),
       UpdateExpression: 'REMOVE #session',
       ConditionExpression: 'attribute_exists(PK)',
       ExpressionAttributeNames: { '#session': 'session' },
@@ -315,10 +294,7 @@ export class DynamoAccountRepository implements AccountRepository {
         {
           Update: {
             TableName: this.config.mainTableName,
-            Key: {
-              PK: AccountItem.getPK(accountId),
-              SK: AccountItem.getSK(accountId),
-            },
+            Key: this.keyOf(accountId),
             UpdateExpression:
               toStatus === accountStatuses.Disabled
                 ? 'SET #status = :toStatus REMOVE #session'
@@ -345,10 +321,7 @@ export class DynamoAccountRepository implements AccountRepository {
     return {
       ConditionCheck: {
         TableName: this.config.mainTableName,
-        Key: {
-          PK: AccountItem.getPK(adminCallerId),
-          SK: AccountItem.getSK(adminCallerId),
-        },
+        Key: this.keyOf(adminCallerId),
         ConditionExpression: '#role = :admin AND #status = :active',
         ExpressionAttributeNames: { '#role': 'role', '#status': 'status' },
         ExpressionAttributeValues: {
@@ -376,6 +349,10 @@ export class DynamoAccountRepository implements AccountRepository {
 
       throw callerFailed ? new Forbidden() : new AccountConflict();
     }
+  }
+
+  private keyOf(id: Account.Id) {
+    return { PK: AccountItem.getPK(id), SK: AccountItem.getSK(id) };
   }
 
   private async getLive<TItem extends { expiresAt?: number }>(

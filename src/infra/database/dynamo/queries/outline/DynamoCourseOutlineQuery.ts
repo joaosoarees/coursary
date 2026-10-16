@@ -4,8 +4,8 @@ import type { Course } from '@application/entities/course/Course';
 import type { CourseOutlineQuery } from '@application/queries/outline/CourseOutlineQuery';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { CourseItem } from '@infra/database/dynamo/items/course/CourseItem';
-import type { LessonItem } from '@infra/database/dynamo/items/outline/LessonItem';
-import type { ModuleItem } from '@infra/database/dynamo/items/outline/ModuleItem';
+import { LessonItem } from '@infra/database/dynamo/items/outline/LessonItem';
+import { ModuleItem } from '@infra/database/dynamo/items/outline/ModuleItem';
 import type { AppConfig } from '@shared/config/AppConfig';
 
 type OutlineItem = ModuleItem.ItemType | LessonItem.ItemType;
@@ -23,12 +23,12 @@ export class DynamoCourseOutlineQuery implements CourseOutlineQuery {
   static toOutline(items: { type: string }[]): CourseOutlineQuery.Outline {
     const outlineItems = items.filter(
       (item): item is OutlineItem =>
-        item.type === 'Module' || item.type === 'Lesson',
+        item.type === ModuleItem.type || item.type === LessonItem.type,
     );
     const modules = new Map<string, CourseOutlineQuery.Module>();
 
     for (const item of outlineItems) {
-      if (item.type === 'Module') {
+      if (item.type === ModuleItem.type) {
         modules.set(item.id, {
           id: item.id,
           title: item.title,
@@ -39,7 +39,7 @@ export class DynamoCourseOutlineQuery implements CourseOutlineQuery {
     }
 
     for (const item of outlineItems) {
-      if (item.type === 'Lesson') {
+      if (item.type === LessonItem.type) {
         modules.get(item.moduleId)?.lessons.push({
           id: item.id,
           title: item.title,

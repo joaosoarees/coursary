@@ -20,7 +20,6 @@ export class CancelEnrollmentUseCase {
     const enrollment = await this.enrollmentsRepository.find(
       studentId,
       courseId,
-      { consistent: true },
     );
 
     if (!enrollment) {
