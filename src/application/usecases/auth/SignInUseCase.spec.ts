@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { FakeAuthGateway } from '@tests/fakes/FakeAuthGateway';
 import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
 
-import { Account } from '@application/entities/Account';
+import { Account } from '@application/entities/account/Account';
 import { InvalidSession } from '@application/errors/auth';
 import { RefreshTokensUseCase } from '@application/usecases/auth/RefreshTokensUseCase';
 import { SignInUseCase } from '@application/usecases/auth/SignInUseCase';

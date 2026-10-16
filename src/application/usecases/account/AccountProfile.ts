@@ -1,4 +1,4 @@
-import type { Account } from '@application/entities/Account';
+import type { Account } from '@application/entities/account/Account';
 
 export class AccountProfile {
   readonly id: string;

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
 
-import { Account } from '@application/entities/Account';
+import { Account } from '@application/entities/account/Account';
 import { IssueTokenClaimsUseCase } from '@application/usecases/auth/IssueTokenClaimsUseCase';
 import { cognitoPreTokenAdapter } from '@main/adapters/cognitoPreTokenAdapter';
 

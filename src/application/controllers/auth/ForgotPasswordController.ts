@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
-import { emailSchema } from '@application/controllers/auth/emailSchema';
+import { emailSchema } from '@application/controllers/auth/schemas';
 import type { ForgotPasswordUseCase } from '@application/usecases/auth/ForgotPasswordUseCase';
 
 export const forgotPasswordSchema = z.object({ email: emailSchema });

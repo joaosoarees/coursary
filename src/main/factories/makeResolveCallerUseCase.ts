@@ -1,4 +1,4 @@
-import { ResolveCallerUseCase } from '@application/usecases/account/ResolveCallerUseCase';
+import { ResolveCallerUseCase } from '@application/usecases/auth/ResolveCallerUseCase';
 import { makeAccountRepository } from '@main/factories/makeAccountRepository';
 
 export function makeResolveCallerUseCase(): ResolveCallerUseCase {

@@ -1,14 +1,14 @@
 import { InMemoryUnitOfWork } from '@tests/fakes/InMemoryUnitOfWork';
 
 import type { UnitOfWork } from '@application/contracts/UnitOfWork';
-import type { Course } from '@application/entities/Course';
-import { Lesson } from '@application/entities/Lesson';
-import { Module } from '@application/entities/Module';
+import type { Course } from '@application/entities/course/Course';
+import { Lesson } from '@application/entities/outline/Lesson';
+import { Module } from '@application/entities/outline/Module';
 import { Conflict } from '@application/errors/common';
 import { LessonNotFound, ModuleNotFound } from '@application/errors/outline';
-import type { CourseOutlineQuery } from '@application/queries/CourseOutlineQuery';
-import type { LessonRepository } from '@application/repositories/LessonRepository';
-import type { ModuleRepository } from '@application/repositories/ModuleRepository';
+import type { CourseOutlineQuery } from '@application/queries/outline/CourseOutlineQuery';
+import type { LessonRepository } from '@application/repositories/outline/LessonRepository';
+import type { ModuleRepository } from '@application/repositories/outline/ModuleRepository';
 
 const copyModule = (module: Module): Module =>
   new Module({

@@ -1,6 +1,6 @@
 import { ChangeStatusController } from '@application/controllers/admin/ChangeStatusController';
-import { accountStatuses } from '@application/entities/Account';
-import { ChangeStatusUseCase } from '@application/usecases/account/ChangeStatusUseCase';
+import { accountStatuses } from '@application/entities/account/Account';
+import { ChangeStatusUseCase } from '@application/usecases/admin/ChangeStatusUseCase';
 import { lambdaHttpAdapter } from '@main/adapters/lambdaHttpAdapter';
 import { makeAccountRepository } from '@main/factories/makeAccountRepository';
 import { makeResolveCallerUseCase } from '@main/factories/makeResolveCallerUseCase';

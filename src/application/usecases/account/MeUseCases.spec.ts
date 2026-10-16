@@ -3,7 +3,10 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
 import { InMemoryCourseRepository } from '@tests/fakes/InMemoryCourseRepository';
 
-import { Account, accountStatuses } from '@application/entities/Account';
+import {
+  Account,
+  accountStatuses,
+} from '@application/entities/account/Account';
 import { AccountUnavailable } from '@application/errors/auth';
 import { GetMeUseCase } from '@application/usecases/account/GetMeUseCase';
 import { UpdateMeUseCase } from '@application/usecases/account/UpdateMeUseCase';

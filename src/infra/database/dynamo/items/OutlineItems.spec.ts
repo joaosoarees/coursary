@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { Account } from '@application/entities/Account';
-import { Course } from '@application/entities/Course';
-import { Lesson } from '@application/entities/Lesson';
-import { Module } from '@application/entities/Module';
-import { LessonContentItem } from '@infra/database/dynamo/items/LessonContentItem';
-import { LessonItem } from '@infra/database/dynamo/items/LessonItem';
-import { ModuleItem } from '@infra/database/dynamo/items/ModuleItem';
+import { Account } from '@application/entities/account/Account';
+import { Course } from '@application/entities/course/Course';
+import { Lesson } from '@application/entities/outline/Lesson';
+import { Module } from '@application/entities/outline/Module';
+import { LessonContentItem } from '@infra/database/dynamo/items/outline/LessonContentItem';
+import { LessonItem } from '@infra/database/dynamo/items/outline/LessonItem';
+import { ModuleItem } from '@infra/database/dynamo/items/outline/ModuleItem';
 
 const instructor = Account.create({ name: 'Ana', email: 'ana@example.com' });
 const course = Course.create({ instructor, title: 'T', description: '' });

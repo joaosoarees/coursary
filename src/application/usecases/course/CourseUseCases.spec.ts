@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
 import { InMemoryCourseRepository } from '@tests/fakes/InMemoryCourseRepository';
 
-import { Account, accountRoles } from '@application/entities/Account';
-import { Course } from '@application/entities/Course';
+import { Account, accountRoles } from '@application/entities/account/Account';
+import { Course } from '@application/entities/course/Course';
 import { AccountUnavailable } from '@application/errors/auth';
 import { Forbidden } from '@application/errors/common';
 import { CourseArchived, CourseNotFound } from '@application/errors/course';

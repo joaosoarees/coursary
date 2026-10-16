@@ -1,7 +1,7 @@
 import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
-import { moduleParamsSchema } from '@application/controllers/outline/outlineSchemas';
+import { moduleParamsSchema } from '@application/controllers/outline/schemas';
 import { permissions } from '@application/security/permissions';
 import type { DeleteModuleUseCase } from '@application/usecases/outline/DeleteModuleUseCase';
 

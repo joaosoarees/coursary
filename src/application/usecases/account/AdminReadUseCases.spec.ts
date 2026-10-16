@@ -4,14 +4,14 @@ import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepositor
 import { anAccountId } from '@tests/ids';
 
 import type { Page } from '@application/contracts/Page';
-import { Account, accountRoles } from '@application/entities/Account';
+import { Account, accountRoles } from '@application/entities/account/Account';
 import { AccountNotFound } from '@application/errors/account';
-import type { ListAccountsByRoleQuery } from '@application/queries/ListAccountsByRoleQuery';
-import type { ListRoleChangesQuery } from '@application/queries/ListRoleChangesQuery';
-import type { RoleChangeSummary } from '@application/queries/RoleChangeSummary';
-import { FindAccountByEmailUseCase } from '@application/usecases/account/FindAccountByEmailUseCase';
-import { ListAccountsUseCase } from '@application/usecases/account/ListAccountsUseCase';
-import { ListRoleChangesUseCase } from '@application/usecases/account/ListRoleChangesUseCase';
+import type { ListAccountsByRoleQuery } from '@application/queries/admin/ListAccountsByRoleQuery';
+import type { ListRoleChangesQuery } from '@application/queries/admin/ListRoleChangesQuery';
+import type { RoleChangeSummary } from '@application/queries/admin/RoleChangeSummary';
+import { FindAccountByEmailUseCase } from '@application/usecases/admin/FindAccountByEmailUseCase';
+import { ListAccountsUseCase } from '@application/usecases/admin/ListAccountsUseCase';
+import { ListRoleChangesUseCase } from '@application/usecases/admin/ListRoleChangesUseCase';
 
 const emptyPage = { items: [], nextCursor: null };
 

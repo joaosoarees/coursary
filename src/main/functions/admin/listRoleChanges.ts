@@ -1,5 +1,5 @@
 import { ListRoleChangesController } from '@application/controllers/admin/ListRoleChangesController';
-import { ListRoleChangesUseCase } from '@application/usecases/account/ListRoleChangesUseCase';
+import { ListRoleChangesUseCase } from '@application/usecases/admin/ListRoleChangesUseCase';
 import { lambdaHttpAdapter } from '@main/adapters/lambdaHttpAdapter';
 import { makeAccountRepository } from '@main/factories/makeAccountRepository';
 import { makeListRoleChangesQuery } from '@main/factories/makeListRoleChangesQuery';

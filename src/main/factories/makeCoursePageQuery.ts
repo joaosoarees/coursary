@@ -1,5 +1,5 @@
-import type { CoursePageQuery } from '@application/queries/CoursePageQuery';
-import { DynamoCoursePageQuery } from '@infra/database/dynamo/queries/DynamoCoursePageQuery';
+import type { CoursePageQuery } from '@application/queries/catalog/CoursePageQuery';
+import { DynamoCoursePageQuery } from '@infra/database/dynamo/queries/catalog/DynamoCoursePageQuery';
 import { makeAppConfig } from '@main/factories/makeAppConfig';
 
 export function makeCoursePageQuery(): CoursePageQuery {

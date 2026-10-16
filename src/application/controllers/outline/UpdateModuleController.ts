@@ -4,7 +4,7 @@ import { Controller } from '@application/contracts/Controller';
 import {
   moduleBodySchema,
   moduleParamsSchema,
-} from '@application/controllers/outline/outlineSchemas';
+} from '@application/controllers/outline/schemas';
 import { permissions } from '@application/security/permissions';
 import type { ModuleDetails } from '@application/usecases/outline/ModuleDetails';
 import type { UpdateModuleUseCase } from '@application/usecases/outline/UpdateModuleUseCase';

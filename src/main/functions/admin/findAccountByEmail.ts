@@ -1,5 +1,5 @@
 import { FindAccountByEmailController } from '@application/controllers/admin/FindAccountByEmailController';
-import { FindAccountByEmailUseCase } from '@application/usecases/account/FindAccountByEmailUseCase';
+import { FindAccountByEmailUseCase } from '@application/usecases/admin/FindAccountByEmailUseCase';
 import { lambdaHttpAdapter } from '@main/adapters/lambdaHttpAdapter';
 import { makeAccountRepository } from '@main/factories/makeAccountRepository';
 import { makeResolveCallerUseCase } from '@main/factories/makeResolveCallerUseCase';

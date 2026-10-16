@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { accountRoles } from '@application/entities/Account';
+import { accountRoles } from '@application/entities/account/Account';
 import {
   Permissions,
   permissions,

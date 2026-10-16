@@ -4,7 +4,7 @@ import { z, ZodError } from 'zod';
 import { anAccountId } from '@tests/ids';
 
 import { Controller } from '@application/contracts/Controller';
-import { Account, accountRoles } from '@application/entities/Account';
+import { Account, accountRoles } from '@application/entities/account/Account';
 import { Forbidden } from '@application/errors/common';
 import { permissions } from '@application/security/permissions';
 

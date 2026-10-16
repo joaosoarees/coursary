@@ -1,7 +1,7 @@
 import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
-import { lessonParamsSchema } from '@application/controllers/outline/outlineSchemas';
+import { lessonParamsSchema } from '@application/controllers/outline/schemas';
 import { permissions } from '@application/security/permissions';
 import type { DeleteLessonUseCase } from '@application/usecases/outline/DeleteLessonUseCase';
 

@@ -3,7 +3,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FakeAuthGateway } from '@tests/fakes/FakeAuthGateway';
 import { InMemoryAccountRepository } from '@tests/fakes/InMemoryAccountRepository';
 
-import { Account, accountStatuses } from '@application/entities/Account';
+import {
+  Account,
+  accountStatuses,
+} from '@application/entities/account/Account';
 import { ForgotPasswordUseCase } from '@application/usecases/auth/ForgotPasswordUseCase';
 
 let accounts: InMemoryAccountRepository;

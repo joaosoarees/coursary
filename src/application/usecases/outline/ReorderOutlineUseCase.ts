@@ -1,13 +1,13 @@
 import type { UnitOfWork } from '@application/contracts/UnitOfWork';
-import { Course } from '@application/entities/Course';
-import { Lesson } from '@application/entities/Lesson';
-import { Module } from '@application/entities/Module';
+import { Course } from '@application/entities/course/Course';
+import { Lesson } from '@application/entities/outline/Lesson';
+import { Module } from '@application/entities/outline/Module';
 import { OutlineMismatch, OutlineTooLarge } from '@application/errors/outline';
-import type { CourseOutlineQuery } from '@application/queries/CourseOutlineQuery';
-import type { CourseRepository } from '@application/repositories/CourseRepository';
-import type { LessonRepository } from '@application/repositories/LessonRepository';
-import type { ModuleRepository } from '@application/repositories/ModuleRepository';
-import type { CourseEditor } from '@application/usecases/outline/CourseEditor';
+import type { CourseOutlineQuery } from '@application/queries/outline/CourseOutlineQuery';
+import type { CourseRepository } from '@application/repositories/course/CourseRepository';
+import type { LessonRepository } from '@application/repositories/outline/LessonRepository';
+import type { ModuleRepository } from '@application/repositories/outline/ModuleRepository';
+import type { CourseEditor } from '@application/usecases/course/CourseEditor';
 
 export class ReorderOutlineUseCase {
   static readonly maxOperations = 100;

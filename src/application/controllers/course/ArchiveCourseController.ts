@@ -1,7 +1,7 @@
 import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
-import { courseIdParamsSchema } from '@application/controllers/course/courseSchemas';
+import { courseIdParamsSchema } from '@application/controllers/course/schemas';
 import { permissions } from '@application/security/permissions';
 import type { ArchiveCourseUseCase } from '@application/usecases/course/ArchiveCourseUseCase';
 import type { CourseDetails } from '@application/usecases/course/CourseDetails';

@@ -1,5 +1,5 @@
 import type { Page } from '@application/contracts/Page';
-import type { CatalogQuery } from '@application/queries/CatalogQuery';
+import type { CatalogQuery } from '@application/queries/catalog/CatalogQuery';
 
 export class ListCatalogUseCase {
   constructor(private readonly catalog: CatalogQuery) {}

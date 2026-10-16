@@ -2,8 +2,8 @@ import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
 import type { Page } from '@application/contracts/Page';
-import { paginationSchema } from '@application/controllers/paginationSchema';
-import type { CatalogQuery } from '@application/queries/CatalogQuery';
+import { paginationSchema } from '@application/controllers/shared/schemas';
+import type { CatalogQuery } from '@application/queries/catalog/CatalogQuery';
 import type { ListCatalogUseCase } from '@application/usecases/catalog/ListCatalogUseCase';
 
 export class ListCatalogController extends Controller<

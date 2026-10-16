@@ -1,4 +1,7 @@
-import { type Account, accountRoles } from '@application/entities/Account';
+import {
+  type Account,
+  accountRoles,
+} from '@application/entities/account/Account';
 
 export const permissions = {
   UsersList: 'users:list',

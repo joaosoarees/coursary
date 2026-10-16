@@ -4,14 +4,17 @@ import { describe, expect, test } from 'vitest';
 import { anAccountId } from '@tests/ids';
 
 import type { Page } from '@application/contracts/Page';
-import { Account, accountRoles } from '@application/entities/Account';
-import { BOOTSTRAP_ACTOR, RoleChange } from '@application/entities/RoleChange';
+import { Account, accountRoles } from '@application/entities/account/Account';
+import {
+  BOOTSTRAP_ACTOR,
+  RoleChange,
+} from '@application/entities/account/RoleChange';
 import { InvalidCursor } from '@application/errors/common';
 import { dynamoClient } from '@infra/clients/dynamoClient';
-import { AccountItem } from '@infra/database/dynamo/items/AccountItem';
-import { RoleChangeItem } from '@infra/database/dynamo/items/RoleChangeItem';
-import { DynamoListAccountsByRoleQuery } from '@infra/database/dynamo/queries/DynamoListAccountsByRoleQuery';
-import { DynamoListRoleChangesQuery } from '@infra/database/dynamo/queries/DynamoListRoleChangesQuery';
+import { AccountItem } from '@infra/database/dynamo/items/account/AccountItem';
+import { RoleChangeItem } from '@infra/database/dynamo/items/account/RoleChangeItem';
+import { DynamoListAccountsByRoleQuery } from '@infra/database/dynamo/queries/admin/DynamoListAccountsByRoleQuery';
+import { DynamoListRoleChangesQuery } from '@infra/database/dynamo/queries/admin/DynamoListRoleChangesQuery';
 import { AppConfig } from '@shared/config/AppConfig';
 
 const config = new AppConfig();

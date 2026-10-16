@@ -1,17 +1,17 @@
 import { describe, expect, test } from 'vitest';
 
-import { Account } from '@application/entities/Account';
-import { Course } from '@application/entities/Course';
-import { Lesson } from '@application/entities/Lesson';
-import { Module } from '@application/entities/Module';
+import { Account } from '@application/entities/account/Account';
+import { Course } from '@application/entities/course/Course';
+import { Lesson } from '@application/entities/outline/Lesson';
+import { Module } from '@application/entities/outline/Module';
 import { Conflict } from '@application/errors/common';
 import { LessonNotFound } from '@application/errors/outline';
 import { DynamoUnitOfWork } from '@infra/database/dynamo/DynamoUnitOfWork';
-import { CourseItem } from '@infra/database/dynamo/items/CourseItem';
-import { DynamoCourseOutlineQuery } from '@infra/database/dynamo/queries/DynamoCourseOutlineQuery';
-import { DynamoCourseRepository } from '@infra/database/dynamo/repositories/DynamoCourseRepository';
-import { DynamoLessonRepository } from '@infra/database/dynamo/repositories/DynamoLessonRepository';
-import { DynamoModuleRepository } from '@infra/database/dynamo/repositories/DynamoModuleRepository';
+import { CourseItem } from '@infra/database/dynamo/items/course/CourseItem';
+import { DynamoCourseOutlineQuery } from '@infra/database/dynamo/queries/outline/DynamoCourseOutlineQuery';
+import { DynamoCourseRepository } from '@infra/database/dynamo/repositories/course/DynamoCourseRepository';
+import { DynamoLessonRepository } from '@infra/database/dynamo/repositories/outline/DynamoLessonRepository';
+import { DynamoModuleRepository } from '@infra/database/dynamo/repositories/outline/DynamoModuleRepository';
 import { AppConfig } from '@shared/config/AppConfig';
 
 const config = new AppConfig();

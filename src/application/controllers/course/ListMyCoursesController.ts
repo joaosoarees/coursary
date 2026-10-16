@@ -2,8 +2,8 @@ import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
 import type { Page } from '@application/contracts/Page';
-import { paginationSchema } from '@application/controllers/paginationSchema';
-import type { CourseSummary } from '@application/queries/CourseSummary';
+import { paginationSchema } from '@application/controllers/shared/schemas';
+import type { CourseSummary } from '@application/queries/course/CourseSummary';
 import { permissions } from '@application/security/permissions';
 import type { ListMyCoursesUseCase } from '@application/usecases/course/ListMyCoursesUseCase';
 

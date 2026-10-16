@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { outlineWorld } from '@tests/outlineWorld';
 
-import { Lesson } from '@application/entities/Lesson';
-import { Module } from '@application/entities/Module';
+import { Lesson } from '@application/entities/outline/Lesson';
+import { Module } from '@application/entities/outline/Module';
 import { CourseNotFound } from '@application/errors/course';
 import { OutlineMismatch, OutlineTooLarge } from '@application/errors/outline';
 import { GetCourseOutlineUseCase } from '@application/usecases/outline/GetCourseOutlineUseCase';

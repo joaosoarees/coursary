@@ -2,11 +2,14 @@ import { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
 import type { Page } from '@application/contracts/Page';
-import { paginationSchema } from '@application/controllers/paginationSchema';
-import { accountRoles, accountStatuses } from '@application/entities/Account';
-import type { AccountSummary } from '@application/queries/AccountSummary';
+import { paginationSchema } from '@application/controllers/shared/schemas';
+import {
+  accountRoles,
+  accountStatuses,
+} from '@application/entities/account/Account';
+import type { AccountSummary } from '@application/queries/admin/AccountSummary';
 import { permissions } from '@application/security/permissions';
-import type { ListAccountsUseCase } from '@application/usecases/account/ListAccountsUseCase';
+import type { ListAccountsUseCase } from '@application/usecases/admin/ListAccountsUseCase';
 
 export const listAccountsSchema = paginationSchema.extend({
   role: z.enum(accountRoles),

@@ -1,5 +1,5 @@
 import { ListAccountsController } from '@application/controllers/admin/ListAccountsController';
-import { ListAccountsUseCase } from '@application/usecases/account/ListAccountsUseCase';
+import { ListAccountsUseCase } from '@application/usecases/admin/ListAccountsUseCase';
 import { lambdaHttpAdapter } from '@main/adapters/lambdaHttpAdapter';
 import { makeListAccountsByRoleQuery } from '@main/factories/makeListAccountsByRoleQuery';
 import { makeResolveCallerUseCase } from '@main/factories/makeResolveCallerUseCase';

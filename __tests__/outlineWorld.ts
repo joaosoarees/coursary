@@ -7,8 +7,8 @@ import {
 } from '@tests/fakes/InMemoryOutline';
 import { InMemoryUnitOfWork } from '@tests/fakes/InMemoryUnitOfWork';
 
-import { Account, accountRoles } from '@application/entities/Account';
-import { Course } from '@application/entities/Course';
+import { Account, accountRoles } from '@application/entities/account/Account';
+import { Course } from '@application/entities/course/Course';
 
 // A course with its owner, another instructor and an admin, all in memory.
 export async function outlineWorld() {

@@ -1,4 +1,4 @@
-import { Account } from '@application/entities/Account';
+import { Account } from '@application/entities/account/Account';
 import { AccountProfile } from '@application/usecases/account/AccountProfile';
 
 export class GetMeUseCase {

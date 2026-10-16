@@ -2,11 +2,11 @@ import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
 import type { Page } from '@application/contracts/Page';
-import { accountIdParamsSchema } from '@application/controllers/admin/accountIdParamsSchema';
-import { paginationSchema } from '@application/controllers/paginationSchema';
-import type { RoleChangeSummary } from '@application/queries/RoleChangeSummary';
+import { accountIdParamsSchema } from '@application/controllers/admin/schemas';
+import { paginationSchema } from '@application/controllers/shared/schemas';
+import type { RoleChangeSummary } from '@application/queries/admin/RoleChangeSummary';
 import { permissions } from '@application/security/permissions';
-import type { ListRoleChangesUseCase } from '@application/usecases/account/ListRoleChangesUseCase';
+import type { ListRoleChangesUseCase } from '@application/usecases/admin/ListRoleChangesUseCase';
 
 export class ListRoleChangesController extends Controller<
   'private',

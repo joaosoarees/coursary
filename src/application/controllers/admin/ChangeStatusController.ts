@@ -1,9 +1,9 @@
 import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
-import { accountIdParamsSchema } from '@application/controllers/admin/accountIdParamsSchema';
+import { accountIdParamsSchema } from '@application/controllers/admin/schemas';
 import { permissions } from '@application/security/permissions';
-import type { ChangeStatusUseCase } from '@application/usecases/account/ChangeStatusUseCase';
+import type { ChangeStatusUseCase } from '@application/usecases/admin/ChangeStatusUseCase';
 
 export class ChangeStatusController extends Controller<
   'private',

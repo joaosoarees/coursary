@@ -1,8 +1,11 @@
 import { InMemoryUnitOfWork } from '@tests/fakes/InMemoryUnitOfWork';
 
 import type { UnitOfWork } from '@application/contracts/UnitOfWork';
-import type { Account } from '@application/entities/Account';
-import { type Course, courseStatuses } from '@application/entities/Course';
+import type { Account } from '@application/entities/account/Account';
+import {
+  type Course,
+  courseStatuses,
+} from '@application/entities/course/Course';
 import { Conflict } from '@application/errors/common';
 import {
   CourseArchived,
@@ -10,7 +13,7 @@ import {
   CourseNotFound,
   CourseNotPublished,
 } from '@application/errors/course';
-import type { CourseRepository } from '@application/repositories/CourseRepository';
+import type { CourseRepository } from '@application/repositories/course/CourseRepository';
 
 export class InMemoryCourseRepository implements CourseRepository {
   readonly courses = new Map<Course.Id, Course>();

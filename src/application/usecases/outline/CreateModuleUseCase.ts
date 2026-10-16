@@ -1,10 +1,10 @@
 import type { UnitOfWork } from '@application/contracts/UnitOfWork';
-import { Course } from '@application/entities/Course';
-import { Module } from '@application/entities/Module';
-import type { CourseOutlineQuery } from '@application/queries/CourseOutlineQuery';
-import type { CourseRepository } from '@application/repositories/CourseRepository';
-import type { ModuleRepository } from '@application/repositories/ModuleRepository';
-import type { CourseEditor } from '@application/usecases/outline/CourseEditor';
+import { Course } from '@application/entities/course/Course';
+import { Module } from '@application/entities/outline/Module';
+import type { CourseOutlineQuery } from '@application/queries/outline/CourseOutlineQuery';
+import type { CourseRepository } from '@application/repositories/course/CourseRepository';
+import type { ModuleRepository } from '@application/repositories/outline/ModuleRepository';
+import type { CourseEditor } from '@application/usecases/course/CourseEditor';
 import { ModuleDetails } from '@application/usecases/outline/ModuleDetails';
 
 export class CreateModuleUseCase {

@@ -1,4 +1,4 @@
-import type { Course } from '@application/entities/Course';
+import type { Course } from '@application/entities/course/Course';
 
 export class CourseDetails {
   readonly id: string;

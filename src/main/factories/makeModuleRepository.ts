@@ -1,5 +1,5 @@
-import type { ModuleRepository } from '@application/repositories/ModuleRepository';
-import { DynamoModuleRepository } from '@infra/database/dynamo/repositories/DynamoModuleRepository';
+import type { ModuleRepository } from '@application/repositories/outline/ModuleRepository';
+import { DynamoModuleRepository } from '@infra/database/dynamo/repositories/outline/DynamoModuleRepository';
 import { makeAppConfig } from '@main/factories/makeAppConfig';
 
 export function makeModuleRepository(): ModuleRepository {

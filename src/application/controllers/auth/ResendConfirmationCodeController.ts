@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
-import { emailSchema } from '@application/controllers/auth/emailSchema';
+import { emailSchema } from '@application/controllers/auth/schemas';
 import { ResendConfirmationCodeUseCase } from '@application/usecases/auth/ResendConfirmationCodeUseCase';
 
 export const resendConfirmationCodeSchema = z.object({ email: emailSchema });
