@@ -6,6 +6,7 @@ import { Lesson } from '@application/entities/outline/Lesson';
 import { Module } from '@application/entities/outline/Module';
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { DynamoUnitOfWork } from '@infra/database/dynamo/DynamoUnitOfWork';
+import { DynamoCourseProgressQuery } from '@infra/database/dynamo/queries/enrollment/DynamoCourseProgressQuery';
 import { DynamoListCourseStudentsQuery } from '@infra/database/dynamo/queries/enrollment/DynamoListCourseStudentsQuery';
 import { DynamoCourseOutlineQuery } from '@infra/database/dynamo/queries/outline/DynamoCourseOutlineQuery';
 import { DynamoAccountRepository } from '@infra/database/dynamo/repositories/account/DynamoAccountRepository';
@@ -62,6 +63,7 @@ export async function courseWorld() {
   const enrollments = new DynamoEnrollmentRepository(config);
   const students = new DynamoListCourseStudentsQuery(config);
   const progress = new DynamoProgressRepository(config);
+  const courseProgress = new DynamoCourseProgressQuery(config);
   const unitOfWork = () => new DynamoUnitOfWork();
   const owner = account('ana', accountRoles.Instructor);
   const other = account('bia', accountRoles.Instructor);
@@ -120,6 +122,7 @@ export async function courseWorld() {
     enrollments,
     students,
     progress,
+    courseProgress,
     unitOfWork,
     owner,
     other,

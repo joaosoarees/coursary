@@ -45,3 +45,11 @@ completeLesson:
         method: PUT
         path: /courses/{courseId}/lessons/{lessonId}/completion
         authorizer: CognitoAuthorizer
+
+getProgress:
+  handler: src/main/functions/enrollment/getProgress.handler
+  events:
+    - httpApi:
+        method: GET
+        path: /courses/{courseId}/progress
+        authorizer: CognitoAuthorizer
