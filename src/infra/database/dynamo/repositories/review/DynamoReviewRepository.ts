@@ -15,6 +15,8 @@ import type { AppConfig } from '@shared/config/AppConfig';
 export class DynamoReviewRepository implements ReviewRepository {
   constructor(private readonly config: AppConfig) {}
 
+  // Strong: the edit decides the counter difference on it, and the edit screen
+  // reads right after a write (Q282, Q284).
   async find(
     accountId: Account.Id,
     courseId: Course.Id,
@@ -64,7 +66,7 @@ export class DynamoReviewRepository implements ReviewRepository {
 
   // Copies the name into every review of the student (Q81, Q290).
   async updateStudentName(accountId: Account.Id, name: string): Promise<void> {
-    const keys = await queryAll<Record<string, unknown>>({
+    const keys = (await queryAll({
       TableName: this.config.mainTableName,
       KeyConditionExpression: 'PK = :pk AND begins_with(SK, :prefix)',
       ExpressionAttributeValues: {
@@ -73,7 +75,7 @@ export class DynamoReviewRepository implements ReviewRepository {
       },
       ProjectionExpression: 'PK, SK',
       ConsistentRead: true,
-    });
+    })) as Record<string, unknown>[];
 
     await copyName({
       tableName: this.config.mainTableName,

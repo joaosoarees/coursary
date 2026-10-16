@@ -213,8 +213,7 @@ export class DynamoCourseRepository implements CourseRepository {
 
   addRatingsOperation(
     course: Course,
-    sumDelta: number,
-    countDelta: number,
+    { sumDelta, countDelta }: CourseRepository.RatingDeltas,
   ): UnitOfWork.Operation {
     return DynamoUnitOfWork.operation({
       Update: {
@@ -234,7 +233,7 @@ export class DynamoCourseRepository implements CourseRepository {
   private async courseKeysOf(
     instructorId: Account.Id,
   ): Promise<Record<string, unknown>[]> {
-    const keys = await queryAll<Record<string, unknown>>({
+    const keys = (await queryAll({
       TableName: this.config.mainTableName,
       IndexName: 'GSI1',
       KeyConditionExpression: 'GSI1PK = :pk',
@@ -242,7 +241,7 @@ export class DynamoCourseRepository implements CourseRepository {
         ':pk': CourseItem.getGSI1PK(instructorId),
       },
       ProjectionExpression: 'PK, SK',
-    });
+    })) as Record<string, unknown>[];
 
     return keys;
   }

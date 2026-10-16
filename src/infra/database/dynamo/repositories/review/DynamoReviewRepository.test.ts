@@ -30,7 +30,10 @@ const create = (rating: number) => {
 
   return commit(
     world.reviews.createOperation(review),
-    world.courses.addRatingsOperation(world.course, rating, 1),
+    world.courses.addRatingsOperation(world.course, {
+      sumDelta: rating,
+      countDelta: 1,
+    }),
     world.enrollments.activeOperation(enrollment),
   );
 };
@@ -75,7 +78,10 @@ describe('DynamoReviewRepository', () => {
     review.rating = 2;
     await commit(
       world.reviews.updateOperation(review, 4),
-      world.courses.addRatingsOperation(world.course, -2, 0),
+      world.courses.addRatingsOperation(world.course, {
+        sumDelta: -2,
+        countDelta: 0,
+      }),
       world.enrollments.activeOperation(enrollment),
     );
     await expect(ratings()).resolves.toEqual([2, 1]);
@@ -83,7 +89,10 @@ describe('DynamoReviewRepository', () => {
     await expect(
       commit(
         world.reviews.updateOperation(review, 4),
-        world.courses.addRatingsOperation(world.course, 1, 0),
+        world.courses.addRatingsOperation(world.course, {
+          sumDelta: 1,
+          countDelta: 0,
+        }),
       ),
     ).rejects.toBeInstanceOf(Conflict);
     await expect(ratings()).resolves.toEqual([2, 1]);

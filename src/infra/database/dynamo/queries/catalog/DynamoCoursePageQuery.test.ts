@@ -76,7 +76,9 @@ describe('DynamoCoursePageQuery', () => {
     });
 
     const unit = new DynamoUnitOfWork();
-    unit.add(courses.addRatingsOperation(course, 9, 2));
+    unit.add(
+      courses.addRatingsOperation(course, { sumDelta: 9, countDelta: 2 }),
+    );
     await unit.commit();
 
     await expect(coursePage.execute(course.id)).resolves.toMatchObject({

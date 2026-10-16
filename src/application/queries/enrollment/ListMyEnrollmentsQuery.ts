@@ -3,9 +3,9 @@ import type { Account } from '@application/entities/account/Account';
 import type { EnrollmentSummary } from '@application/queries/enrollment/EnrollmentSummary';
 
 export interface ListMyEnrollmentsQuery {
-  execute(
+  execute: (
     input: ListMyEnrollmentsQuery.Input,
-  ): Promise<Page<EnrollmentSummary>>;
+  ) => Promise<Page<EnrollmentSummary>>;
 }
 
 export namespace ListMyEnrollmentsQuery {

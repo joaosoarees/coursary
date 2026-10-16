@@ -1,7 +1,7 @@
 import type { ZodType } from 'zod';
 
 interface UseCase<TInput, TOutput> {
-  execute(input: TInput): Promise<TOutput>;
+  execute: (input: TInput) => Promise<TOutput>;
 }
 
 export function lambdaInvokeAdapter<TInput, TOutput>(

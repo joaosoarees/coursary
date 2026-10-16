@@ -65,7 +65,7 @@ export class DynamoCourseOutlineQuery implements CourseOutlineQuery {
     courseId: Course.Id,
     consistent: boolean,
   ): Promise<OutlineItem[]> {
-    const items = await queryAll<OutlineItem>({
+    const items = (await queryAll({
       TableName: this.config.mainTableName,
       KeyConditionExpression: 'PK = :pk AND begins_with(SK, :prefix)',
       ExpressionAttributeValues: {
@@ -73,7 +73,7 @@ export class DynamoCourseOutlineQuery implements CourseOutlineQuery {
         ':prefix': 'MODULE#',
       },
       ConsistentRead: consistent,
-    });
+    })) as OutlineItem[];
 
     return items;
   }

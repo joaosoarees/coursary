@@ -23,6 +23,10 @@ export class Enrollment {
     this.completedLessons = attributes.completedLessons;
   }
 
+  activate(): void {
+    this.status = enrollmentStatuses.Active;
+  }
+
   isActive(): boolean {
     return this.status === enrollmentStatuses.Active;
   }

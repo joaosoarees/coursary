@@ -3,7 +3,9 @@ import type { Course } from '@application/entities/course/Course';
 import type { ReviewSummary } from '@application/queries/review/ReviewSummary';
 
 export interface ListCourseReviewsQuery {
-  execute(input: ListCourseReviewsQuery.Input): Promise<Page<ReviewSummary>>;
+  execute: (
+    input: ListCourseReviewsQuery.Input,
+  ) => Promise<Page<ReviewSummary>>;
 }
 
 export namespace ListCourseReviewsQuery {

@@ -21,7 +21,6 @@ export class DynamoEnrollmentRepository implements EnrollmentRepository {
   async find(
     accountId: Account.Id,
     courseId: Course.Id,
-    { consistent = true }: EnrollmentRepository.ReadOptions = {},
   ): Promise<Enrollment | null> {
     const command = new GetCommand({
       TableName: this.config.mainTableName,
@@ -29,7 +28,7 @@ export class DynamoEnrollmentRepository implements EnrollmentRepository {
         PK: EnrollmentItem.getPK(accountId),
         SK: EnrollmentItem.getSK(courseId),
       },
-      ConsistentRead: consistent,
+      ConsistentRead: true,
     });
 
     const { Item } = await dynamoClient.send(command);
@@ -144,7 +143,7 @@ export class DynamoEnrollmentRepository implements EnrollmentRepository {
   private async enrollmentKeysOf(
     accountId: Account.Id,
   ): Promise<Record<string, unknown>[]> {
-    const keys = await queryAll<Record<string, unknown>>({
+    const keys = (await queryAll({
       TableName: this.config.mainTableName,
       KeyConditionExpression: 'PK = :pk AND begins_with(SK, :prefix)',
       ExpressionAttributeValues: {
@@ -153,7 +152,7 @@ export class DynamoEnrollmentRepository implements EnrollmentRepository {
       },
       ProjectionExpression: 'PK, SK',
       ConsistentRead: true,
-    });
+    })) as Record<string, unknown>[];
 
     return keys;
   }

@@ -15,18 +15,17 @@ export class DynamoCourseProgressQuery implements CourseProgressQuery {
     accountId,
     courseId,
   }: CourseProgressQuery.Input): Promise<CourseProgressQuery.Result> {
-    const items = await queryAll<ProgressItem>({
+    const items = (await queryAll({
       TableName: this.config.mainTableName,
       KeyConditionExpression: 'PK = :pk AND begins_with(SK, :prefix)',
       ExpressionAttributeValues: {
         ':pk': CoursePositionItem.getPK(accountId),
         ':prefix': CoursePositionItem.getSK(courseId),
       },
-    });
+    })) as ProgressItem[];
 
     const position = items.find(
-      (item): item is CoursePositionItem.ItemType =>
-        item.type === CoursePositionItem.type,
+      (item) => item.type === CoursePositionItem.type,
     );
 
     return {

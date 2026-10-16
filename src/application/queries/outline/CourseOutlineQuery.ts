@@ -1,10 +1,10 @@
 import type { Course } from '@application/entities/course/Course';
 
 export interface CourseOutlineQuery {
-  execute(
+  execute: (
     courseId: Course.Id,
     options?: CourseOutlineQuery.ReadOptions,
-  ): Promise<CourseOutlineQuery.Outline>;
+  ) => Promise<CourseOutlineQuery.Outline>;
 }
 
 export namespace CourseOutlineQuery {

@@ -82,10 +82,9 @@ describe('DynamoEnrollmentRepository', () => {
       GSI1SK: listed.GSI1SK,
       GSI2SK: listed.GSI2SK,
     });
-    expect(
-      (await enrollments.find(student.id, course.id, { consistent: true }))
-        ?.status,
-    ).toBe('ACTIVE');
+    expect((await enrollments.find(student.id, course.id))?.status).toBe(
+      'ACTIVE',
+    );
   });
 
   it('should count two enrollments of the same student at once only once', async () => {

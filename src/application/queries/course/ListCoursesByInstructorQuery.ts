@@ -3,9 +3,9 @@ import type { Account } from '@application/entities/account/Account';
 import type { CourseSummary } from '@application/queries/course/CourseSummary';
 
 export interface ListCoursesByInstructorQuery {
-  execute(
+  execute: (
     input: ListCoursesByInstructorQuery.Input,
-  ): Promise<Page<CourseSummary>>;
+  ) => Promise<Page<CourseSummary>>;
 }
 
 export namespace ListCoursesByInstructorQuery {

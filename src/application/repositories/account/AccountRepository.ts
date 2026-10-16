@@ -2,42 +2,45 @@ import type { Account } from '@application/entities/account/Account';
 import type { RoleChange } from '@application/entities/account/RoleChange';
 
 export interface AccountRepository {
-  create(account: Account): Promise<void>;
+  create: (account: Account) => Promise<void>;
 
-  delete(account: Account): Promise<void>;
+  delete: (account: Account) => Promise<void>;
 
-  saveExternalId(account: Account): Promise<void>;
+  saveExternalId: (account: Account) => Promise<void>;
 
-  findById(
+  findById: (
     id: Account.Id,
     options?: AccountRepository.ReadOptions,
-  ): Promise<Account | null>;
+  ) => Promise<Account | null>;
 
-  findByEmail(email: string): Promise<Account | null>;
+  findByEmail: (email: string) => Promise<Account | null>;
 
-  activate(account: Account): Promise<void>;
+  activate: (account: Account) => Promise<void>;
 
-  updateName(id: Account.Id, name: string): Promise<Account>;
+  updateName: (id: Account.Id, name: string) => Promise<Account>;
 
-  changeRole(
+  changeRole: (
     roleChange: RoleChange,
     options?: AccountRepository.ChangeRoleOptions,
-  ): Promise<void>;
+  ) => Promise<void>;
 
-  saveSession(accountId: Account.Id, session: Account.Session): Promise<void>;
+  saveSession: (
+    accountId: Account.Id,
+    session: Account.Session,
+  ) => Promise<void>;
 
-  rotateSession(
+  rotateSession: (
     accountId: Account.Id,
     previousRefreshTokenHash: string,
     session: Account.Session,
-  ): Promise<void>;
+  ) => Promise<void>;
 
-  clearSession(accountId: Account.Id): Promise<void>;
+  clearSession: (accountId: Account.Id) => Promise<void>;
 
-  changeStatus(
+  changeStatus: (
     statusChange: AccountRepository.StatusChange,
     adminCallerId: Account.Id,
-  ): Promise<void>;
+  ) => Promise<void>;
 }
 
 export namespace AccountRepository {

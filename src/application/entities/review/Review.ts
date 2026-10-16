@@ -27,6 +27,16 @@ export class Review {
     return rating !== this.rating || comment !== this.comment;
   }
 
+  // Takes the new rating and comment; returns the rating it replaced (Q282).
+  edit({ rating, comment }: Review.Changes): number {
+    const previousRating = this.rating;
+    this.rating = rating;
+    this.comment = comment;
+    this.updatedAt = new Date();
+
+    return previousRating;
+  }
+
   static create({
     student,
     course,
