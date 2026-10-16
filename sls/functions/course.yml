@@ -6,14 +6,6 @@ createCourse:
         path: /courses
         authorizer: CognitoAuthorizer
 
-updateCourse:
-  handler: src/main/functions/course/updateCourse.handler
-  events:
-    - httpApi:
-        method: PATCH
-        path: /courses/{courseId}
-        authorizer: CognitoAuthorizer
-
 listMyCourses:
   handler: src/main/functions/course/listMyCourses.handler
   events:
@@ -22,18 +14,12 @@ listMyCourses:
         path: /instructor/courses
         authorizer: CognitoAuthorizer
 
+# Routes off for one deploy so they can come back with renamed parameters (Q277).
+updateCourse:
+  handler: src/main/functions/course/updateCourse.handler
+
 publishCourse:
   handler: src/main/functions/course/publishCourse.handler
-  events:
-    - httpApi:
-        method: POST
-        path: /courses/{courseId}/publish
-        authorizer: CognitoAuthorizer
 
 archiveCourse:
   handler: src/main/functions/course/archiveCourse.handler
-  events:
-    - httpApi:
-        method: POST
-        path: /courses/{courseId}/archive
-        authorizer: CognitoAuthorizer
