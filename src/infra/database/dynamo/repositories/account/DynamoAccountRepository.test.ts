@@ -122,13 +122,20 @@ describe('DynamoAccountRepository.delete', () => {
     ).resolves.toBeUndefined();
   });
 
-  it('should not release a claim that belongs to another account', async () => {
+  it('should remove the account but keep a claim that another account took', async () => {
     const email = uniqueEmail();
-    await repository.create(Account.create({ name: 'Ana', email }));
+    const owner = Account.create({ name: 'Ana', email });
+    await repository.create(owner);
     const stranger = Account.create({ name: 'Bia', email });
+    await repository.create(
+      Account.create({ name: 'Caio', email: uniqueEmail() }),
+    );
 
-    await expect(repository.delete(stranger)).rejects.toThrow();
-    expect(await getItem(`EMAIL_CLAIM#${email}`)).toBeDefined();
+    await expect(repository.delete(stranger)).resolves.toBeUndefined();
+    expect(await getItem(`EMAIL_CLAIM#${email}`)).toMatchObject({
+      accountId: owner.id,
+    });
+    expect(await getItem(`ACCOUNT#${owner.id}`)).toBeDefined();
   });
 });
 

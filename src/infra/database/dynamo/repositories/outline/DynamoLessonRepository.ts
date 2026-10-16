@@ -111,10 +111,12 @@ export class DynamoLessonRepository implements LessonRepository {
     ];
   }
 
-  updateOperations(lesson: Lesson): UnitOfWork.Operation[] {
+  updateOperations(
+    lesson: Lesson,
+    { bodyChanged }: { bodyChanged: boolean },
+  ): UnitOfWork.Operation[] {
     const TableName = this.config.mainTableName;
-
-    return [
+    const operations = [
       DynamoUnitOfWork.operation(
         {
           Update: {
@@ -131,15 +133,22 @@ export class DynamoLessonRepository implements LessonRepository {
         },
         () => new LessonNotFound(),
       ),
-      DynamoUnitOfWork.operation({
-        Update: {
-          TableName,
-          Key: this.contentKeyOf(lesson),
-          UpdateExpression: 'SET body = :body',
-          ExpressionAttributeValues: { ':body': lesson.body },
-        },
-      }),
     ];
+
+    if (bodyChanged) {
+      operations.push(
+        DynamoUnitOfWork.operation({
+          Update: {
+            TableName,
+            Key: this.contentKeyOf(lesson),
+            UpdateExpression: 'SET body = :body',
+            ExpressionAttributeValues: { ':body': lesson.body },
+          },
+        }),
+      );
+    }
+
+    return operations;
   }
 
   deleteOperations(lesson: Lesson): UnitOfWork.Operation[] {

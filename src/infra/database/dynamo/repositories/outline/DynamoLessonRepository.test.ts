@@ -95,10 +95,29 @@ describe('DynamoLessonRepository', () => {
       position: 0,
     });
     lesson.title = 'Renamed';
-    await commit(world.lessons.updateOperations(lesson));
+    await commit(
+      world.lessons.updateOperations(lesson, { bodyChanged: false }),
+    );
 
     await expect(
       commit(world.lessons.moveOperations(read, from.id)),
     ).rejects.toBeInstanceOf(Conflict);
+  });
+
+  it('should leave the body alone when only the summary changes', async () => {
+    const module = await world.addModule('M1', 0);
+    const lesson = await world.addLesson(module, 0);
+    lesson.body = '# Kept';
+    await commit(world.lessons.updateOperations(lesson, { bodyChanged: true }));
+
+    lesson.title = 'Renamed';
+    lesson.body = 'not written';
+    await commit(
+      world.lessons.updateOperations(lesson, { bodyChanged: false }),
+    );
+
+    await expect(
+      world.lessons.findById(world.course.id, module.id, lesson.id),
+    ).resolves.toMatchObject({ title: 'Renamed', body: '# Kept' });
   });
 });

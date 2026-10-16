@@ -22,7 +22,11 @@ export interface LessonRepository {
 
   createOperations(lesson: Lesson): UnitOfWork.Operation[];
 
-  updateOperations(lesson: Lesson): UnitOfWork.Operation[];
+  // Rewrites the body only when it changed: it can take 32 KiB (Q287).
+  updateOperations(
+    lesson: Lesson,
+    { bodyChanged }: { bodyChanged: boolean },
+  ): UnitOfWork.Operation[];
 
   deleteOperations(lesson: Lesson): UnitOfWork.Operation[];
 

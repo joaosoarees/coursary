@@ -3,6 +3,7 @@ import {
   TransactionCanceledException,
 } from '@aws-sdk/client-dynamodb';
 import {
+  DeleteCommand,
   GetCommand,
   TransactWriteCommand,
   UpdateCommand,
@@ -71,32 +72,33 @@ export class DynamoAccountRepository implements AccountRepository {
     }
   }
 
+  // Undoes a sign-up: the account always goes; the e-mail claim only while it
+  // is still this account's, since an expired claim may have been taken (Q132).
   async delete(account: Account): Promise<void> {
     const TableName = this.config.mainTableName;
-
-    const command = new TransactWriteCommand({
-      TransactItems: [
-        {
-          Delete: {
-            TableName,
-            Key: this.keyOf(account.id),
-          },
-        },
-        {
-          Delete: {
-            TableName,
-            Key: {
-              PK: EmailClaimItem.getPK(account.email),
-              SK: EmailClaimItem.getSK(account.email),
-            },
-            ConditionExpression: 'accountId = :accountId',
-            ExpressionAttributeValues: { ':accountId': account.id },
-          },
-        },
-      ],
+    const deleteAccount = new DeleteCommand({
+      TableName,
+      Key: this.keyOf(account.id),
+    });
+    const deleteClaim = new DeleteCommand({
+      TableName,
+      Key: {
+        PK: EmailClaimItem.getPK(account.email),
+        SK: EmailClaimItem.getSK(account.email),
+      },
+      ConditionExpression: 'accountId = :accountId',
+      ExpressionAttributeValues: { ':accountId': account.id },
     });
 
-    await dynamoClient.send(command);
+    await dynamoClient.send(deleteAccount);
+
+    try {
+      await dynamoClient.send(deleteClaim);
+    } catch (error) {
+      if (!(error instanceof ConditionalCheckFailedException)) {
+        throw error;
+      }
+    }
   }
 
   async saveExternalId(account: Account): Promise<void> {
