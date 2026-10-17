@@ -2,7 +2,7 @@
 // creates, confirms and deletes itself: no mailbox, no token pasted by hand.
 // Needs the project's AWS credentials (AWS_PROFILE in .env).
 import { execFileSync } from 'node:child_process';
-import { randomBytes } from 'node:crypto';
+import { createHmac, randomBytes } from 'node:crypto';
 
 const stage = 'dev';
 const region = 'sa-east-1';
@@ -255,6 +255,39 @@ try {
     'INVALID_SESSION',
   );
   check('the refreshed access token works', await me(third.accessToken), 200);
+
+  console.log('\n# Token scope (Q301)');
+  // An id token straight from Cognito: the app never hands one out (Q147).
+  const clientId = aws(
+    'cloudformation',
+    'describe-stack-resource',
+    '--stack-name',
+    service,
+    '--logical-resource-id',
+    'UserPoolClient',
+  ).StackResourceDetail.PhysicalResourceId;
+  const clientSecret = aws(
+    'cognito-idp',
+    'describe-user-pool-client',
+    '--user-pool-id',
+    poolId,
+    '--client-id',
+    clientId,
+  ).UserPoolClient.ClientSecret;
+  const secretHash = createHmac('sha256', clientSecret)
+    .update(student.email + clientId)
+    .digest('base64');
+  const { IdToken: idToken } = aws(
+    'cognito-idp',
+    'initiate-auth',
+    '--client-id',
+    clientId,
+    '--auth-flow',
+    'USER_PASSWORD_AUTH',
+    '--auth-parameters',
+    `USERNAME=${student.email},PASSWORD=${student.password},SECRET_HASH=${secretHash}`,
+  ).AuthenticationResult;
+  check('an id token is refused at the gateway', await me(idToken), 403);
 
   console.log('\n# Admin and permissions');
   const adminTokens = (await signIn(admin)).body;
