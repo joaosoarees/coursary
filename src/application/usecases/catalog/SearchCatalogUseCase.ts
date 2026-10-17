@@ -1,7 +1,6 @@
 import { courseStatuses } from '@application/entities/course/Course';
 import type { CatalogSearch } from '@application/gateways/catalog/CatalogSearch';
-import { catalogItemOf } from '@application/queries/catalog/catalogItemOf';
-import type { CatalogQuery } from '@application/queries/catalog/CatalogQuery';
+import { CatalogItem } from '@application/queries/catalog/CatalogItem';
 import type { CourseRepository } from '@application/repositories/course/CourseRepository';
 
 // The index picks and orders the courses; the table says what they are now (Q314, Q326).
@@ -27,7 +26,7 @@ export class SearchCatalogUseCase {
         return [];
       }
 
-      return [catalogItemOf(course)];
+      return [CatalogItem.fromCourse(course)];
     });
 
     return { items, page: params.page, totalPages, totalItems };
@@ -38,7 +37,7 @@ export namespace SearchCatalogUseCase {
   export type Input = CatalogSearch.Params;
 
   export interface Output {
-    items: CatalogQuery.Item[];
+    items: CatalogItem[];
     page: number;
     totalPages: number;
     totalItems: number;
