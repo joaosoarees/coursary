@@ -4,7 +4,10 @@ reviewCourse:
     - httpApi:
         method: PUT
         path: /courses/{courseId}/review
-        authorizer: CognitoAuthorizer
+        authorizer:
+          name: CognitoAuthorizer
+          scopes:
+            - aws.cognito.signin.user.admin
 
 getMyReview:
   handler: src/main/functions/review/getMyReview.handler
@@ -12,7 +15,10 @@ getMyReview:
     - httpApi:
         method: GET
         path: /courses/{courseId}/review
-        authorizer: CognitoAuthorizer
+        authorizer:
+          name: CognitoAuthorizer
+          scopes:
+            - aws.cognito.signin.user.admin
 
 listCourseReviews:
   handler: src/main/functions/review/listCourseReviews.handler

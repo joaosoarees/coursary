@@ -4,7 +4,10 @@ getMe:
     - httpApi:
         method: GET
         path: /me
-        authorizer: CognitoAuthorizer
+        authorizer:
+          name: CognitoAuthorizer
+          scopes:
+            - aws.cognito.signin.user.admin
 
 updateMe:
   handler: src/main/functions/account/updateMe.handler
@@ -12,4 +15,7 @@ updateMe:
     - httpApi:
         method: PATCH
         path: /me
-        authorizer: CognitoAuthorizer
+        authorizer:
+          name: CognitoAuthorizer
+          scopes:
+            - aws.cognito.signin.user.admin

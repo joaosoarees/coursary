@@ -17,7 +17,10 @@ listAccounts:
     - httpApi:
         method: GET
         path: /admin/users
-        authorizer: CognitoAuthorizer
+        authorizer:
+          name: CognitoAuthorizer
+          scopes:
+            - aws.cognito.signin.user.admin
 
 findAccountByEmail:
   handler: src/main/functions/admin/findAccountByEmail.handler
@@ -25,7 +28,10 @@ findAccountByEmail:
     - httpApi:
         method: GET
         path: /admin/users/by-email
-        authorizer: CognitoAuthorizer
+        authorizer:
+          name: CognitoAuthorizer
+          scopes:
+            - aws.cognito.signin.user.admin
 
 changeRole:
   handler: src/main/functions/admin/changeRole.handler
@@ -33,7 +39,10 @@ changeRole:
     - httpApi:
         method: PUT
         path: /admin/users/{accountId}/role
-        authorizer: CognitoAuthorizer
+        authorizer:
+          name: CognitoAuthorizer
+          scopes:
+            - aws.cognito.signin.user.admin
 
 listRoleChanges:
   handler: src/main/functions/admin/listRoleChanges.handler
@@ -41,7 +50,10 @@ listRoleChanges:
     - httpApi:
         method: GET
         path: /admin/users/{accountId}/role-changes
-        authorizer: CognitoAuthorizer
+        authorizer:
+          name: CognitoAuthorizer
+          scopes:
+            - aws.cognito.signin.user.admin
 
 disableAccount:
   handler: src/main/functions/admin/disableAccount.handler
@@ -49,7 +61,10 @@ disableAccount:
     - httpApi:
         method: POST
         path: /admin/users/{accountId}/disable
-        authorizer: CognitoAuthorizer
+        authorizer:
+          name: CognitoAuthorizer
+          scopes:
+            - aws.cognito.signin.user.admin
 
 enableAccount:
   handler: src/main/functions/admin/enableAccount.handler
@@ -57,4 +72,7 @@ enableAccount:
     - httpApi:
         method: POST
         path: /admin/users/{accountId}/enable
-        authorizer: CognitoAuthorizer
+        authorizer:
+          name: CognitoAuthorizer
+          scopes:
+            - aws.cognito.signin.user.admin
