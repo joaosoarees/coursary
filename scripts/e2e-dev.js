@@ -3,6 +3,9 @@
 // Needs the project's AWS credentials (AWS_PROFILE in .env).
 import { execFileSync } from 'node:child_process';
 import { createHmac, randomBytes } from 'node:crypto';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
 
 const stage = 'dev';
 const region = 'sa-east-1';
@@ -257,6 +260,19 @@ try {
   check('the refreshed access token works', await me(third.accessToken), 200);
 
   console.log('\n# Token scope (Q301)');
+  const scopes = JSON.parse(
+    Buffer.from(first.accessToken.split('.')[1], 'base64url').toString('utf8'),
+  ).scope;
+  check(
+    'the access token carries the scope private routes require',
+    {
+      status: scopes?.split(' ').includes('aws.cognito.signin.user.admin')
+        ? 200
+        : 500,
+      body: { scopes },
+    },
+    200,
+  );
   // An id token straight from Cognito: the app never hands one out (Q147).
   const clientId = aws(
     'cloudformation',
@@ -277,16 +293,37 @@ try {
   const secretHash = createHmac('sha256', clientSecret)
     .update(student.email + clientId)
     .digest('base64');
-  const { IdToken: idToken } = aws(
-    'cognito-idp',
-    'initiate-auth',
-    '--client-id',
-    clientId,
-    '--auth-flow',
-    'USER_PASSWORD_AUTH',
-    '--auth-parameters',
-    `USERNAME=${student.email},PASSWORD=${student.password},SECRET_HASH=${secretHash}`,
-  ).AuthenticationResult;
+  // The password goes through a private temp file, not the command line.
+  const authInput = join(
+    mkdtempSync(join(tmpdir(), 'e2e-')),
+    'initiate-auth.json',
+  );
+  writeFileSync(
+    authInput,
+    JSON.stringify({
+      ClientId: clientId,
+      AuthFlow: 'USER_PASSWORD_AUTH',
+      AuthParameters: {
+        USERNAME: student.email,
+        PASSWORD: student.password,
+        SECRET_HASH: secretHash,
+      },
+    }),
+    { mode: 0o600 },
+  );
+  let idToken;
+
+  try {
+    idToken = aws(
+      'cognito-idp',
+      'initiate-auth',
+      '--cli-input-json',
+      `file://${authInput}`,
+    ).AuthenticationResult.IdToken;
+  } finally {
+    rmSync(dirname(authInput), { recursive: true, force: true });
+  }
+
   check('an id token is refused at the gateway', await me(idToken), 403);
 
   console.log('\n# Admin and permissions');
