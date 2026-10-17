@@ -1,10 +1,12 @@
-import { describe, expect, it, vi } from 'vitest';
+import type { GetParameterCommand } from '@aws-sdk/client-ssm';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { anAccountId } from '@tests/support/ids';
 
 import { Course } from '@application/entities/course/Course';
-import type { SecureParameter } from '@infra/clients/SecureParameter';
+import { ssmClient } from '@infra/clients/ssmClient';
 import { AlgoliaCatalogIndex } from '@infra/gateways/catalog/AlgoliaCatalogIndex';
+import { AppConfig } from '@shared/config/AppConfig';
 
 interface SentRequest {
   method: string;
@@ -12,35 +14,46 @@ interface SentRequest {
   data?: string | Uint8Array;
 }
 
-const parameter = (value: string) =>
-  ({ get: () => Promise.resolve(value) }) as SecureParameter;
+const parameters: Record<string, string> = {
+  '/coursary-api/test/algolia/app-id': 'APPID',
+  '/coursary-api/test/algolia/write-key': 'write-key',
+};
+
+const readParameter = (command: GetParameterCommand) =>
+  Promise.resolve({
+    Parameter: { Value: parameters[command.input.Name ?? ''] },
+  });
+
+const readParameters = () =>
+  vi.spyOn(ssmClient, 'send').mockImplementation(readParameter as never);
 
 const indexWithRequests = () => {
   const sent: SentRequest[] = [];
-  const index = new AlgoliaCatalogIndex(
-    'test_courses',
-    parameter('APPID'),
-    parameter('write-key'),
-    {
-      requester: {
-        send: (request: SentRequest) => {
-          sent.push(request);
+  const index = new AlgoliaCatalogIndex(new AppConfig(), {
+    requester: {
+      send: (request: SentRequest) => {
+        sent.push(request);
 
-          return Promise.resolve({
-            status: 200,
-            content: JSON.stringify({ taskID: 1, objectID: 'x' }),
-            isTimedOut: false,
-          });
-        },
+        return Promise.resolve({
+          status: 200,
+          content: JSON.stringify({ taskID: 1, objectID: 'x' }),
+          isTimedOut: false,
+        });
       },
     },
-  );
+  });
 
   return { index, sent };
 };
 
+beforeEach(() => {
+  vi.stubEnv('ALGOLIA_PARAMETERS_PATH', '/coursary-api/test/algolia');
+  vi.stubEnv('CATALOG_INDEX_NAME', 'test_courses');
+});
+
 describe('AlgoliaCatalogIndex', () => {
   it('should save the record under the course id with only the searched fields', async () => {
+    readParameters();
     const { index, sent } = indexWithRequests();
     const courseId = Course.toId(anAccountId());
 
@@ -56,7 +69,9 @@ describe('AlgoliaCatalogIndex', () => {
     // saveObject is a POST with the objectID in the body: it replaces that record.
     expect(sent[0]).toMatchObject({
       method: 'POST',
-      url: expect.stringContaining('/1/indexes/test_courses?') as string,
+      url: expect.stringContaining(
+        'https://APPID.algolia.net/1/indexes/test_courses?',
+      ) as string,
     });
     expect(JSON.parse(String(sent[0]?.data))).toEqual({
       objectID: courseId,
@@ -67,10 +82,12 @@ describe('AlgoliaCatalogIndex', () => {
     });
   });
 
-  it('should delete the record of a course', async () => {
+  it('should delete the record of a course, reading the keys once', async () => {
+    const send = readParameters();
     const { index, sent } = indexWithRequests();
     const courseId = Course.toId(anAccountId());
 
+    await index.remove(courseId);
     await index.remove(courseId);
 
     expect(sent[0]).toMatchObject({
@@ -79,25 +96,13 @@ describe('AlgoliaCatalogIndex', () => {
         `/1/indexes/test_courses/${courseId}`,
       ) as string,
     });
+    expect(send).toHaveBeenCalledTimes(2);
   });
 
   it('should read the keys again after a failure', async () => {
-    const get = vi
-      .fn<() => Promise<string>>()
-      .mockRejectedValueOnce(new Error('denied'))
-      .mockResolvedValue('APPID');
-    const appId = { get } as unknown as SecureParameter;
-    const index = new AlgoliaCatalogIndex(
-      'test_courses',
-      appId,
-      parameter('write-key'),
-      {
-        requester: {
-          send: () =>
-            Promise.resolve({ status: 200, content: '{}', isTimedOut: false }),
-        },
-      },
-    );
+    const send = readParameters();
+    send.mockRejectedValueOnce(new Error('denied'));
+    const { index } = indexWithRequests();
     const courseId = Course.toId(anAccountId());
 
     await expect(index.remove(courseId)).rejects.toThrow('denied');

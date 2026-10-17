@@ -5,5 +5,5 @@ import { makeAppConfig } from '@main/factories/makeAppConfig';
 export function makeCatalogIndexQueue(): CatalogIndexQueue {
   const appConfig = makeAppConfig();
 
-  return new SqsCatalogIndexQueue(appConfig.catalogIndexQueueUrl);
+  return new SqsCatalogIndexQueue(appConfig);
 }
