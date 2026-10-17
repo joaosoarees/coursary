@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-17. Estado: **fases 1 e 2, R.1 a R.5, 3.1 e 3.2 na `develop` e em `dev` (catálogo no Algolia conferido pelo `e2e:dev`); R.6 (variáveis do Cognito só nas funções de auth, Q325) na `refactor/r6-function-env`; próxima: 3.3 (`GET /search`)**.
+Última atualização: 2026-10-17. Estado: **fases 1 e 2, R.1 a R.6, 3.1 e 3.2 na `develop` e em `dev`; 3.3 (`GET /search`) em andamento na `feat/3.3-search` (Q326 a Q332)**.
 
 ## Como retomar
 
@@ -379,6 +379,12 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q323 | Porta e chave | `CatalogIndex` (`save`, `remove`) na aplicação, `AlgoliaCatalogIndex` na infraestrutura; `SecureParameter` em `src/infra/clients` lê com decifragem na primeira chamada e guarda a promessa, refeita se falhar; `ALGOLIA_PARAMETERS_PATH` só no indexador, com `ssm:GetParameter` em `app-id` e `write-key`. |
 | Q324 | Sub-imp da 3.2 | a. stream, filas e roteador; b. porta, adapter, `SecureParameter` e indexador; c. SNS, alarmes e e-mail; d. `reindexCatalog`; e. prova em `dev`, documentação, quadro, `/code-review`, PR. A prova entrou no `e2e:dev` em vez de um script à parte: a role de deploy decifra a search key (política da chave `aws/ssm`), e todo `e2e` passa a conferir que o curso publicado chega ao índice e o arquivado sai. |
 | Q325 | Variáveis por função (revê a Q176, cumpre a Q295) | O provider fica só com `MAIN_TABLE_NAME`; `COGNITO_POOL_ID`, `COGNITO_CLIENT_ID` e `COGNITO_CLIENT_SECRET` vão em `sls/config/cognitoEnv.yml`, só para as 7 funções que usam o `AuthGateway`. Consumidores, triggers e as demais rotas deixam de receber o secret do app client. Refatoração R.6. |
+| Q327 | Validação da busca | `q` obrigatório, aparado, de 1 a 200 caracteres (vazio → 400; listar tudo é o `GET /courses`); `page` de 0 a 49 (limite de 1.000 resultados do Algolia), `perPage` de 1 a 50, padrão 20. Página a partir de 0 pela Q297, contra a skill `algolia-search-api`, que conta a partir de 1. |
+| Q328 | Rota pública com limite | `GET /search` público, com throttling só nessa rota no stage do HTTP API (`RouteSettings`: 5 por segundo, rajada de 10) por `resources.extensions`; acima disso, 429 sem invocar a Lambda. Protege a cota do plano gratuito do Algolia. |
+| Q329 | Configuração do índice | `searchableAttributes: ['title', 'instructorName', 'description']`; a busca pede `attributesToRetrieve: []` e `attributesToHighlight: []`. Aplicada por `scripts/apply-algolia-settings.js --stage <stage>`, à mão, com a role de deploy. |
+| Q330 | Leitura dos cursos | `CourseRepository.findManyByIds(ids)`, extraído do `coursesOf` da lista de matrículas, com o mesmo tratamento de chaves não processadas; usado pela lista e pela busca. |
+| Q331 | Porta e role da busca | `CatalogSearch.search({ query, page, perPage })` → `{ courseIds, totalItems, totalPages }`, adapter `AlgoliaCatalogSearch` com `app-id` e `search-key` pelo `SecureParameter`. Função `searchCatalog` com role própria: `BatchGetItem`, `ssm:GetParameter` nas duas chaves, `kms:Decrypt` via SSM. |
+| Q332 | Sub-imp da 3.3 | a. `findManyByIds`; b. `CatalogSearch`, adapter e use case; c. controller, schema, rota com role e throttling, Postman; d. script de configuração do índice; e. `e2e:dev`, documentação, quadro, `/code-review`, PR. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
