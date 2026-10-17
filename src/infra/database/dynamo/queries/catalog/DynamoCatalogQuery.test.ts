@@ -19,7 +19,7 @@ const catalog = new DynamoCatalogQuery(config);
 const instructor = Account.create({ name: 'Ana', email: 'ana@example.com' });
 
 const courseWithLesson = async (title: string) => {
-  const course = Course.create({ instructor, title, description: 'About' });
+  const course = Course.create({ instructor, title });
   await courses.create(course);
   const module = Module.create({
     courseId: course.id,

@@ -11,12 +11,15 @@ export class PublishCourseUseCase {
     callerRole,
     courseId,
   }: PublishCourseUseCase.Input): Promise<CourseDetails> {
-    const found = await this.coursesRepository.findById(courseId);
+    const [found, description] = await Promise.all([
+      this.coursesRepository.findById(courseId),
+      this.coursesRepository.findDescription(courseId),
+    ]);
     const course = Course.requireFound(found);
     course.requireEditableBy(callerId, callerRole);
 
     if (course.status === courseStatuses.Published) {
-      return CourseDetails.fromCourse(course);
+      return CourseDetails.fromCourse(course, description);
     }
 
     const published = await this.coursesRepository.publish(
@@ -24,7 +27,7 @@ export class PublishCourseUseCase {
       new Date(),
     );
 
-    return CourseDetails.fromCourse(published);
+    return CourseDetails.fromCourse(published, description);
   }
 }
 

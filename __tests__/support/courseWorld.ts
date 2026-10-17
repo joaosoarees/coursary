@@ -75,7 +75,6 @@ export async function courseWorld() {
   const course = Course.create({
     instructor: owner,
     title: 'T',
-    description: '',
   });
   await courses.create(course);
 

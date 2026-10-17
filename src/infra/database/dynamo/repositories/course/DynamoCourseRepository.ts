@@ -18,6 +18,7 @@ import type { CourseRepository } from '@application/repositories/course/CourseRe
 import { dynamoClient } from '@infra/clients/dynamoClient';
 import { copyName } from '@infra/database/dynamo/copyName';
 import { DynamoUnitOfWork } from '@infra/database/dynamo/DynamoUnitOfWork';
+import { CourseDescriptionItem } from '@infra/database/dynamo/items/course/CourseDescriptionItem';
 import { CourseItem } from '@infra/database/dynamo/items/course/CourseItem';
 import { queryAll } from '@infra/database/dynamo/queryAll';
 import type { AppConfig } from '@shared/config/AppConfig';
@@ -25,14 +26,32 @@ import type { AppConfig } from '@shared/config/AppConfig';
 export class DynamoCourseRepository implements CourseRepository {
   constructor(private readonly config: AppConfig) {}
 
-  async create(course: Course): Promise<void> {
-    const command = new PutCommand({
+  async create(course: Course, description = ''): Promise<void> {
+    const put = {
       TableName: this.config.mainTableName,
       Item: CourseItem.fromEntity(course).toItem(),
       ConditionExpression: 'attribute_not_exists(PK)',
-    });
+    };
 
-    await dynamoClient.send(command);
+    if (description) {
+      const unit = new DynamoUnitOfWork();
+      unit.add(
+        DynamoUnitOfWork.operation({ Put: put }),
+        this.putDescriptionOperation(course.id, description),
+      );
+      await unit.commit();
+
+      return;
+    }
+
+    try {
+      await dynamoClient.send(new PutCommand(put));
+    } catch (error) {
+      // A taken id answers as the transaction does.
+      throw error instanceof ConditionalCheckFailedException
+        ? new Conflict()
+        : error;
+    }
   }
 
   async findById(id: Course.Id): Promise<Course | null> {
@@ -46,40 +65,74 @@ export class DynamoCourseRepository implements CourseRepository {
     return Item ? CourseItem.toEntity(Item as CourseItem.ItemType) : null;
   }
 
-  async update(id: Course.Id, changes: Course.Changes): Promise<Course> {
-    const fields = Object.entries(changes).filter(
-      ([, value]) => value !== undefined,
-    );
-    const command = new UpdateCommand({
+  async findDescription(id: Course.Id): Promise<string> {
+    const command = new GetCommand({
       TableName: this.config.mainTableName,
-      Key: { PK: CourseItem.getPK(id), SK: CourseItem.getSK(id) },
-      UpdateExpression: `SET ${fields.map(([name]) => `#${name} = :${name}`).join(', ')}`,
-      ConditionExpression: 'attribute_exists(PK) AND #status <> :archived',
-      ExpressionAttributeNames: {
-        '#status': 'status',
-        ...Object.fromEntries(fields.map(([name]) => [`#${name}`, name])),
+      Key: {
+        PK: CourseDescriptionItem.getPK(id),
+        SK: CourseDescriptionItem.getSK(),
       },
-      ExpressionAttributeValues: {
-        ':archived': courseStatuses.Archived,
-        ...Object.fromEntries(
-          fields.map(([name, value]) => [`:${name}`, value]),
-        ),
-      },
-      ReturnValues: 'ALL_NEW',
-      ReturnValuesOnConditionCheckFailure: 'ALL_OLD',
     });
 
-    try {
-      const { Attributes } = await dynamoClient.send(command);
+    const { Item } = await dynamoClient.send(command);
 
-      return CourseItem.toEntity(Attributes as CourseItem.ItemType);
-    } catch (error) {
-      if (error instanceof ConditionalCheckFailedException) {
-        throw error.Item ? new CourseArchived() : new CourseNotFound();
+    return CourseDescriptionItem.toDescription(
+      Item as CourseDescriptionItem.ItemType | undefined,
+    );
+  }
+
+  // Both writes hold to a course that exists and is not archived (Q309).
+  async update(course: Course, changes: Course.Changes): Promise<void> {
+    const edit = {
+      TableName: this.config.mainTableName,
+      Key: this.keyOf(course),
+      ConditionExpression: 'attribute_exists(PK) AND #status <> :archived',
+      ExpressionAttributeNames: { '#status': 'status' },
+      ExpressionAttributeValues: { ':archived': courseStatuses.Archived },
+      ReturnValuesOnConditionCheckFailure: 'ALL_OLD' as const,
+    };
+    const titleUpdate = {
+      ...edit,
+      UpdateExpression: 'SET title = :title',
+      ExpressionAttributeValues: {
+        ...edit.ExpressionAttributeValues,
+        ':title': changes.title,
+      },
+    };
+
+    if (changes.description === undefined) {
+      try {
+        await dynamoClient.send(new UpdateCommand(titleUpdate));
+      } catch (error) {
+        throw error instanceof ConditionalCheckFailedException
+          ? DynamoCourseRepository.editRefusal(error.Item)
+          : error;
       }
 
-      throw error;
+      return;
     }
+
+    const unit = new DynamoUnitOfWork();
+    unit.add(
+      DynamoUnitOfWork.operation(
+        changes.title === undefined
+          ? { ConditionCheck: edit }
+          : { Update: titleUpdate },
+        (stored) => DynamoCourseRepository.editRefusal(stored),
+      ),
+      changes.description
+        ? this.putDescriptionOperation(course.id, changes.description)
+        : DynamoUnitOfWork.operation({
+            Delete: {
+              TableName: this.config.mainTableName,
+              Key: {
+                PK: CourseDescriptionItem.getPK(course.id),
+                SK: CourseDescriptionItem.getSK(),
+              },
+            },
+          }),
+    );
+    await unit.commit();
   }
 
   async publish(id: Course.Id, publishedAt: Date): Promise<Course> {
@@ -226,6 +279,18 @@ export class DynamoCourseRepository implements CourseRepository {
     });
   }
 
+  private putDescriptionOperation(
+    courseId: Course.Id,
+    description: string,
+  ): UnitOfWork.Operation {
+    return DynamoUnitOfWork.operation({
+      Put: {
+        TableName: this.config.mainTableName,
+        Item: new CourseDescriptionItem({ courseId, description }).toItem(),
+      },
+    });
+  }
+
   private keyOf(course: Course) {
     return { PK: CourseItem.getPK(course.id), SK: CourseItem.getSK(course.id) };
   }
@@ -244,6 +309,10 @@ export class DynamoCourseRepository implements CourseRepository {
     })) as Record<string, unknown>[];
 
     return keys;
+  }
+
+  private static editRefusal(stored: unknown): Error {
+    return stored ? new CourseArchived() : new CourseNotFound();
   }
 
   // The item as it was when the condition failed tells why (Q232, Q233).

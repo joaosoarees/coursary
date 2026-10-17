@@ -29,6 +29,19 @@ describe('UpdateCourseUseCase', () => {
     });
   });
 
+  it('should answer with the stored description when only the title changes', async () => {
+    const use = new UpdateCourseUseCase(world.courses);
+    await use.execute({
+      ...world.as(world.owner),
+      changes: { description: 'About' },
+    });
+
+    await expect(update(world.owner)).resolves.toMatchObject({
+      title: 'New title',
+      description: 'About',
+    });
+  });
+
   it('should hide a draft of another instructor (404) and refuse a visible one (403)', async () => {
     await expect(update(world.other)).rejects.toBeInstanceOf(CourseNotFound);
 

@@ -12,7 +12,6 @@ const student = Account.create({ name: 'Bia', email: 'bia@example.com' });
 const course = Course.create({
   instructor: student,
   title: 'T',
-  description: '',
 });
 const enrollment = Enrollment.create({ student, course });
 const lessonId = Lesson.toId(KSUID.randomSync().string);

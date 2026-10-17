@@ -3,11 +3,14 @@ import type { Account } from '@application/entities/account/Account';
 import type { Course } from '@application/entities/course/Course';
 
 export interface CourseRepository {
-  create: (course: Course) => Promise<void>;
+  // Without a description, nothing is stored for it (Q307).
+  create: (course: Course, description?: string) => Promise<void>;
 
   findById: (id: Course.Id) => Promise<Course | null>;
 
-  update: (id: Course.Id, changes: Course.Changes) => Promise<Course>;
+  findDescription: (id: Course.Id) => Promise<string>;
+
+  update: (course: Course, changes: Course.Changes) => Promise<void>;
 
   publish: (id: Course.Id, publishedAt: Date) => Promise<Course>;
 

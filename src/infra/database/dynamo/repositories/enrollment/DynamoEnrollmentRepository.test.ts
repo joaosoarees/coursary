@@ -26,7 +26,7 @@ const commit = async (...operations: Parameters<DynamoUnitOfWork['add']>) => {
 };
 
 const publishedCourse = async () => {
-  const course = Course.create({ instructor, title: 'T', description: '' });
+  const course = Course.create({ instructor, title: 'T' });
   await courses.create(course);
   await setCourseFields(course, { lessonCount: 1 });
 
@@ -103,7 +103,7 @@ describe('DynamoEnrollmentRepository', () => {
   });
 
   it('should refuse an enrollment in a course that is not published', async () => {
-    const course = Course.create({ instructor, title: 'T', description: '' });
+    const course = Course.create({ instructor, title: 'T' });
     await courses.create(course);
     const student = Account.create({ name: 'Bia', email: 'b@example.com' });
     const enrollment = Enrollment.create({ student, course });

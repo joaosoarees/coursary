@@ -34,7 +34,6 @@ export class CourseItem {
       instructorId: course.instructorId,
       instructorName: course.instructorName,
       title: course.title,
-      description: course.description,
       status: course.status,
       lessonCount: course.lessonCount,
       enrollmentCount: course.enrollmentCount,
@@ -54,7 +53,6 @@ export class CourseItem {
       instructorId: item.instructorId,
       instructorName: item.instructorName,
       title: item.title,
-      description: item.description,
       status: item.status,
       lessonCount: item.lessonCount,
       enrollmentCount: item.enrollmentCount,
@@ -108,7 +106,6 @@ export namespace CourseItem {
     instructorId: Account.Id;
     instructorName: string;
     title: string;
-    description: string;
     status: Course.Status;
     lessonCount: number;
     enrollmentCount: number;

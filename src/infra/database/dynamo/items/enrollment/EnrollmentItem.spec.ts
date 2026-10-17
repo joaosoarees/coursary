@@ -7,7 +7,7 @@ import { EnrollmentItem } from '@infra/database/dynamo/items/enrollment/Enrollme
 
 const instructor = Account.create({ name: 'Ana', email: 'ana@example.com' });
 const student = Account.create({ name: 'Bia', email: 'bia@example.com' });
-const course = Course.create({ instructor, title: 'T', description: '' });
+const course = Course.create({ instructor, title: 'T' });
 
 describe('EnrollmentItem', () => {
   it('should keep the enrollment in the student partition and list an active one under the course and the student', () => {

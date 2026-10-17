@@ -13,6 +13,7 @@ erDiagram
   ACCOUNT ||--o{ COURSE : instrui
   ACCOUNT ||--o{ ENROLLMENT : "se matricula"
   COURSE ||--o{ ENROLLMENT : recebe
+  COURSE ||--o| COURSE_DESCRIPTION : descreve
   COURSE ||--o{ MODULE : tem
   MODULE ||--o{ LESSON : tem
   ENROLLMENT ||--o{ LESSON_PROGRESS : registra
@@ -39,7 +40,6 @@ erDiagram
     string id
     string instructorId
     string title
-    string description
     string status
     number lessonCount
     number enrollmentCount
@@ -47,6 +47,10 @@ erDiagram
     number ratingCount
     string publishedAt
     string createdAt
+  }
+  COURSE_DESCRIPTION {
+    string courseId
+    string description
   }
   MODULE {
     string id
@@ -182,6 +186,7 @@ Tabela `MainTable` com `PK` e `SK`, e dois índices globais sobrecarregados, `GS
 | Account | `ACCOUNT#<accountId>` | `ACCOUNT#<accountId>` | `ROLE#<role>` / `ACCOUNT#<accountId>` | `EMAIL#<email>` / `ACCOUNT#<accountId>` |
 | RoleChange | `ACCOUNT#<accountId>` | `ROLE_CHANGE#<changeId>` (KSUID) | | |
 | Course | `COURSE#<courseId>` | `COURSE#<courseId>` | `INSTRUCTOR#<instructorId>` / `COURSE#<courseId>` | só publicados: `CATALOG` / `<publishedAt>#<courseId>` |
+| CourseDescription (Q298, Q307) | `COURSE#<courseId>` | `DESCRIPTION` | | |
 | Module (com `lessonCount`, Q288) | `COURSE#<courseId>` | `MODULE#<moduleId>` | | |
 | Lesson (sumário) | `COURSE#<courseId>` | `MODULE#<moduleId>#LESSON#<lessonId>` | | |
 | LessonContent | `LESSON#<lessonId>` | `CONTENT` | | |
@@ -208,6 +213,7 @@ Tabela `MainTable` com `PK` e `SK`, e dois índices globais sobrecarregados, `GS
 - O e-mail é normalizado (trim, minúsculas) antes de entrar em qualquer chave.
 - A troca de status (desativar, reativar) exige o chamador admin `ACTIVE` por `ConditionCheck` na mesma transação (Q194); desativar remove a `session` na mesma escrita (Q212).
 - O curso nasce `DRAFT` com `lessonCount` e `enrollmentCount` zerados e `instructorName` copiado da conta (Q204); `ratingSum`/`ratingCount` só entram com as avaliações (Q112). A edição exige `status <> ARCHIVED` na própria escrita, com `ReturnValuesOnConditionCheckFailure` para separar curso inexistente de arquivado.
+- A descrição do curso fica em `COURSE#c` / `DESCRIPTION`, só quando tem texto (ausente é `''`), para o item do curso ficar abaixo de 1 KB: um `ADD` nos contadores custa 1 WCU na tabela e 1 no `GSI1`, contra 6 e 6 com 5.000 caracteres no item (medido no DynamoDB Local, Q312). Criar com descrição é uma transação com o curso; o `PATCH` da descrição leva o `Update` do título ou um `ConditionCheck` do curso (existe e não arquivado) e um `Put`, ou um `Delete` quando ela vira `''` (Q309). O `scripts/backfill-course-descriptions.js` migra cursos no formato antigo (Q310); em 2026-10-17 o `dev` não tinha nenhum curso gravado (o `--dry-run` não achou nada a mover).
 - Publicar grava `status`, `publishedAt` e `GSI2PK`/`GSI2SK` (`CATALOG` / `<publishedAt>#<courseId>`) num `Update` condicionado a `status = DRAFT AND lessonCount > 0`; arquivar exige `status = PUBLISHED` e remove as chaves do `GSI2` (Q232, Q233). A página pública lê a partição `COURSE#c` inteira numa `Query` (padrão 6).
 - A `session` (`accessJti`, `refreshTokenHash` = SHA-256 do refresh token) é a sessão única da conta (Q210, Q211): o sign-in a substitui, o refresh a troca só com condição `session.refreshTokenHash = :anterior`, e o reset de senha e a desativação a removem. O adapter das rotas privadas exige a claim `jti` igual a `session.accessJti`. Só existe no item com alguém conectado.
 - Matricular é `Put` condicional da Enrollment (`ACTIVE`, chaves do `GSI1`) + `ADD enrollmentCount 1` com o curso `PUBLISHED`; rematricular volta `CANCELLED` → `ACTIVE` e regrava o `GSI1` e o `GSI2` com o `enrolledAt` original; cancelar volta `ACTIVE` → `CANCELLED`, remove o `GSI1` e o `GSI2` e faz `ADD -1` exigindo só que o curso exista (Q243). A propagação do `studentName` lê a partição `ACCOUNT#a`, não o índice, para alcançar também as canceladas.

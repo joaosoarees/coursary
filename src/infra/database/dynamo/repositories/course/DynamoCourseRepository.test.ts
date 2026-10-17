@@ -1,4 +1,4 @@
-import { GetCommand } from '@aws-sdk/lib-dynamodb';
+import { GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { describe, expect, it } from 'vitest';
 
 import { setCourseFields } from '@tests/support/courseWorld';
@@ -19,65 +19,124 @@ const config = new AppConfig();
 const repository = new DynamoCourseRepository(config);
 const instructor = Account.create({ name: 'Ana', email: 'ana@example.com' });
 
-const newCourse = async () => {
-  const course = Course.create({
-    instructor,
-    title: 'DynamoDB',
-    description: 'Keys',
-  });
-  await repository.create(course);
+const newCourse = async (description = 'Keys') => {
+  const course = Course.create({ instructor, title: 'DynamoDB' });
+  await repository.create(course, description);
 
   return course;
 };
 
+const storedDescription = async (course: Course) => {
+  const { Item } = await dynamoClient.send(
+    new GetCommand({
+      TableName: config.mainTableName,
+      Key: { PK: `COURSE#${course.id}`, SK: 'DESCRIPTION' },
+      ConsistentRead: true,
+    }),
+  );
+
+  return Item;
+};
+
 describe('DynamoCourseRepository', () => {
-  it('should create a course and find it by id', async () => {
+  it('should create a course and find it and its description by id', async () => {
     const course = await newCourse();
 
     await expect(repository.findById(course.id)).resolves.toEqual(course);
+    await expect(repository.findDescription(course.id)).resolves.toBe('Keys');
   });
 
-  it('should update only the fields given and return the whole course', async () => {
-    const course = await newCourse();
+  it('should store nothing for an empty description and read it as empty', async () => {
+    const course = await newCourse('');
 
-    const updated = await repository.update(course.id, { title: 'Streams' });
+    expect(await storedDescription(course)).toBeUndefined();
+    await expect(repository.findDescription(course.id)).resolves.toBe('');
+  });
 
-    expect(updated).toMatchObject({
-      id: course.id,
-      title: 'Streams',
-      description: 'Keys',
+  it('should keep the course item at one write unit whatever the description', async () => {
+    const course = await newCourse('x'.repeat(5000));
+    await setCourseFields(course, { lessonCount: 1 });
+    await repository.publish(course.id, new Date());
+
+    const { ConsumedCapacity } = await dynamoClient.send(
+      new UpdateCommand({
+        TableName: config.mainTableName,
+        Key: { PK: `COURSE#${course.id}`, SK: `COURSE#${course.id}` },
+        UpdateExpression: 'ADD enrollmentCount :one',
+        ExpressionAttributeValues: { ':one': 1 },
+        ReturnConsumedCapacity: 'INDEXES',
+      }),
+    );
+
+    // With the description inside, the same ADD cost 6 units in the table and 6 in each index.
+    expect(ConsumedCapacity).toMatchObject({
+      Table: { CapacityUnits: 1 },
+      GlobalSecondaryIndexes: {
+        GSI1: { CapacityUnits: 1 },
+        GSI2: { CapacityUnits: 1 },
+      },
     });
   });
 
-  it('should refuse to change an archived course', async () => {
+  it.each([
+    [{ title: 'Streams' }, 'Streams', 'Keys'],
+    [{ description: 'Indexes' }, 'DynamoDB', 'Indexes'],
+    [{ title: 'Streams', description: 'Indexes' }, 'Streams', 'Indexes'],
+  ])(
+    'should write only what %o changes',
+    async (changes, title, description) => {
+      const course = await newCourse();
+
+      await repository.update(course, changes);
+
+      expect((await repository.findById(course.id))?.title).toBe(title);
+      await expect(repository.findDescription(course.id)).resolves.toBe(
+        description,
+      );
+    },
+  );
+
+  it('should delete the description item when the description is cleared', async () => {
     const course = await newCourse();
-    await setCourseFields(course, { status: 'ARCHIVED' });
 
-    await expect(
-      repository.update(course.id, { title: 'X' }),
-    ).rejects.toBeInstanceOf(CourseArchived);
+    await repository.update(course, { description: '' });
+
+    expect(await storedDescription(course)).toBeUndefined();
   });
 
-  it('should refuse to change a course that does not exist', async () => {
-    const missing = Course.create({ instructor, title: 'T', description: '' });
+  it.each([{ title: 'X' }, { description: 'X' }])(
+    'should refuse to change %o in an archived course',
+    async (changes) => {
+      const course = await newCourse();
+      await setCourseFields(course, { status: 'ARCHIVED' });
 
-    await expect(
-      repository.update(missing.id, { title: 'X' }),
-    ).rejects.toBeInstanceOf(CourseNotFound);
-  });
+      await expect(repository.update(course, changes)).rejects.toBeInstanceOf(
+        CourseArchived,
+      );
+      await expect(repository.findDescription(course.id)).resolves.toBe('Keys');
+    },
+  );
+
+  it.each([{ title: 'X' }, { description: 'X' }])(
+    'should refuse to change %o in a course that does not exist',
+    async (changes) => {
+      const missing = Course.create({ instructor, title: 'T' });
+
+      await expect(repository.update(missing, changes)).rejects.toBeInstanceOf(
+        CourseNotFound,
+      );
+      expect(await storedDescription(missing)).toBeUndefined();
+    },
+  );
 
   it('should copy a new instructor name into every course of the instructor only', async () => {
     const ana = Account.create({ name: 'Ana', email: 'a@example.com' });
     const bia = Account.create({ name: 'Bia', email: 'b@example.com' });
     const anaCourses = [
-      Course.create({ instructor: ana, title: 'A1', description: '' }),
-      Course.create({ instructor: ana, title: 'A2', description: '' }),
+      Course.create({ instructor: ana, title: 'A1' }),
+      Course.create({ instructor: ana, title: 'A2' }),
     ];
-    const biaCourse = Course.create({
-      instructor: bia,
-      title: 'B1',
-      description: '',
-    });
+    const biaCourse = Course.create({ instructor: bia, title: 'B1' });
     for (const course of [...anaCourses, biaCourse]) {
       await repository.create(course);
     }

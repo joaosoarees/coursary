@@ -11,7 +11,6 @@ describe('CourseItem', () => {
     const course = Course.create({
       instructor,
       title: ' DynamoDB ',
-      description: 'Keys and indexes',
     });
 
     expect(CourseItem.fromEntity(course).toItem()).toMatchObject({
@@ -29,7 +28,7 @@ describe('CourseItem', () => {
   });
 
   it('should read back the same course it wrote', () => {
-    const course = Course.create({ instructor, title: 'T', description: '' });
+    const course = Course.create({ instructor, title: 'T' });
 
     expect(CourseItem.toEntity(CourseItem.fromEntity(course).toItem())).toEqual(
       course,
@@ -37,7 +36,7 @@ describe('CourseItem', () => {
   });
 
   it('should put only a published course in the catalog index', () => {
-    const course = Course.create({ instructor, title: 'T', description: '' });
+    const course = Course.create({ instructor, title: 'T' });
 
     expect(CourseItem.fromEntity(course).toItem()).not.toHaveProperty('GSI2PK');
 
