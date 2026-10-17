@@ -1,15 +1,11 @@
 routeTableChanges:
   handler: src/main/functions/stream/routeTableChanges.handler
   timeout: 30
-  environment:
-    CATALOG_INDEX_QUEUE_URL: !Ref CatalogIndexQueue
+  environment: ${file(./sls/config/catalogIndexQueue.yml):environment}
   iam:
     role:
       statements:
-        - Effect: Allow
-          Action:
-            - sqs:SendMessage
-          Resource: !GetAtt CatalogIndexQueue.Arn
+        - ${file(./sls/config/catalogIndexQueue.yml):statements.send}
   events:
     - stream:
         type: dynamodb

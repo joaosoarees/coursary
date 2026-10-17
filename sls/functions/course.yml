@@ -4,10 +4,7 @@ createCourse:
     - httpApi:
         method: POST
         path: /courses
-        authorizer:
-          name: CognitoAuthorizer
-          scopes:
-            - aws.cognito.signin.user.admin
+        authorizer: ${file(./sls/config/privateAuthorizer.yml)}
 
 updateCourse:
   handler: src/main/functions/course/updateCourse.handler
@@ -15,10 +12,7 @@ updateCourse:
     - httpApi:
         method: PATCH
         path: /courses/{courseId}
-        authorizer:
-          name: CognitoAuthorizer
-          scopes:
-            - aws.cognito.signin.user.admin
+        authorizer: ${file(./sls/config/privateAuthorizer.yml)}
 
 listMyCourses:
   handler: src/main/functions/course/listMyCourses.handler
@@ -26,10 +20,7 @@ listMyCourses:
     - httpApi:
         method: GET
         path: /instructor/courses
-        authorizer:
-          name: CognitoAuthorizer
-          scopes:
-            - aws.cognito.signin.user.admin
+        authorizer: ${file(./sls/config/privateAuthorizer.yml)}
 
 publishCourse:
   handler: src/main/functions/course/publishCourse.handler
@@ -37,10 +28,7 @@ publishCourse:
     - httpApi:
         method: POST
         path: /courses/{courseId}/publish
-        authorizer:
-          name: CognitoAuthorizer
-          scopes:
-            - aws.cognito.signin.user.admin
+        authorizer: ${file(./sls/config/privateAuthorizer.yml)}
 
 archiveCourse:
   handler: src/main/functions/course/archiveCourse.handler
@@ -48,7 +36,4 @@ archiveCourse:
     - httpApi:
         method: POST
         path: /courses/{courseId}/archive
-        authorizer:
-          name: CognitoAuthorizer
-          scopes:
-            - aws.cognito.signin.user.admin
+        authorizer: ${file(./sls/config/privateAuthorizer.yml)}

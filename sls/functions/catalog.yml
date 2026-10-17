@@ -15,9 +15,7 @@ getCoursePage:
 # Its own role: the search key only, and no write on the table (Q331).
 searchCatalog:
   handler: src/main/functions/catalog/searchCatalog.handler
-  environment:
-    ALGOLIA_PARAMETERS_PATH: /coursary-api/${sls:stage}/algolia
-    CATALOG_INDEX_NAME: ${sls:stage}_courses
+  environment: ${file(./sls/config/algolia.yml):environment}
   iam:
     role:
       statements:
@@ -25,19 +23,8 @@ searchCatalog:
           Action:
             - dynamodb:BatchGetItem
           Resource: !GetAtt MainTable.Arn
-        - Effect: Allow
-          Action:
-            - ssm:GetParameter
-          Resource:
-            - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/coursary-api/${sls:stage}/algolia/app-id
-            - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/coursary-api/${sls:stage}/algolia/search-key
-        - Effect: Allow
-          Action:
-            - kms:Decrypt
-          Resource: '*'
-          Condition:
-            StringEquals:
-              kms:ViaService: !Sub ssm.${AWS::Region}.amazonaws.com
+        - ${file(./sls/config/algolia.yml):statements.search}
+        - ${file(./sls/config/algolia.yml):statements.decrypt}
   events:
     - httpApi:
         method: GET
@@ -46,9 +33,7 @@ searchCatalog:
 indexCourse:
   handler: src/main/functions/catalog/indexCourse.handler
   timeout: 30
-  environment:
-    ALGOLIA_PARAMETERS_PATH: /coursary-api/${sls:stage}/algolia
-    CATALOG_INDEX_NAME: ${sls:stage}_courses
+  environment: ${file(./sls/config/algolia.yml):environment}
   iam:
     role:
       statements:
@@ -57,19 +42,8 @@ indexCourse:
             - dynamodb:GetItem
           Resource: !GetAtt MainTable.Arn
         # Only this function holds the write key (Q295, Q303).
-        - Effect: Allow
-          Action:
-            - ssm:GetParameter
-          Resource:
-            - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/coursary-api/${sls:stage}/algolia/app-id
-            - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/coursary-api/${sls:stage}/algolia/write-key
-        - Effect: Allow
-          Action:
-            - kms:Decrypt
-          Resource: '*'
-          Condition:
-            StringEquals:
-              kms:ViaService: !Sub ssm.${AWS::Region}.amazonaws.com
+        - ${file(./sls/config/algolia.yml):statements.indexer}
+        - ${file(./sls/config/algolia.yml):statements.decrypt}
   events:
     - sqs:
         arn: !GetAtt CatalogIndexQueue.Arn
@@ -80,8 +54,7 @@ indexCourse:
 reindexCatalog:
   handler: src/main/functions/catalog/reindexCatalog.handler
   timeout: 300
-  environment:
-    CATALOG_INDEX_QUEUE_URL: !Ref CatalogIndexQueue
+  environment: ${file(./sls/config/catalogIndexQueue.yml):environment}
   iam:
     role:
       statements:
@@ -89,7 +62,4 @@ reindexCatalog:
           Action:
             - dynamodb:Query
           Resource: !Join ['/', [!GetAtt MainTable.Arn, 'index', 'GSI2']]
-        - Effect: Allow
-          Action:
-            - sqs:SendMessage
-          Resource: !GetAtt CatalogIndexQueue.Arn
+        - ${file(./sls/config/catalogIndexQueue.yml):statements.send}

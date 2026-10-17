@@ -20,9 +20,14 @@ interface FunctionDefinition {
     httpApi?: {
       method: string;
       path: string;
-      authorizer?: { name: string; scopes?: string[] };
+      authorizer?: Authorizer | string;
     };
   }[];
+}
+
+interface Authorizer {
+  name: string;
+  scopes?: string[];
 }
 
 type Handler = (
@@ -31,6 +36,16 @@ type Handler = (
 
 const root = path.resolve(import.meta.dirname, '../../..');
 const functionsDir = path.join(root, 'sls/functions');
+
+// Reads `${file(./sls/config/x.yml)}` the way the framework does.
+const resolveFile = (value: Authorizer | string | undefined) => {
+  const file =
+    typeof value === 'string' && /^\$\{file\((.+)\)\}$/.exec(value)?.[1];
+
+  return file
+    ? (parse(readFileSync(path.join(root, file), 'utf8')) as Authorizer)
+    : (value as Authorizer | undefined);
+};
 
 const httpRoutes = readdirSync(functionsDir)
   .filter((file) => file.endsWith('.yml'))
@@ -42,7 +57,13 @@ const httpRoutes = readdirSync(functionsDir)
     return Object.values(definitions).flatMap((definition) =>
       (definition.events ?? []).flatMap((event) =>
         event.httpApi
-          ? [{ handler: definition.handler, ...event.httpApi }]
+          ? [
+              {
+                handler: definition.handler,
+                ...event.httpApi,
+                authorizer: resolveFile(event.httpApi.authorizer),
+              },
+            ]
           : [],
       ),
     );
