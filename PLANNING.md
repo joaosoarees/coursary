@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-16. Estado: **fases 1 e 2 e R.1 a R.4 na `develop` e em `dev`, funções com 512 MB (Q291); fase 3 quebrada em R.5 e 3.1 a 3.7 (Q293 a Q305); R.5 (escopo no JWT) na `refactor/r5-jwt-scope`, em PR; próxima: 3.1**.
+Última atualização: 2026-10-17. Estado: **fases 1 e 2 e R.1 a R.5 na `develop` e em `dev`, funções com 512 MB (Q291); fase 3 quebrada em R.5 e 3.1 a 3.7 (Q293 a Q305); R.5 (escopo no JWT) conferida pelo `e2e:dev`; 3.1 (descrição em item à parte) em andamento na `feat/3.1-course-description` (Q306 a Q310)**.
 
 ## Como retomar
 
@@ -359,6 +359,11 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q303 | Chaves do Algolia | O autor cria a aplicação (plano gratuito) e grava `/coursary/<stage>/algolia/app-id`, `write-key` e `search-key` no SSM Parameter Store como `SecureString`; as chaves não passam pela conversa nem pelo repositório. Cada função recebe só a sua (escrita no indexador, busca no `GET /search`). |
 | Q304 | Histórias da fase 3 | R.5 escopo no JWT; 3.1 descrição em item à parte; 3.2 catálogo no Algolia (stream, roteador, falhas, fila `index`, indexador, reindexação, chaves); 3.3 `GET /search`; 3.4 limpeza do Cognito; 3.5 boas-vindas (`MailGateway` SES, fila `mail`); 3.6 aviso de arquivamento (fan-out); 3.7 apagar rascunho. O stream nasce na 3.2 (Q112). |
 | Q305 | Leitura das chaves do Algolia | A função lê o seu parâmetro do SSM no cold start (`GetParameter` com decifragem) e guarda em memória; role da função com `ssm:GetParameter` no caminho dela e `kms:Decrypt`. A chave não entra no template nem nas variáveis de ambiente (o `${ssm:…}` do deploy a deixaria em texto puro). Nasce na 3.2. |
+| Q306 | Descrição no domínio | `Course` perde `description`; `CourseRepository.findDescription(courseId)` só para quem a devolve; `CourseDetails.fromCourse(course, description)`. Os demais casos de uso leem só o item do curso. |
+| Q307 | Item da descrição | `COURSE#c` / `DESCRIPTION`, `{ courseId, description, type: 'CourseDescription' }`, sem índice; só existe com texto, ausência lida como `''`. |
+| Q308 | Contrato das rotas | Igual: criar, `PATCH`, publicar e arquivar devolvem o curso com a descrição (`GetItem` a mais em paralelo onde ela não foi escrita); catálogo e lista do instrutor seguem sem ela; a página pública a pega na `Query` da partição. |
+| Q309 | Escritas da descrição | No `CourseRepository`. Criar com descrição: transação `Put` curso + `Put` descrição; sem: `Put` simples. `PATCH` título e descrição: `Update` do curso (existe e não arquivado) + `Put`/`Delete` da descrição (`Delete` quando vira `''`); só descrição: `ConditionCheck` do curso + `Put`/`Delete`; só título: `Update` de hoje. Motivo da falha pelo `ALL_OLD` (Q232). |
+| Q310 | Backfill em `dev` | Script idempotente em `scripts/`, rodado depois do deploy: por curso com `description` no item, transação `Put` do `DESCRIPTION` (`attribute_not_exists`) + `Update` `REMOVE description` (condição `description = :lida`). Janela com `''` aceita em `dev`; o script fica como registro da evolução de schema. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
