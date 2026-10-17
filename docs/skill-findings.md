@@ -446,6 +446,18 @@ Cada achado:
 - **O que aconteceu**: a Q169 tinha tirado o escopo, e o id token chegava ao adapter, que respondia 401 por faltar `internalId`. Um 401 faz o cliente tentar renovar a sessão, quando o problema é o token errado. As 31 rotas privadas voltaram a exigir `aws.cognito.signin.user.admin` (Q301): o id token para no API Gateway com 403, sem invocar a Lambda. O teste de auditoria das rotas exige o escopo em toda rota privada, e o `e2e:dev` pede um id token ao Cognito e confere o 403.
 - **Sugestão**: nenhuma.
 
+### `dynamodb-capacity-and-pricing`, `dynamodb-schema-evolution` (3.1)
+
+#### 2026-10-17 · 3.1.a · acerto (`dynamodb-capacity-and-pricing`)
+- **A skill diz**: a escrita é cobrada pelo item inteiro, não pela mudança, e cada índice que a entrada toca soma as próprias unidades.
+- **O que aconteceu**: medido no DynamoDB Local com `ReturnConsumedCapacity: 'INDEXES'`: um `ADD enrollmentCount 1` num curso em rascunho com 5.000 caracteres no item custou 6 WCU na tabela e 6 no `GSI1`; com a descrição em `COURSE#c` / `DESCRIPTION`, 1 e 1 (publicado, o `GSI2` soma o mesmo). O Local segue o tamanho do item, então o teste de integração que exige 1 e 1 protege a regra. A lacuna da revisão (contadores quentes num item pequeno) continua valendo como sugestão.
+- **Sugestão**: nenhuma além da já registrada na revisão.
+
+#### 2026-10-17 · 3.1.c · lacuna (`dynamodb-schema-evolution`)
+- **A skill diz**: a migração faz scan filtrando pelo `type` e reescreve cada item com update condicional, que trata a condição falha como "nada a fazer"; o update sem condição recria item apagado.
+- **O que aconteceu**: as regras serviram (`attribute_exists(description)` no filtro, `description = :lida` na condição), mas a skill só cobre reescrever o próprio item. Mover um atributo para outro item pede uma transação (`Put` do item novo com `attribute_not_exists` + `REMOVE` no antigo) e uma decisão que a skill não traz: o que fazer quando o item novo já existe porque o código novo foi deployado antes do backfill e alguém editou nesse meio-tempo. O script trata o novo como o mais recente e só remove a cópia antiga; foi exercitado no DynamoDB Local com os quatro casos (mover, vazio, já editado, já migrado) e uma segunda rodada sem escrita.
+- **Sugestão**: uma seção "mover um atributo para outro item (separação vertical)" com a transação, a ordem deploy → backfill, a regra do item novo vencer e o `--dry-run`.
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |
