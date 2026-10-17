@@ -55,6 +55,8 @@ describe('DynamoCourseRepository', () => {
 
   it('should keep the course item at one write unit whatever the description', async () => {
     const course = await newCourse('x'.repeat(5000));
+    await setCourseFields(course, { lessonCount: 1 });
+    await repository.publish(course.id, new Date());
 
     const { ConsumedCapacity } = await dynamoClient.send(
       new UpdateCommand({
@@ -66,10 +68,13 @@ describe('DynamoCourseRepository', () => {
       }),
     );
 
-    // With the description inside, the same ADD cost 6 units in the table and 6 in GSI1.
+    // With the description inside, the same ADD cost 6 units in the table and 6 in each index.
     expect(ConsumedCapacity).toMatchObject({
       Table: { CapacityUnits: 1 },
-      GlobalSecondaryIndexes: { GSI1: { CapacityUnits: 1 } },
+      GlobalSecondaryIndexes: {
+        GSI1: { CapacityUnits: 1 },
+        GSI2: { CapacityUnits: 1 },
+      },
     });
   });
 

@@ -33,18 +33,25 @@ export class DynamoCourseRepository implements CourseRepository {
       ConditionExpression: 'attribute_not_exists(PK)',
     };
 
-    if (!description) {
-      await dynamoClient.send(new PutCommand(put));
+    if (description) {
+      const unit = new DynamoUnitOfWork();
+      unit.add(
+        DynamoUnitOfWork.operation({ Put: put }),
+        this.putDescriptionOperation(course.id, description),
+      );
+      await unit.commit();
 
       return;
     }
 
-    const unit = new DynamoUnitOfWork();
-    unit.add(
-      DynamoUnitOfWork.operation({ Put: put }),
-      this.putDescriptionOperation(course.id, description),
-    );
-    await unit.commit();
+    try {
+      await dynamoClient.send(new PutCommand(put));
+    } catch (error) {
+      // A taken id answers as the transaction does.
+      throw error instanceof ConditionalCheckFailedException
+        ? new Conflict()
+        : error;
+    }
   }
 
   async findById(id: Course.Id): Promise<Course | null> {
@@ -76,64 +83,42 @@ export class DynamoCourseRepository implements CourseRepository {
 
   // Both writes hold to a course that exists and is not archived (Q309).
   async update(course: Course, changes: Course.Changes): Promise<void> {
-    const condition = {
+    const edit = {
+      TableName: this.config.mainTableName,
+      Key: this.keyOf(course),
       ConditionExpression: 'attribute_exists(PK) AND #status <> :archived',
       ExpressionAttributeNames: { '#status': 'status' },
       ExpressionAttributeValues: { ':archived': courseStatuses.Archived },
       ReturnValuesOnConditionCheckFailure: 'ALL_OLD' as const,
     };
-    const key = this.keyOf(course);
+    const titleUpdate = {
+      ...edit,
+      UpdateExpression: 'SET title = :title',
+      ExpressionAttributeValues: {
+        ...edit.ExpressionAttributeValues,
+        ':title': changes.title,
+      },
+    };
 
     if (changes.description === undefined) {
       try {
-        await dynamoClient.send(
-          new UpdateCommand({
-            TableName: this.config.mainTableName,
-            Key: key,
-            UpdateExpression: 'SET title = :title',
-            ...condition,
-            ExpressionAttributeValues: {
-              ...condition.ExpressionAttributeValues,
-              ':title': changes.title,
-            },
-          }),
-        );
+        await dynamoClient.send(new UpdateCommand(titleUpdate));
       } catch (error) {
-        if (error instanceof ConditionalCheckFailedException) {
-          throw error.Item ? new CourseArchived() : new CourseNotFound();
-        }
-
-        throw error;
+        throw error instanceof ConditionalCheckFailedException
+          ? DynamoCourseRepository.editRefusal(error.Item)
+          : error;
       }
 
       return;
     }
 
-    const courseOperation =
-      changes.title === undefined
-        ? {
-            ConditionCheck: {
-              TableName: this.config.mainTableName,
-              Key: key,
-              ...condition,
-            },
-          }
-        : {
-            Update: {
-              TableName: this.config.mainTableName,
-              Key: key,
-              UpdateExpression: 'SET title = :title',
-              ...condition,
-              ExpressionAttributeValues: {
-                ...condition.ExpressionAttributeValues,
-                ':title': changes.title,
-              },
-            },
-          };
     const unit = new DynamoUnitOfWork();
     unit.add(
-      DynamoUnitOfWork.operation(courseOperation, (stored) =>
-        stored ? new CourseArchived() : new CourseNotFound(),
+      DynamoUnitOfWork.operation(
+        changes.title === undefined
+          ? { ConditionCheck: edit }
+          : { Update: titleUpdate },
+        (stored) => DynamoCourseRepository.editRefusal(stored),
       ),
       changes.description
         ? this.putDescriptionOperation(course.id, changes.description)
@@ -324,6 +309,10 @@ export class DynamoCourseRepository implements CourseRepository {
     })) as Record<string, unknown>[];
 
     return keys;
+  }
+
+  private static editRefusal(stored: unknown): Error {
+    return stored ? new CourseArchived() : new CourseNotFound();
   }
 
   // The item as it was when the condition failed tells why (Q232, Q233).
