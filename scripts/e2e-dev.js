@@ -727,6 +727,31 @@ try {
     },
     200,
   );
+  const search = await call(
+    'GET',
+    `/search?q=${encodeURIComponent(publicPage.body.title)}&perPage=50`,
+  );
+  check('anyone searches the catalog without a token', search, 200);
+  const hit = search.body?.items?.find((item) => item.id === courseId);
+  check(
+    'the search finds the course and answers it from the table',
+    {
+      status:
+        hit?.title === publicPage.body.title &&
+        hit.enrollmentCount === publicPage.body.enrollmentCount &&
+        search.body.page === 0 &&
+        search.body.totalItems >= 1
+          ? 200
+          : 500,
+    },
+    200,
+  );
+  check(
+    'a search without text is refused',
+    await call('GET', '/search?q=%20'),
+    400,
+    'VALIDATION',
+  );
   check(
     'the public page lists the outline without lesson bodies',
     {
@@ -1120,6 +1145,19 @@ try {
     'the archived course leaves the search index',
     await waitForIndex(courseId, 404),
     404,
+  );
+  const afterArchive = await call(
+    'GET',
+    `/search?q=${encodeURIComponent(publicPage.body.title)}&perPage=50`,
+  );
+  check(
+    'the archived course is no longer found by the search',
+    {
+      status: afterArchive.body?.items?.some((item) => item.id === courseId)
+        ? 500
+        : 200,
+    },
+    200,
   );
   check(
     'the archived course has no public page',
