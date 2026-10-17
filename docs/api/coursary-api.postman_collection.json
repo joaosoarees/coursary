@@ -659,6 +659,14 @@
             "url": "{{baseUrl}}/courses/{{courseId}}",
             "description": "Público, sem token. 200 { id, title, description, instructorName, lessonCount, enrollmentCount, publishedAt, modules: [{ id, title, position, lessons: [{ id, title, durationMinutes, position }] }] }, sem o corpo das aulas. Rascunho, arquivado ou inexistente: 404 COURSE_NOT_FOUND. Id malformado: 400 VALIDATION. Inclui ratingCount e ratingAverage (calculada na leitura, null sem avaliações; Q283)."
           }
+        },
+        {
+          "name": "Search",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/search?q=dynamodb&page=0&perPage=20",
+            "description": "Público, sem token. 200 { items, page, totalPages, totalItems }: itens no formato do catálogo, na ordem de relevância do Algolia, lidos da tabela (Q314, Q326). q obrigatório (1 a 200, aparado); page a partir de 0, até 49; perPage de 1 a 50, padrão 20 (Q297, Q327). Um resultado que a tabela não tem mais publicado é descartado: a página pode vir menor. 429 acima de 5 por segundo (Q328)."
+          }
         }
       ]
     },

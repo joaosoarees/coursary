@@ -12,6 +12,37 @@ getCoursePage:
         method: GET
         path: /courses/{courseId}
 
+# Its own role: the search key only, and no write on the table (Q331).
+searchCatalog:
+  handler: src/main/functions/catalog/searchCatalog.handler
+  environment:
+    ALGOLIA_PARAMETERS_PATH: /coursary-api/${sls:stage}/algolia
+    CATALOG_INDEX_NAME: ${sls:stage}_courses
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:BatchGetItem
+          Resource: !GetAtt MainTable.Arn
+        - Effect: Allow
+          Action:
+            - ssm:GetParameter
+          Resource:
+            - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/coursary-api/${sls:stage}/algolia/app-id
+            - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/coursary-api/${sls:stage}/algolia/search-key
+        - Effect: Allow
+          Action:
+            - kms:Decrypt
+          Resource: '*'
+          Condition:
+            StringEquals:
+              kms:ViaService: !Sub ssm.${AWS::Region}.amazonaws.com
+  events:
+    - httpApi:
+        method: GET
+        path: /search
+
 indexCourse:
   handler: src/main/functions/catalog/indexCourse.handler
   timeout: 30

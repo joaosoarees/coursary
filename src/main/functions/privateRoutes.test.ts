@@ -118,6 +118,7 @@ const publicRoutes = [
   'GET /courses',
   'GET /courses/{courseId}',
   'GET /courses/{courseId}/reviews',
+  'GET /search',
 ];
 
 describe('public routes', () => {
