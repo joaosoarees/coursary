@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import type { Page } from '@application/contracts/Page';
+import { catalogItemOf } from '@application/queries/catalog/catalogItemOf';
 import type { CatalogQuery } from '@application/queries/catalog/CatalogQuery';
 import { DynamoPagination } from '@infra/database/dynamo/DynamoPagination';
 import { CourseItem } from '@infra/database/dynamo/items/course/CourseItem';
@@ -32,20 +33,7 @@ export class DynamoCatalogQuery implements CatalogQuery {
       );
 
     return {
-      items: items.map((item) => {
-        const course = CourseItem.toEntity(item);
-
-        return {
-          id: course.id,
-          title: course.title,
-          instructorName: course.instructorName,
-          lessonCount: course.lessonCount,
-          enrollmentCount: course.enrollmentCount,
-          ratingCount: course.ratingCount,
-          ratingAverage: course.ratingAverage(),
-          publishedAt: item.publishedAt ?? '',
-        };
-      }),
+      items: items.map((item) => catalogItemOf(CourseItem.toEntity(item))),
       nextCursor,
     };
   }

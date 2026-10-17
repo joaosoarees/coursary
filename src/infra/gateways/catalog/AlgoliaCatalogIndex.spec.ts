@@ -6,6 +6,7 @@ import { anAccountId } from '@tests/support/ids';
 import { Course } from '@application/entities/course/Course';
 import { ssmClient } from '@infra/clients/ssmClient';
 import { AlgoliaCatalogIndex } from '@infra/gateways/catalog/AlgoliaCatalogIndex';
+import { AlgoliaConnection } from '@infra/gateways/catalog/AlgoliaConnection';
 import { AppConfig } from '@shared/config/AppConfig';
 
 interface SentRequest {
@@ -29,19 +30,23 @@ const readParameters = () =>
 
 const indexWithRequests = () => {
   const sent: SentRequest[] = [];
-  const index = new AlgoliaCatalogIndex(new AppConfig(), {
-    requester: {
-      send: (request: SentRequest) => {
-        sent.push(request);
+  const config = new AppConfig();
+  const index = new AlgoliaCatalogIndex(
+    config,
+    new AlgoliaConnection(config, 'write-key', {
+      requester: {
+        send: (request: SentRequest) => {
+          sent.push(request);
 
-        return Promise.resolve({
-          status: 200,
-          content: JSON.stringify({ taskID: 1, objectID: 'x' }),
-          isTimedOut: false,
-        });
+          return Promise.resolve({
+            status: 200,
+            content: JSON.stringify({ taskID: 1, objectID: 'x' }),
+            isTimedOut: false,
+          });
+        },
       },
-    },
-  });
+    }),
+  );
 
   return { index, sent };
 };
