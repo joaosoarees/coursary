@@ -15,6 +15,10 @@ export class AppConfig {
     return AppConfig.requiredEnv('COGNITO_CLIENT_SECRET');
   }
 
+  get catalogIndexQueueUrl(): string {
+    return AppConfig.requiredEnv('CATALOG_INDEX_QUEUE_URL');
+  }
+
   private static requiredEnv(name: string): string {
     const value = process.env[name];
 

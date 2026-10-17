@@ -1,0 +1,34 @@
+routeTableChanges:
+  handler: src/main/functions/stream/routeTableChanges.handler
+  timeout: 30
+  environment:
+    CATALOG_INDEX_QUEUE_URL: !Ref CatalogIndexQueue
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - sqs:SendMessage
+          Resource: !GetAtt CatalogIndexQueue.Arn
+  events:
+    - stream:
+        type: dynamodb
+        arn: !GetAtt MainTable.StreamArn
+        batchSize: 100
+        maximumRetryAttempts: 2
+        bisectBatchOnFunctionError: true
+        destinations:
+          onFailure:
+            type: sqs
+            arn: !GetAtt StreamFailuresQueue.Arn
+        # The removal has no new image, so it is matched on the old one.
+        filterPatterns:
+          - dynamodb:
+              NewImage:
+                type:
+                  S: [Course, CourseDescription]
+          - eventName: [REMOVE]
+            dynamodb:
+              OldImage:
+                type:
+                  S: [Course, CourseDescription]

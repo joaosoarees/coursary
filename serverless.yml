@@ -23,8 +23,10 @@ functions:
   - ${file(./sls/functions/catalog.yml)}
   - ${file(./sls/functions/enrollment.yml)}
   - ${file(./sls/functions/review.yml)}
+  - ${file(./sls/functions/stream.yml)}
 
 resources:
   - ${file(./sls/resources/dynamodb/MainTable.yml)}
+  - ${file(./sls/resources/sqs/Queues.yml)}
   - ${file(./sls/resources/cognito/UserPool.yml)}
   - ${file(./sls/resources/api-gateway/CustomDomain.yml)}
