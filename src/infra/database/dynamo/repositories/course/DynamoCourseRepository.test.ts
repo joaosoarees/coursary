@@ -1,5 +1,9 @@
-import { GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
-import { describe, expect, it } from 'vitest';
+import {
+  BatchGetCommand,
+  GetCommand,
+  UpdateCommand,
+} from '@aws-sdk/lib-dynamodb';
+import { describe, expect, it, vi } from 'vitest';
 
 import { setCourseFields } from '@tests/support/courseWorld';
 
@@ -128,6 +132,50 @@ describe('DynamoCourseRepository', () => {
       expect(await storedDescription(missing)).toBeUndefined();
     },
   );
+
+  it('should find many courses by id at once, leaving out the missing ones', async () => {
+    const first = await newCourse();
+    const second = await newCourse();
+    const missing = Course.create({ instructor, title: 'Gone' });
+
+    const found = await repository.findManyByIds([
+      first.id,
+      missing.id,
+      second.id,
+      first.id,
+    ]);
+
+    expect([...found.keys()].sort()).toEqual([first.id, second.id].sort());
+    expect(found.get(first.id)).toEqual(first);
+  });
+
+  it('should ask again for the courses BatchGet left unread, and fail when they stay unread', async () => {
+    const course = await newCourse();
+    const send = dynamoClient.send.bind(dynamoClient);
+    let unread = 1;
+    // Answers BatchGet as if DynamoDB had read nothing, while unread lasts.
+    const fakeSend = (command: unknown): Promise<unknown> => {
+      if (command instanceof BatchGetCommand && unread > 0) {
+        unread -= 1;
+        const requested = command.input.RequestItems ?? {};
+
+        return Promise.resolve({ Responses: {}, UnprocessedKeys: requested });
+      }
+
+      return send(command as BatchGetCommand);
+    };
+    vi.spyOn(dynamoClient, 'send').mockImplementation(fakeSend as never);
+
+    await expect(repository.findManyByIds([course.id])).resolves.toHaveProperty(
+      'size',
+      1,
+    );
+
+    unread = DynamoCourseRepository.maxBatchRounds;
+    await expect(repository.findManyByIds([course.id])).rejects.toThrow(
+      'BatchGet left 1 courses unread.',
+    );
+  });
 
   it('should copy a new instructor name into every course of the instructor only', async () => {
     const ana = Account.create({ name: 'Ana', email: 'a@example.com' });
