@@ -373,6 +373,11 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q317 | Aviso dos alarmes | Tópico SNS com assinatura de e-mail; o endereço em `/coursary-api/<stage>/alarm-email` (`String`, lido no deploy por `${ssm:}`). Alarmes na fila de falhas do stream e na DLQ da fila `index`. |
 | Q318 | Reindexação | Função `reindexCatalog`, chamada à mão, lê o `GSI2` e envia um `{ courseId }` por curso publicado à fila `index`. Órfãos no Algolia não são apagados (a busca os descarta, Q314); limpar exige chave com `browse`, quando aparecer. |
 | Q319 | Nome do índice | `<stage>_courses`. |
+| Q320 | Aplicar o bootstrap | Aplicado pelo assistente com o perfil admin em 2026-10-17, depois de conferir o change set (só `Boundary`, `Modify`, sem substituição). |
+| Q321 | E-mail dos alarmes | Endereço pessoal do autor, gravado só em `/coursary-api/dev/alarm-email` (fora do repositório público). |
+| Q322 | Números das filas e do stream | Roteador: `batchSize: 100`, `maximumRetryAttempts: 2`, `bisectBatchOnFunctionError`, `onFailure` em `coursary-api-<stage>-stream-failures` (14 dias). Fila `coursary-api-<stage>-index.fifo`: visibilidade 180 s (6 × 30 s), `maxReceiveCount: 5`, DLQ FIFO de 14 dias. Indexador: `batchSize: 10`, `ReportBatchItemFailures`, 512 MB. |
+| Q323 | Porta e chave | `CatalogIndex` (`save`, `remove`) na aplicação, `AlgoliaCatalogIndex` na infraestrutura; `SecureParameter` em `src/infra/clients` lê com decifragem na primeira chamada e guarda a promessa, refeita se falhar; `ALGOLIA_PARAMETERS_PATH` só no indexador, com `ssm:GetParameter` em `app-id` e `write-key`. |
+| Q324 | Sub-imp da 3.2 | a. stream, filas e roteador; b. porta, adapter, `SecureParameter` e indexador; c. SNS, alarmes e e-mail; d. `reindexCatalog`; e. prova em `dev` com `scripts/check-catalog-index.js`, documentação, quadro, `/code-review`, PR. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
