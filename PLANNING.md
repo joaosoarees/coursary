@@ -489,7 +489,7 @@ Projeto de referência: o foodiary, uma API anterior do autor no mesmo estilo (l
 - `application` importa classes concretas de `infra`; as queries falam direto com o `dynamoClient`.
 - Unicidade de e-mail é "consulta o GSI, depois grava"; o erro do Cognito vira 500.
 - Catches genéricos transformam qualquer erro do Cognito em 401 ou 400.
-- `COGNITO_CLIENT_SECRET` exposto a todas as funções; `env.ts` exige todas as variáveis em toda função.
+- `COGNITO_CLIENT_SECRET` exposto a todas as funções; `env.ts` exige todas as variáveis em toda função. *Aqui também ficou exposto até a Q325 (R.6): agora só as funções que chamam o Cognito o recebem, e um teste confere.*
 - Uma role IAM única para todas as funções.
 - Sem testes, sem scripts de `lint`, `build` ou `deploy`; versão do Serverless Framework não fixada.
 - Renomear a função do trigger de pre token generation quebra a ligação manual no `UserPool.yml`.
