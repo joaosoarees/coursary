@@ -1,14 +1,20 @@
 import { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
+import { CatalogSearch } from '@application/gateways/catalog/CatalogSearch';
 import type { SearchCatalogUseCase } from '@application/usecases/catalog/SearchCatalogUseCase';
 
-// Pages count from 0 (Q297); Algolia pages only reach the first 1,000 hits (Q327).
-export const searchSchema = z.object({
-  q: z.string().trim().min(1).max(200),
-  page: z.coerce.number().int().min(0).max(49).default(0),
-  perPage: z.coerce.number().int().min(1).max(50).default(20),
-});
+// Pages count from 0 (Q297) and must start within the results a query can page (Q327).
+export const searchSchema = z
+  .object({
+    q: z.string().trim().min(1).max(200),
+    page: z.coerce.number().int().min(0).default(0),
+    perPage: z.coerce.number().int().min(1).max(50).default(20),
+  })
+  .refine(({ page, perPage }) => page * perPage < CatalogSearch.maxResults, {
+    path: ['page'],
+    message: `Only the first ${String(CatalogSearch.maxResults)} results can be paged.`,
+  });
 
 export class SearchCatalogController extends Controller<
   'public',

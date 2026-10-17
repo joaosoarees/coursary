@@ -3,19 +3,18 @@ import { z } from 'zod';
 import type { Page } from '@application/contracts/Page';
 import { EnrollmentSummary } from '@application/queries/enrollment/EnrollmentSummary';
 import type { ListMyEnrollmentsQuery } from '@application/queries/enrollment/ListMyEnrollmentsQuery';
+import type { CourseRepository } from '@application/repositories/course/CourseRepository';
 import { DynamoPagination } from '@infra/database/dynamo/DynamoPagination';
 import { EnrollmentItem } from '@infra/database/dynamo/items/enrollment/EnrollmentItem';
-import { DynamoCourseRepository } from '@infra/database/dynamo/repositories/course/DynamoCourseRepository';
 import type { AppConfig } from '@shared/config/AppConfig';
 
 // The student's active enrollments from GSI2 (Q268), each with its course read
 // by BatchGet (Q80, Q269): title, instructor and lesson count stay references.
 export class DynamoListMyEnrollmentsQuery implements ListMyEnrollmentsQuery {
-  private readonly courses: DynamoCourseRepository;
-
-  constructor(private readonly config: AppConfig) {
-    this.courses = new DynamoCourseRepository(config);
-  }
+  constructor(
+    private readonly config: AppConfig,
+    private readonly courses: CourseRepository,
+  ) {}
 
   async execute({
     accountId,

@@ -1,9 +1,8 @@
-import type { GetParameterCommand } from '@aws-sdk/client-ssm';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
+import { useAlgoliaParameters } from '@tests/support/algoliaParameters';
 import { anAccountId } from '@tests/support/ids';
 
-import { ssmClient } from '@infra/clients/ssmClient';
 import { AlgoliaCatalogSearch } from '@infra/gateways/catalog/AlgoliaCatalogSearch';
 import { AlgoliaConnection } from '@infra/gateways/catalog/AlgoliaConnection';
 import { AppConfig } from '@shared/config/AppConfig';
@@ -15,20 +14,8 @@ interface SentRequest {
   data?: string | Uint8Array;
 }
 
-const parameters: Record<string, string> = {
-  '/coursary-api/test/algolia/app-id': 'APPID',
-  '/coursary-api/test/algolia/search-key': 'search-only',
-};
-
-const readParameter = (command: GetParameterCommand) =>
-  Promise.resolve({
-    Parameter: { Value: parameters[command.input.Name ?? ''] },
-  });
-
 beforeEach(() => {
-  vi.stubEnv('ALGOLIA_PARAMETERS_PATH', '/coursary-api/test/algolia');
-  vi.stubEnv('CATALOG_INDEX_NAME', 'test_courses');
-  vi.spyOn(ssmClient, 'send').mockImplementation(readParameter as never);
+  useAlgoliaParameters({ 'app-id': 'APPID', 'search-key': 'search-only' });
 });
 
 describe('AlgoliaCatalogSearch', () => {
@@ -81,5 +68,34 @@ describe('AlgoliaCatalogSearch', () => {
       attributesToRetrieve: [],
       attributesToHighlight: [],
     });
+  });
+
+  it('should count only the pages within the first 1,000 results, and read the keys once for calls that arrive together', async () => {
+    const send = useAlgoliaParameters({
+      'app-id': 'APPID',
+      'search-key': 'search-only',
+    });
+    const config = new AppConfig();
+    const search = new AlgoliaCatalogSearch(
+      config,
+      new AlgoliaConnection(config, 'search-key', {
+        requester: {
+          send: () =>
+            Promise.resolve({
+              status: 200,
+              content: JSON.stringify({ hits: [], nbHits: 4000, nbPages: 80 }),
+              isTimedOut: false,
+            }),
+        },
+      }),
+    );
+
+    const [first] = await Promise.all([
+      search.search({ query: 'a', page: 0, perPage: 50 }),
+      search.search({ query: 'a', page: 1, perPage: 50 }),
+    ]);
+
+    expect(first).toMatchObject({ totalItems: 4000, totalPages: 20 });
+    expect(send).toHaveBeenCalledTimes(2);
   });
 });

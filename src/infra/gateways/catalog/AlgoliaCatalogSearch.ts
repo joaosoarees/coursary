@@ -1,5 +1,5 @@
 import { Course } from '@application/entities/course/Course';
-import type { CatalogSearch } from '@application/gateways/catalog/CatalogSearch';
+import { CatalogSearch } from '@application/gateways/catalog/CatalogSearch';
 import type { AlgoliaConnection } from '@infra/gateways/catalog/AlgoliaConnection';
 import type { AppConfig } from '@shared/config/AppConfig';
 
@@ -36,7 +36,10 @@ export class AlgoliaCatalogSearch implements CatalogSearch {
         .map((hit) => hit.objectID)
         .filter((id) => Course.isId(id)),
       totalItems: nbHits,
-      totalPages: nbPages,
+      totalPages: Math.min(
+        nbPages,
+        Math.ceil(CatalogSearch.maxResults / perPage),
+      ),
     };
   }
 }

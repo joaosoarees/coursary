@@ -6,6 +6,9 @@ export interface CatalogSearch {
 }
 
 export namespace CatalogSearch {
+  // Only the first results of a query can be paged (Algolia's paginationLimitedTo, Q327).
+  export const maxResults = 1000;
+
   export interface Params {
     query: string;
     // Counted from 0 (Q297).
@@ -16,6 +19,7 @@ export namespace CatalogSearch {
   export interface Result {
     courseIds: Course.Id[];
     totalItems: number;
+    // Only the pages that can be asked for.
     totalPages: number;
   }
 }

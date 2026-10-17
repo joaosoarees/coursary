@@ -11,12 +11,22 @@ describe('searchSchema', () => {
     });
   });
 
+  it('should accept any page that starts within the first 1,000 results', () => {
+    expect(
+      searchSchema.safeParse({ q: 'x', page: '99', perPage: '10' }).success,
+    ).toBe(true);
+    expect(
+      searchSchema.safeParse({ q: 'x', page: '19', perPage: '50' }).success,
+    ).toBe(true);
+  });
+
   it.each([
     [{}],
     [{ q: '   ' }],
     [{ q: 'x'.repeat(201) }],
     [{ q: 'x', page: '-1' }],
     [{ q: 'x', page: '50' }],
+    [{ q: 'x', page: '20', perPage: '50' }],
     [{ q: 'x', perPage: '0' }],
     [{ q: 'x', perPage: '51' }],
   ])('should refuse %o', (query) => {

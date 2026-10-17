@@ -18,7 +18,10 @@ import { AppConfig } from '@shared/config/AppConfig';
 const config = new AppConfig();
 const courses = new DynamoCourseRepository(config);
 const enrollments = new DynamoEnrollmentRepository(config);
-const query = new DynamoListMyEnrollmentsQuery(config);
+const query = new DynamoListMyEnrollmentsQuery(
+  config,
+  new DynamoCourseRepository(config),
+);
 const instructor = Account.create({ name: 'Ana', email: uniqueEmail('ana') });
 
 const commit = async (...operations: Parameters<DynamoUnitOfWork['add']>) => {
