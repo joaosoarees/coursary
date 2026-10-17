@@ -458,6 +458,33 @@ Cada achado:
 - **O que aconteceu**: as regras serviram (`attribute_exists(description)` no filtro, `description = :lida` na condição), mas a skill só cobre reescrever o próprio item. Mover um atributo para outro item pede uma transação (`Put` do item novo com `attribute_not_exists` + `REMOVE` no antigo) e uma decisão que a skill não traz: o que fazer quando o item novo já existe porque o código novo foi deployado antes do backfill e alguém editou nesse meio-tempo. O script trata o novo como o mais recente e só remove a cópia antiga; foi exercitado no DynamoDB Local com os quatro casos (mover, vazio, já editado, já migrado) e uma segunda rodada sem escrita.
 - **Sugestão**: uma seção "mover um atributo para outro item (separação vertical)" com a transação, a ordem deploy → backfill, a regra do item novo vencer e o `--dry-run`.
 
+### `algolia-indexing-from-dynamodb`, `dynamodb-stream-event-filters`, `dynamodb-stream-lambda-triggers`, `sqs-queue-settings`, `sqs-dlq-alarms-and-redrive` (3.2)
+
+#### 2026-10-17 · 3.2.a · acerto (`dynamodb-stream-event-filters`)
+- **A skill diz**: numa tabela única o filtro por entidade precisa de dois padrões, `NewImage.type` e, para a remoção, `OldImage.type` com `NEW_AND_OLD_IMAGES`; e o handler repete o teste.
+- **O que aconteceu**: o par entrou como está, com `Course` e `CourseDescription` na mesma lista, e o template gerado trouxe os dois `FilterCriteria`. O roteador repete o teste pelo `type` da imagem.
+- **Sugestão**: nenhuma.
+
+#### 2026-10-17 · 3.2.a · acerto (`dynamodb-stream-lambda-triggers`)
+- **A skill diz**: o destino de falha de um stream só aceita fila ou tópico padrão (não FIFO), recebe só a posição do lote, e o framework acrescenta à role o que o evento precisa.
+- **O que aconteceu**: a fila de falhas é padrão mesmo com a fila `index` sendo FIFO; o template trouxe na role do roteador a leitura do stream e `sqs:SendMessage` na fila de falhas sem declaração nossa.
+- **Sugestão**: nenhuma.
+
+#### 2026-10-17 · 3.2.b · lacuna (`algolia-indexing-from-dynamodb`)
+- **A skill diz**: a chave de escrita entra por `${env:}` nas variáveis da função; o consumidor grava a `NewImage` do stream; reprocessar um lote atrasado volta estado antigo, então o replay lê o estado atual.
+- **O que aconteceu**: as duas primeiras orientações não serviram aqui. A chave ficou em `SecureString` no SSM, lida na primeira mensagem (Q305), porque `${env:}` e `${ssm:}` a deixariam em texto no template e no console. E, com um roteador e uma fila entre o stream e o indexador (Q302), a imagem chega fora do contexto do lote: o indexador sempre lê o estado atual pela chave, o que a skill só recomenda para o replay. Faltou também: o boundary do projeto não liberava o caminho nem o `kms:Decrypt` (Q313), e o `saveObject` do v5 é `POST /1/indexes/<índice>` com o `objectID` no corpo, não `PUT` com o id na URL (visto num requester falso).
+- **Sugestão**: uma seção "chave fora do template" (SSM `SecureString` ou Secrets Manager, leitura no cold start, IAM e KMS); e apresentar "copiar o estado atual" como forma padrão quando há fila no meio, não só no replay.
+
+#### 2026-10-17 · 3.2.b · acerto (`sqs-queue-settings`)
+- **A skill diz** (`fifo.md`): agrupar pela entidade cuja ordem importa; DLQ FIFO para fila FIFO; com `ReportBatchItemFailures`, parar na primeira falha e devolver ela e todas as seguintes; sem `maximumBatchingWindow` em FIFO.
+- **O que aconteceu**: tudo seguido. O `sqsBatchAdapter` devolve a mensagem que falhou e as seguintes sem lê-las, e o teste prova isso. A deduplicação usa o `eventID` do stream, não o conteúdo: com o corpo `{ courseId }`, duas mudanças do mesmo curso em 5 minutos teriam a segunda descartada.
+- **Sugestão**: citar o caso "corpo igual para mudanças diferentes" ao lado da deduplicação por conteúdo.
+
+#### 2026-10-17 · 3.2.c · lacuna (`sqs-dlq-alarms-and-redrive`)
+- **A skill diz**: alarme no número de mensagens visíveis da DLQ que avisa uma pessoa.
+- **O que aconteceu**: o e-mail do aviso não podia ir para o repositório público, e um `${ssm:}` seria resolvido pelo framework no `sls package` do job `check`, cuja role do CI não tem permissão nenhuma. A saída foi a referência dinâmica do CloudFormation (`{{resolve:ssm:…}}`), resolvida só no deploy pela role de deploy.
+- **Sugestão**: mostrar onde o endereço do aviso mora quando o repositório é público, e a diferença entre `${ssm:}` (framework, no package) e `{{resolve:ssm:}}` (CloudFormation, no deploy).
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |

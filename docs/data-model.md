@@ -261,6 +261,7 @@ Cada valor duplicado tem um tipo e um dono (`dynamodb-denormalization`; Q80 a Q8
 |---|---|---|---|
 | `studentName` | Enrollment, Review | exibição | A rota que renomeia a conta: uma query forte por prefixo (`ENROLLMENT#`, `REVIEW#`) em `ACCOUNT#a`, um `Update` por item (Q290) |
 | `instructorName` | Course | exibição | A rota que renomeia a conta: cursos do instrutor pelo `GSI1` |
+| registro do curso no Algolia (`title`, `description`, `instructorName`, `publishedAt`) | índice `<stage>_courses` | cópia externa | O indexador, pela fila `index` (Q314 a Q316) |
 | `cover` (`fileId`, `variants`) | Course | exibição | O processador de imagem, na transação que marca o `FILE` como `PROCESSED` (Q85) |
 | `avatar` (`fileId`, `variants`) | Account | exibição | O mesmo, para o avatar (Q85) |
 | `enrollmentCount` | Course | contador | Matricular, cancelar, rematricular (`ADD` na transação) |
@@ -275,6 +276,13 @@ Cada valor duplicado tem um tipo e um dono (`dynamodb-denormalization`; Q80 a Q8
 | entradas de `GSI1` e `GSI2` | índices | índice | O DynamoDB, a cada escrita |
 
 Percentual de progresso e média de avaliação são calculados na leitura, nunca gravados. Contadores nunca dependem do stream; o stream só alimenta cópias externas (Algolia, limpeza do Cognito).
+
+### Stream e cópia no Algolia (3.2)
+
+- A tabela tem stream `NEW_AND_OLD_IMAGES` com um leitor só, `routeTableChanges` (Q302). O filtro na origem deixa passar `Course` e `CourseDescription` (o par `NewImage.type` / `REMOVE` com `OldImage.type`).
+- O roteador envia `{ courseId }` à fila FIFO `coursary-api-<stage>-index.fifo` (grupo = `courseId`, deduplicação = `eventID`) só quando muda o que o índice guarda: a visão `title`, `instructorName`, `publishedAt` de um curso publicado (nula fora de `PUBLISHED`) ou o texto da descrição. Contadores e edições de rascunho não geram mensagem (Q315).
+- O indexador lê curso e descrição com leitura forte e copia o estado atual: publicado → `saveObject` com `objectID = courseId`; qualquer outro estado ou curso ausente → `deleteObject` (Q316). Por isso uma mensagem atrasada, repetida ou devolvida por redrive não estraga nada.
+- Falhas: lote do stream perdido depois de 3 tentativas vai, só com a posição, para `…-stream-failures` (alarme; reparo com `reindexCatalog`); mensagem da fila `index` que falha 5 vezes vai para `…-index-dlq.fifo` (alarme; redrive). Os alarmes avisam por e-mail num tópico SNS (Q296, Q317).
 
 ### Formato da cópia de imagem (Q85)
 
