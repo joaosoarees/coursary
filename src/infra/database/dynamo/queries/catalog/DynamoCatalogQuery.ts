@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import type { Page } from '@application/contracts/Page';
+import { CatalogItem } from '@application/queries/catalog/CatalogItem';
 import type { CatalogQuery } from '@application/queries/catalog/CatalogQuery';
 import { DynamoPagination } from '@infra/database/dynamo/DynamoPagination';
 import { CourseItem } from '@infra/database/dynamo/items/course/CourseItem';
@@ -18,7 +19,7 @@ export class DynamoCatalogQuery implements CatalogQuery {
 
   constructor(private readonly config: AppConfig) {}
 
-  async execute(page: Page.Options): Promise<Page<CatalogQuery.Item>> {
+  async execute(page: Page.Options): Promise<Page<CatalogItem>> {
     const { items, nextCursor } =
       await this.pagination.queryPage<CourseItem.ItemType>(
         {
@@ -32,20 +33,9 @@ export class DynamoCatalogQuery implements CatalogQuery {
       );
 
     return {
-      items: items.map((item) => {
-        const course = CourseItem.toEntity(item);
-
-        return {
-          id: course.id,
-          title: course.title,
-          instructorName: course.instructorName,
-          lessonCount: course.lessonCount,
-          enrollmentCount: course.enrollmentCount,
-          ratingCount: course.ratingCount,
-          ratingAverage: course.ratingAverage(),
-          publishedAt: item.publishedAt ?? '',
-        };
-      }),
+      items: items.map((item) =>
+        CatalogItem.fromCourse(CourseItem.toEntity(item)),
+      ),
       nextCursor,
     };
   }

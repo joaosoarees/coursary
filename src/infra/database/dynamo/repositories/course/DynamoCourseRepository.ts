@@ -1,5 +1,10 @@
 import { ConditionalCheckFailedException } from '@aws-sdk/client-dynamodb';
-import { GetCommand, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import {
+  BatchGetCommand,
+  GetCommand,
+  PutCommand,
+  UpdateCommand,
+} from '@aws-sdk/lib-dynamodb';
 
 import type { UnitOfWork } from '@application/contracts/UnitOfWork';
 import type { Account } from '@application/entities/account/Account';
@@ -24,6 +29,10 @@ import { queryAll } from '@infra/database/dynamo/queryAll';
 import type { AppConfig } from '@shared/config/AppConfig';
 
 export class DynamoCourseRepository implements CourseRepository {
+  static readonly maxBatchRounds = 3;
+
+  static readonly maxBatchKeys = 100;
+
   constructor(private readonly config: AppConfig) {}
 
   async create(course: Course, description = ''): Promise<void> {
@@ -87,6 +96,50 @@ export class DynamoCourseRepository implements CourseRepository {
     return CourseDescriptionItem.toDescription(
       Item as CourseDescriptionItem.ItemType | undefined,
     );
+  }
+
+  async findManyByIds(ids: Course.Id[]): Promise<Map<Course.Id, Course>> {
+    if (ids.length > DynamoCourseRepository.maxBatchKeys) {
+      throw new Error(
+        `BatchGet reads at most ${String(DynamoCourseRepository.maxBatchKeys)} courses.`,
+      );
+    }
+
+    const TableName = this.config.mainTableName;
+    const courses = new Map<Course.Id, Course>();
+    let keys: Record<string, unknown>[] = [...new Set(ids)].map((id) => ({
+      PK: CourseItem.getPK(id),
+      SK: CourseItem.getSK(id),
+    }));
+
+    // Unprocessed keys are asked again, with a growing wait.
+    for (
+      let round = 0;
+      keys.length > 0 && round < DynamoCourseRepository.maxBatchRounds;
+      round++
+    ) {
+      if (round > 0) {
+        await new Promise((resolve) => setTimeout(resolve, 50 * 2 ** round));
+      }
+
+      const command = new BatchGetCommand({
+        RequestItems: { [TableName]: { Keys: keys } },
+      });
+      const { Responses, UnprocessedKeys } = await dynamoClient.send(command);
+
+      for (const item of (Responses?.[TableName] ??
+        []) as CourseItem.ItemType[]) {
+        courses.set(item.id, CourseItem.toEntity(item));
+      }
+
+      keys = UnprocessedKeys?.[TableName]?.Keys ?? [];
+    }
+
+    if (keys.length > 0) {
+      throw new Error(`BatchGet left ${String(keys.length)} courses unread.`);
+    }
+
+    return courses;
   }
 
   // Both writes hold to a course that exists and is not archived (Q309).

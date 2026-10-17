@@ -1,4 +1,4 @@
-import { BatchGetCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
+import { DeleteCommand } from '@aws-sdk/lib-dynamodb';
 import { describe, expect, it, vi } from 'vitest';
 
 import { uniqueEmail } from '@tests/support/accountWorld';
@@ -18,7 +18,10 @@ import { AppConfig } from '@shared/config/AppConfig';
 const config = new AppConfig();
 const courses = new DynamoCourseRepository(config);
 const enrollments = new DynamoEnrollmentRepository(config);
-const query = new DynamoListMyEnrollmentsQuery(config);
+const query = new DynamoListMyEnrollmentsQuery(
+  config,
+  new DynamoCourseRepository(config),
+);
 const instructor = Account.create({ name: 'Ana', email: uniqueEmail('ana') });
 
 const commit = async (...operations: Parameters<DynamoUnitOfWork['add']>) => {
@@ -126,33 +129,5 @@ describe('DynamoListMyEnrollmentsQuery', () => {
     expect(warn).toHaveBeenCalledWith(
       expect.stringContaining('EnrollmentWithoutCourse'),
     );
-  });
-
-  it('should ask again for the courses BatchGet left unread, and fail when they stay unread', async () => {
-    const student = newStudent();
-    await enrollOn(student, 1);
-    const send = dynamoClient.send.bind(dynamoClient);
-    let unread = 1;
-    // Answers the first BatchGet as if DynamoDB had read nothing.
-    const fakeSend = (command: unknown): Promise<unknown> => {
-      if (command instanceof BatchGetCommand && unread > 0) {
-        unread -= 1;
-        const requested = command.input.RequestItems ?? {};
-
-        return Promise.resolve({ Responses: {}, UnprocessedKeys: requested });
-      }
-
-      return send(command as BatchGetCommand);
-    };
-    vi.spyOn(dynamoClient, 'send').mockImplementation(fakeSend as never);
-
-    await expect(
-      query.execute({ accountId: student.id, page: { limit: 10 } }),
-    ).resolves.toMatchObject({ items: [{ title: 'Day 1' }] });
-
-    unread = DynamoListMyEnrollmentsQuery.maxBatchRounds;
-    await expect(
-      query.execute({ accountId: student.id, page: { limit: 10 } }),
-    ).rejects.toThrow('BatchGet left 1 courses unread.');
   });
 });

@@ -4,10 +4,7 @@ enroll:
     - httpApi:
         method: PUT
         path: /courses/{courseId}/enrollment
-        authorizer:
-          name: CognitoAuthorizer
-          scopes:
-            - aws.cognito.signin.user.admin
+        authorizer: ${file(./sls/config/privateAuthorizer.yml)}
 
 cancelEnrollment:
   handler: src/main/functions/enrollment/cancelEnrollment.handler
@@ -15,10 +12,7 @@ cancelEnrollment:
     - httpApi:
         method: DELETE
         path: /courses/{courseId}/enrollment
-        authorizer:
-          name: CognitoAuthorizer
-          scopes:
-            - aws.cognito.signin.user.admin
+        authorizer: ${file(./sls/config/privateAuthorizer.yml)}
 
 listMyEnrollments:
   handler: src/main/functions/enrollment/listMyEnrollments.handler
@@ -26,10 +20,7 @@ listMyEnrollments:
     - httpApi:
         method: GET
         path: /me/enrollments
-        authorizer:
-          name: CognitoAuthorizer
-          scopes:
-            - aws.cognito.signin.user.admin
+        authorizer: ${file(./sls/config/privateAuthorizer.yml)}
 
 listCourseStudents:
   handler: src/main/functions/enrollment/listCourseStudents.handler
@@ -37,10 +28,7 @@ listCourseStudents:
     - httpApi:
         method: GET
         path: /courses/{courseId}/students
-        authorizer:
-          name: CognitoAuthorizer
-          scopes:
-            - aws.cognito.signin.user.admin
+        authorizer: ${file(./sls/config/privateAuthorizer.yml)}
 
 openLesson:
   handler: src/main/functions/enrollment/openLesson.handler
@@ -48,10 +36,7 @@ openLesson:
     - httpApi:
         method: GET
         path: /courses/{courseId}/lessons/{lessonId}
-        authorizer:
-          name: CognitoAuthorizer
-          scopes:
-            - aws.cognito.signin.user.admin
+        authorizer: ${file(./sls/config/privateAuthorizer.yml)}
 
 completeLesson:
   handler: src/main/functions/enrollment/completeLesson.handler
@@ -59,10 +44,7 @@ completeLesson:
     - httpApi:
         method: PUT
         path: /courses/{courseId}/lessons/{lessonId}/completion
-        authorizer:
-          name: CognitoAuthorizer
-          scopes:
-            - aws.cognito.signin.user.admin
+        authorizer: ${file(./sls/config/privateAuthorizer.yml)}
 
 getProgress:
   handler: src/main/functions/enrollment/getProgress.handler
@@ -70,10 +52,7 @@ getProgress:
     - httpApi:
         method: GET
         path: /courses/{courseId}/progress
-        authorizer:
-          name: CognitoAuthorizer
-          scopes:
-            - aws.cognito.signin.user.admin
+        authorizer: ${file(./sls/config/privateAuthorizer.yml)}
 
 savePosition:
   handler: src/main/functions/enrollment/savePosition.handler
@@ -81,7 +60,4 @@ savePosition:
     - httpApi:
         method: PUT
         path: /courses/{courseId}/position
-        authorizer:
-          name: CognitoAuthorizer
-          scopes:
-            - aws.cognito.signin.user.admin
+        authorizer: ${file(./sls/config/privateAuthorizer.yml)}

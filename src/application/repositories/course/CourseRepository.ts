@@ -16,6 +16,9 @@ export interface CourseRepository {
     options?: CourseRepository.ReadOptions,
   ) => Promise<string>;
 
+  // Missing courses are left out of the map; at most 100 ids (Q80, Q330).
+  findManyByIds: (ids: Course.Id[]) => Promise<Map<Course.Id, Course>>;
+
   update: (course: Course, changes: Course.Changes) => Promise<void>;
 
   publish: (id: Course.Id, publishedAt: Date) => Promise<Course>;

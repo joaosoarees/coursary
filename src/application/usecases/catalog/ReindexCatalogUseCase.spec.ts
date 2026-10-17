@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest';
 
 import type { CatalogIndexQueue } from '@application/gateways/catalog/CatalogIndexQueue';
-import type { CatalogQuery } from '@application/queries/catalog/CatalogQuery';
+import type { CatalogItem } from '@application/queries/catalog/CatalogItem';
 import { ReindexCatalogUseCase } from '@application/usecases/catalog/ReindexCatalogUseCase';
 
-const item = (id: string) => ({ id: id.padEnd(27, '0') }) as CatalogQuery.Item;
+const item = (id: string) => ({ id: id.padEnd(27, '0') }) as CatalogItem;
 
 describe('ReindexCatalogUseCase', () => {
   it('should queue every published course, page after page, once per run', async () => {
     const pages: Record<
       string,
-      { items: CatalogQuery.Item[]; nextCursor: string | null }
+      { items: CatalogItem[]; nextCursor: string | null }
     > = {
       first: { items: [item('c1'), item('c2')], nextCursor: 'p2' },
       p2: { items: [item('c3')], nextCursor: null },

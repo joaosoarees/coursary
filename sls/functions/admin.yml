@@ -17,10 +17,7 @@ listAccounts:
     - httpApi:
         method: GET
         path: /admin/users
-        authorizer:
-          name: CognitoAuthorizer
-          scopes:
-            - aws.cognito.signin.user.admin
+        authorizer: ${file(./sls/config/privateAuthorizer.yml)}
 
 findAccountByEmail:
   handler: src/main/functions/admin/findAccountByEmail.handler
@@ -28,10 +25,7 @@ findAccountByEmail:
     - httpApi:
         method: GET
         path: /admin/users/by-email
-        authorizer:
-          name: CognitoAuthorizer
-          scopes:
-            - aws.cognito.signin.user.admin
+        authorizer: ${file(./sls/config/privateAuthorizer.yml)}
 
 changeRole:
   handler: src/main/functions/admin/changeRole.handler
@@ -39,10 +33,7 @@ changeRole:
     - httpApi:
         method: PUT
         path: /admin/users/{accountId}/role
-        authorizer:
-          name: CognitoAuthorizer
-          scopes:
-            - aws.cognito.signin.user.admin
+        authorizer: ${file(./sls/config/privateAuthorizer.yml)}
 
 listRoleChanges:
   handler: src/main/functions/admin/listRoleChanges.handler
@@ -50,10 +41,7 @@ listRoleChanges:
     - httpApi:
         method: GET
         path: /admin/users/{accountId}/role-changes
-        authorizer:
-          name: CognitoAuthorizer
-          scopes:
-            - aws.cognito.signin.user.admin
+        authorizer: ${file(./sls/config/privateAuthorizer.yml)}
 
 disableAccount:
   handler: src/main/functions/admin/disableAccount.handler
@@ -61,10 +49,7 @@ disableAccount:
     - httpApi:
         method: POST
         path: /admin/users/{accountId}/disable
-        authorizer:
-          name: CognitoAuthorizer
-          scopes:
-            - aws.cognito.signin.user.admin
+        authorizer: ${file(./sls/config/privateAuthorizer.yml)}
 
 enableAccount:
   handler: src/main/functions/admin/enableAccount.handler
@@ -72,7 +57,4 @@ enableAccount:
     - httpApi:
         method: POST
         path: /admin/users/{accountId}/enable
-        authorizer:
-          name: CognitoAuthorizer
-          scopes:
-            - aws.cognito.signin.user.admin
+        authorizer: ${file(./sls/config/privateAuthorizer.yml)}

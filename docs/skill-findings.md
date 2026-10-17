@@ -485,6 +485,23 @@ Cada achado:
 - **O que aconteceu**: o e-mail do aviso não podia ir para o repositório público, e um `${ssm:}` seria resolvido pelo framework no `sls package` do job `check`, cuja role do CI não tem permissão nenhuma. A saída foi a referência dinâmica do CloudFormation (`{{resolve:ssm:…}}`), resolvida só no deploy pela role de deploy.
 - **Sugestão**: mostrar onde o endereço do aviso mora quando o repositório é público, e a diferença entre `${ssm:}` (framework, no package) e `{{resolve:ssm:}}` (CloudFormation, no deploy).
 
+### `algolia-search-api` (3.3)
+
+#### 2026-10-17 · 3.3.b · acerto (`algolia-search-api`)
+- **A skill diz**: `searchSingleIndex` com `query`, `page` e `hitsPerPage`; totais de `nbHits` e `nbPages` com padrão 0; página além da última não é erro; chave só de busca na rota; quando o dado precisa ser exato, ler os itens pela chave e recolocar a ordem dos resultados.
+- **O que aconteceu**: a busca pede só os ids (`attributesToRetrieve: []`, `attributesToHighlight: []`) e completa pelo `BatchGet`, recolocando a ordem do Algolia; o requester falso confirmou o corpo `{ query, page, hitsPerPage, attributesToRetrieve, attributesToHighlight }` em `/1/indexes/<índice>/query` e o cabeçalho com a chave de busca.
+- **Sugestão**: nenhuma.
+
+#### 2026-10-17 · 3.3 · ambíguo (`algolia-search-api`)
+- **A skill diz**: a API pública conta a página a partir de 1 e converte para o 0 do Algolia num lugar só.
+- **O que aconteceu**: a Q297 já tinha fixado a página a partir de 0, igual ao Algolia, e ficou assim (Q327). As duas escolhas funcionam; a da skill é apresentada como regra, sem dizer quando a outra serve (uma API cujo cliente é só o próprio front, que repassa o número).
+- **Sugestão**: apresentar como escolha, com o critério.
+
+#### 2026-10-17 · 3.3.c · lacuna (`algolia-search-api`)
+- **A skill diz**: cada chamada da rota é uma requisição na conta do Algolia.
+- **O que aconteceu**: com a rota pública e o plano gratuito, nada impedia um script de esgotar a cota. O limite entrou no próprio API Gateway, só para a rota (`RouteSettings` do stage `$default`, 5 por segundo e rajada de 10), por `resources.extensions` sobre o `HttpApiStage` do framework, com `DependsOn` na rota para o stage não ser criado antes dela.
+- **Sugestão**: uma seção sobre proteger a cota de uma rota pública de busca, com o throttling por rota do HTTP API.
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |
