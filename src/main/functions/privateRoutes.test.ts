@@ -17,7 +17,11 @@ import { AppConfig } from '@shared/config/AppConfig';
 interface FunctionDefinition {
   handler: string;
   events?: {
-    httpApi?: { method: string; path: string; authorizer?: string };
+    httpApi?: {
+      method: string;
+      path: string;
+      authorizer?: { name: string; scopes?: string[] };
+    };
   }[];
 }
 
@@ -133,11 +137,15 @@ describe('private routes', () => {
   });
 
   it.each(privateRoutes)(
-    '$method $path should refuse a disabled account before the resource',
+    '$method $path should require the access token scope and refuse a disabled account before the resource',
     async ({ handler, authorizer }) => {
       const response = await (await loadHandler(handler))(eventFor(disabled));
 
-      expect(authorizer).toBe('CognitoAuthorizer');
+      // Only the access token carries this scope; an id token stops at the gateway (Q301).
+      expect(authorizer).toEqual({
+        name: 'CognitoAuthorizer',
+        scopes: ['aws.cognito.signin.user.admin'],
+      });
       expect(response.statusCode).toBe(403);
       expect(response.body).toContain('ACCOUNT_UNAVAILABLE');
     },

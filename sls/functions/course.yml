@@ -4,7 +4,10 @@ createCourse:
     - httpApi:
         method: POST
         path: /courses
-        authorizer: CognitoAuthorizer
+        authorizer:
+          name: CognitoAuthorizer
+          scopes:
+            - aws.cognito.signin.user.admin
 
 updateCourse:
   handler: src/main/functions/course/updateCourse.handler
@@ -12,7 +15,10 @@ updateCourse:
     - httpApi:
         method: PATCH
         path: /courses/{courseId}
-        authorizer: CognitoAuthorizer
+        authorizer:
+          name: CognitoAuthorizer
+          scopes:
+            - aws.cognito.signin.user.admin
 
 listMyCourses:
   handler: src/main/functions/course/listMyCourses.handler
@@ -20,7 +26,10 @@ listMyCourses:
     - httpApi:
         method: GET
         path: /instructor/courses
-        authorizer: CognitoAuthorizer
+        authorizer:
+          name: CognitoAuthorizer
+          scopes:
+            - aws.cognito.signin.user.admin
 
 publishCourse:
   handler: src/main/functions/course/publishCourse.handler
@@ -28,7 +37,10 @@ publishCourse:
     - httpApi:
         method: POST
         path: /courses/{courseId}/publish
-        authorizer: CognitoAuthorizer
+        authorizer:
+          name: CognitoAuthorizer
+          scopes:
+            - aws.cognito.signin.user.admin
 
 archiveCourse:
   handler: src/main/functions/course/archiveCourse.handler
@@ -36,4 +48,7 @@ archiveCourse:
     - httpApi:
         method: POST
         path: /courses/{courseId}/archive
-        authorizer: CognitoAuthorizer
+        authorizer:
+          name: CognitoAuthorizer
+          scopes:
+            - aws.cognito.signin.user.admin

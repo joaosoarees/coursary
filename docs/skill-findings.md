@@ -439,6 +439,13 @@ Cada achado:
 - **O que aconteceu**: o stream tem quatro interessados, e a AWS recomenda no máximo dois leitores por shard. A fase 3 terá uma Lambda roteadora, leitora única do stream, que envia para uma fila por consumidor.
 - **Sugestão**: a skill de fan-out de stream (Lambda roteadora ou EventBridge Pipes) já está na tabela de skills que faltam.
 
+### `cognito-api-gateway-jwt-authorizer` (R.5)
+
+#### 2026-10-16 · R.5 · acerto
+- **A skill diz** (revista em 2026-10-14, testada em conta real): "Keep `scopes` on every route that expects an access token"; sem o escopo, o id token passa pelo API Gateway e só a Lambda o recusa.
+- **O que aconteceu**: a Q169 tinha tirado o escopo, e o id token chegava ao adapter, que respondia 401 por faltar `internalId`. Um 401 faz o cliente tentar renovar a sessão, quando o problema é o token errado. As 31 rotas privadas voltaram a exigir `aws.cognito.signin.user.admin` (Q301): o id token para no API Gateway com 403, sem invocar a Lambda. O teste de auditoria das rotas exige o escopo em toda rota privada, e o `e2e:dev` pede um id token ao Cognito e confere o 403.
+- **Sugestão**: nenhuma.
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |

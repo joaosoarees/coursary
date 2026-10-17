@@ -4,7 +4,10 @@ createModule:
     - httpApi:
         method: POST
         path: /courses/{courseId}/modules
-        authorizer: CognitoAuthorizer
+        authorizer:
+          name: CognitoAuthorizer
+          scopes:
+            - aws.cognito.signin.user.admin
 
 updateModule:
   handler: src/main/functions/outline/updateModule.handler
@@ -12,7 +15,10 @@ updateModule:
     - httpApi:
         method: PATCH
         path: /courses/{courseId}/modules/{moduleId}
-        authorizer: CognitoAuthorizer
+        authorizer:
+          name: CognitoAuthorizer
+          scopes:
+            - aws.cognito.signin.user.admin
 
 deleteModule:
   handler: src/main/functions/outline/deleteModule.handler
@@ -20,7 +26,10 @@ deleteModule:
     - httpApi:
         method: DELETE
         path: /courses/{courseId}/modules/{moduleId}
-        authorizer: CognitoAuthorizer
+        authorizer:
+          name: CognitoAuthorizer
+          scopes:
+            - aws.cognito.signin.user.admin
 
 createLesson:
   handler: src/main/functions/outline/createLesson.handler
@@ -28,7 +37,10 @@ createLesson:
     - httpApi:
         method: POST
         path: /courses/{courseId}/modules/{moduleId}/lessons
-        authorizer: CognitoAuthorizer
+        authorizer:
+          name: CognitoAuthorizer
+          scopes:
+            - aws.cognito.signin.user.admin
 
 updateLesson:
   handler: src/main/functions/outline/updateLesson.handler
@@ -36,7 +48,10 @@ updateLesson:
     - httpApi:
         method: PATCH
         path: /courses/{courseId}/modules/{moduleId}/lessons/{lessonId}
-        authorizer: CognitoAuthorizer
+        authorizer:
+          name: CognitoAuthorizer
+          scopes:
+            - aws.cognito.signin.user.admin
 
 deleteLesson:
   handler: src/main/functions/outline/deleteLesson.handler
@@ -44,7 +59,10 @@ deleteLesson:
     - httpApi:
         method: DELETE
         path: /courses/{courseId}/modules/{moduleId}/lessons/{lessonId}
-        authorizer: CognitoAuthorizer
+        authorizer:
+          name: CognitoAuthorizer
+          scopes:
+            - aws.cognito.signin.user.admin
 
 getOutline:
   handler: src/main/functions/outline/getOutline.handler
@@ -52,7 +70,10 @@ getOutline:
     - httpApi:
         method: GET
         path: /courses/{courseId}/outline
-        authorizer: CognitoAuthorizer
+        authorizer:
+          name: CognitoAuthorizer
+          scopes:
+            - aws.cognito.signin.user.admin
 
 reorderOutline:
   handler: src/main/functions/outline/reorderOutline.handler
@@ -60,4 +81,7 @@ reorderOutline:
     - httpApi:
         method: PUT
         path: /courses/{courseId}/outline
-        authorizer: CognitoAuthorizer
+        authorizer:
+          name: CognitoAuthorizer
+          scopes:
+            - aws.cognito.signin.user.admin
