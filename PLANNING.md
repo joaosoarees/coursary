@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-16. Estado: **fases 1 e 2 e R.1 a R.4 na `develop` e em `dev`, `pnpm e2e:dev` 91 de 91, funções com 512 MB (Q291); fase 3 quebrada em R.5 e 3.1 a 3.7 (Q293 a Q305); próxima: R.5 (escopo no JWT)**.
+Última atualização: 2026-10-16. Estado: **fases 1 e 2 e R.1 a R.4 na `develop` e em `dev`, funções com 512 MB (Q291); fase 3 quebrada em R.5 e 3.1 a 3.7 (Q293 a Q305); R.5 (escopo no JWT) na `refactor/r5-jwt-scope`, em PR; próxima: 3.1**.
 
 ## Como retomar
 
@@ -222,7 +222,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q166 | `GET /me` | `200 { id, name, email, role, createdAt }`, leitura eventual (Q88). `avatar` entra com o upload (Q85, Q112); `status` fica de fora. |
 | Q167 | `PATCH /me` | Só `name` (validação do sign-up), `200` com o perfil de `ReturnValues: 'ALL_NEW'` (Q88). Troca de e-mail fica como evolução; papel só pelo admin (Q44). A propagação do nome para as cópias entra com as cópias (1.13, fase 2). |
 | Q168 | Adapter das rotas privadas | Como no foodiary: um `lambdaHttpAdapter` só, que lê o `authorizer` do evento (`accountId` `null` nas públicas, `string` nas privadas); com `authorizer` e sem a claim `internalId`, `401 INVALID_SESSION`. `params` e `queryParams` entram com a primeira rota que os usar (Q112). Sub-imp da 1.8: authorizer e adapter; `updateName`; `GetMe` e `UpdateMe`; rotas, roles e Yaak; chamadas reais. |
-| Q169 | Authorizer nas rotas (revê a Q163) | `CognitoAuthorizer` no provider e `authorizer: CognitoAuthorizer` na rota, sem escopo. O API Gateway aceita o id token, mas ele não tem a claim `internalId` (só o access token recebe, Q145), então o adapter o recusa com `401 INVALID_SESSION` (Q164). |
+| Q169 | Authorizer nas rotas (revê a Q163) | `CognitoAuthorizer` no provider e `authorizer: CognitoAuthorizer` na rota, sem escopo. O API Gateway aceita o id token, mas ele não tem a claim `internalId` (só o access token recebe, Q145), então o adapter o recusa com `401 INVALID_SESSION` (Q164). *Revista pela Q301: as rotas privadas voltam a exigir o escopo, e o id token para no API Gateway com 403.* |
 | Q170 | Role compartilhada (revê a Q97) | Uma role no provider com as permissões de todas as rotas em `sls/config/role.yml` (tabela: `GetItem`, `PutItem`, `UpdateItem`, `DeleteItem`; pool: `AdminGetUser`, `AdminDeleteUser`, `AdminUserGlobalSignOut`, que saiu na Q212; `BatchGetItem` e `ConditionCheckItem` entraram depois), com o boundary. Os dois triggers do pool têm role própria (`preTokenGeneration` com `GetItem`, `customMessage` só com logs): na role compartilhada, que cita o pool, formariam ciclo pool → trigger → role → pool. |
 | Q171 | Módulo de permissões | Sai da 1.9 e entra na 1.10, com a primeira rota que pergunta por uma ação (Q112). A 1.9 entrega só o primeiro admin. |
 | Q172 | Script do primeiro admin | Lambda interna `promoteAdmin`, sem rota HTTP, chamada por `sls invoke -f promoteAdmin --stage <stage> --data '{"email": "…"}'`; reaproveita repositório, entidade e chaves, e a 1.10 reaproveita a mesma operação. |
