@@ -15,9 +15,7 @@ const instructorWith = async (count: number) => {
   const instructor = Account.create({ name: 'Ana', email: 'a@example.com' });
 
   for (let i = 0; i < count; i++) {
-    await courses.create(
-      Course.create({ instructor, title: `C${String(i)}`, description: '' }),
-    );
+    await courses.create(Course.create({ instructor, title: `C${String(i)}` }));
   }
 
   return instructor;

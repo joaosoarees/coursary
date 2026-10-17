@@ -8,7 +8,6 @@ const student = Account.create({ name: 'Bia', email: 'bia@example.com' });
 const course = Course.create({
   instructor: student,
   title: 'T',
-  description: '',
 });
 const review = Review.create({ student, course, rating: 4, comment: 'Good' });
 

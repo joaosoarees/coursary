@@ -3,6 +3,7 @@ import {
   courseStatuses,
 } from '@application/entities/course/Course';
 import type { CoursePageQuery } from '@application/queries/catalog/CoursePageQuery';
+import { CourseDescriptionItem } from '@infra/database/dynamo/items/course/CourseDescriptionItem';
 import { CourseItem } from '@infra/database/dynamo/items/course/CourseItem';
 import { DynamoCourseOutlineQuery } from '@infra/database/dynamo/queries/outline/DynamoCourseOutlineQuery';
 import { queryAll } from '@infra/database/dynamo/queryAll';
@@ -28,11 +29,15 @@ export class DynamoCoursePageQuery implements CoursePageQuery {
     }
 
     const entity = CourseItem.toEntity(course);
+    const description = items.find(
+      (item): item is CourseDescriptionItem.ItemType =>
+        item.type === CourseDescriptionItem.type,
+    );
 
     return {
       id: course.id,
       title: course.title,
-      description: course.description,
+      description: CourseDescriptionItem.toDescription(description),
       instructorName: course.instructorName,
       lessonCount: course.lessonCount,
       enrollmentCount: course.enrollmentCount,

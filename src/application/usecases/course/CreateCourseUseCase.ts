@@ -15,12 +15,11 @@ export class CreateCourseUseCase {
     const course = Course.create({
       instructor: activeInstructor,
       title,
-      description,
     });
 
-    await this.coursesRepository.create(course);
+    await this.coursesRepository.create(course, description);
 
-    return CourseDetails.fromCourse(course);
+    return CourseDetails.fromCourse(course, description);
   }
 }
 

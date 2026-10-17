@@ -16,9 +16,13 @@ export class UpdateCourseUseCase {
     const course = Course.requireFound(found);
     course.requireEditableBy(callerId, callerRole);
 
-    const updated = await this.coursesRepository.update(courseId, changes);
+    const [, description] = await Promise.all([
+      this.coursesRepository.update(course, changes),
+      changes.description ?? this.coursesRepository.findDescription(courseId),
+    ]);
+    course.title = changes.title ?? course.title;
 
-    return CourseDetails.fromCourse(updated);
+    return CourseDetails.fromCourse(course, description);
   }
 }
 

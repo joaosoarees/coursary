@@ -22,7 +22,6 @@ export class Course {
   readonly instructorId: Account.Id;
   instructorName: string;
   title: string;
-  description: string;
   status: Course.Status;
   lessonCount: number;
   enrollmentCount: number;
@@ -36,7 +35,6 @@ export class Course {
     this.instructorId = attributes.instructorId;
     this.instructorName = attributes.instructorName;
     this.title = attributes.title;
-    this.description = attributes.description;
     this.status = attributes.status;
     this.lessonCount = attributes.lessonCount;
     this.enrollmentCount = attributes.enrollmentCount;
@@ -143,18 +141,15 @@ export class Course {
   static create({
     instructor,
     title,
-    description,
   }: {
     instructor: Account;
     title: string;
-    description: string;
   }): Course {
     return new Course({
       id: Course.toId(KSUID.randomSync().string),
       instructorId: instructor.id,
       instructorName: instructor.name,
       title: title.trim(),
-      description,
       status: courseStatuses.Draft,
       lessonCount: 0,
       enrollmentCount: 0,
@@ -176,7 +171,6 @@ export namespace Course {
     instructorId: Account.Id;
     instructorName: string;
     title: string;
-    description: string;
     status: Status;
     lessonCount: number;
     enrollmentCount: number;

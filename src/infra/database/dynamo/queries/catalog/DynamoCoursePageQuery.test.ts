@@ -19,8 +19,8 @@ const coursePage = new DynamoCoursePageQuery(config);
 const instructor = Account.create({ name: 'Ana', email: 'ana@example.com' });
 
 const courseWithLesson = async (title: string) => {
-  const course = Course.create({ instructor, title, description: 'About' });
-  await courses.create(course);
+  const course = Course.create({ instructor, title });
+  await courses.create(course, 'About');
   const module = Module.create({
     courseId: course.id,
     title: 'M1',
@@ -56,6 +56,7 @@ describe('DynamoCoursePageQuery', () => {
     expect(page).toMatchObject({
       id: course.id,
       title: 'Public',
+      description: 'About',
       lessonCount: 1,
       modules: [
         {

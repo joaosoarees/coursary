@@ -16,15 +16,18 @@ export class PublishCourseUseCase {
     course.requireEditableBy(callerId, callerRole);
 
     if (course.status === courseStatuses.Published) {
-      return CourseDetails.fromCourse(course);
+      const description =
+        await this.coursesRepository.findDescription(courseId);
+
+      return CourseDetails.fromCourse(course, description);
     }
 
-    const published = await this.coursesRepository.publish(
-      courseId,
-      new Date(),
-    );
+    const [published, description] = await Promise.all([
+      this.coursesRepository.publish(courseId, new Date()),
+      this.coursesRepository.findDescription(courseId),
+    ]);
 
-    return CourseDetails.fromCourse(published);
+    return CourseDetails.fromCourse(published, description);
   }
 }
 

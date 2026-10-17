@@ -15,9 +15,12 @@ export class ArchiveCourseUseCase {
     const course = Course.requireFound(found);
     course.requireEditableBy(callerId, callerRole);
 
-    const archived = await this.coursesRepository.archive(courseId);
+    const [archived, description] = await Promise.all([
+      this.coursesRepository.archive(courseId),
+      this.coursesRepository.findDescription(courseId),
+    ]);
 
-    return CourseDetails.fromCourse(archived);
+    return CourseDetails.fromCourse(archived, description);
   }
 }
 

@@ -14,7 +14,6 @@ const courseIn = (status: Course.Status) => {
   const course = Course.create({
     instructor: owner,
     title: 'T',
-    description: '',
   });
   course.status = status;
 

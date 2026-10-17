@@ -32,7 +32,6 @@ const enrollOn = async (student: Account, day: number) => {
   const course = Course.create({
     instructor,
     title: `Day ${String(day)}`,
-    description: '',
   });
   await courses.create(course);
   await setCourseFields(course, { status: 'PUBLISHED', lessonCount: 3 });

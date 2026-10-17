@@ -19,7 +19,7 @@ const query = new DynamoListCourseStudentsQuery(config);
 const instructor = Account.create({ name: 'Ana', email: uniqueEmail('ana') });
 
 const courseWithStudents = async (count: number) => {
-  const course = Course.create({ instructor, title: 'T', description: '' });
+  const course = Course.create({ instructor, title: 'T' });
   await courses.create(course);
 
   for (let i = 0; i < count; i++) {

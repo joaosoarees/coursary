@@ -25,13 +25,13 @@ export class CourseDetails {
     this.createdAt = attributes.createdAt;
   }
 
-  static fromCourse(course: Course): CourseDetails {
+  static fromCourse(course: Course, description: string): CourseDetails {
     return new CourseDetails({
       id: course.id,
       instructorId: course.instructorId,
       instructorName: course.instructorName,
       title: course.title,
-      description: course.description,
+      description,
       status: course.status,
       lessonCount: course.lessonCount,
       enrollmentCount: course.enrollmentCount,
