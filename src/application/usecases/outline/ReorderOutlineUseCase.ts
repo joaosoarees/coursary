@@ -3,6 +3,7 @@ import { Course } from '@application/entities/course/Course';
 import { Lesson } from '@application/entities/outline/Lesson';
 import { Module } from '@application/entities/outline/Module';
 import { OutlineMismatch, OutlineTooLarge } from '@application/errors/outline';
+import { CourseOutline } from '@application/queries/outline/CourseOutline';
 import type { CourseOutlineQuery } from '@application/queries/outline/CourseOutlineQuery';
 import type { CourseRepository } from '@application/repositories/course/CourseRepository';
 import type { LessonRepository } from '@application/repositories/outline/LessonRepository';
@@ -25,7 +26,7 @@ export class ReorderOutlineUseCase {
     callerRole,
     courseId,
     modules: order,
-  }: ReorderOutlineUseCase.Input): Promise<CourseOutlineQuery.Outline> {
+  }: ReorderOutlineUseCase.Input): Promise<CourseOutline> {
     const found = await this.coursesRepository.findById(courseId);
     const course = Course.requireFound(found);
     course.requireEditableBy(callerId, callerRole);
@@ -37,11 +38,23 @@ export class ReorderOutlineUseCase {
     const modulesById = new Map(current.modules.map((m) => [m.id, m]));
     const lessonsById = new Map(
       current.modules.flatMap((m) =>
-        m.lessons.map((l) => [l.id, { ...l, moduleId: m.id }] as const),
+        m.lessons.map(
+          (l) =>
+            [
+              l.id,
+              {
+                moduleId: m.id,
+                title: l.title,
+                durationMinutes: l.durationMinutes,
+                position: l.position,
+              },
+            ] as const,
+        ),
       ),
     );
     const operations: UnitOfWork.Operation[] = [];
-    const reordered: CourseOutlineQuery.Module[] = [];
+    const modules: Module[] = [];
+    const lessons: Lesson[] = [];
     // A module item is written once: its position and lesson count together.
     const lessonsDelta = new Map<string, number>();
     const shift = (moduleId: string, delta: number) => {
@@ -56,20 +69,18 @@ export class ReorderOutlineUseCase {
         throw new OutlineMismatch();
       }
 
-      if (stored.position !== position) {
-        repositioned.set(
-          entry.id,
-          new Module({
-            id: entry.id,
-            courseId,
-            title: stored.title,
-            position,
-            lessonCount: stored.lessons.length,
-          }),
-        );
-      }
+      const module = new Module({
+        id: Module.toId(entry.id),
+        courseId,
+        title: stored.title,
+        position,
+        lessonCount: stored.lessons.length,
+      });
+      modules.push(module);
 
-      const lessons: CourseOutlineQuery.Lesson[] = [];
+      if (stored.position !== position) {
+        repositioned.set(entry.id, module);
+      }
 
       for (const [lessonPosition, lessonId] of entry.lessonIds.entries()) {
         const summary = lessonsById.get(lessonId);
@@ -102,15 +113,8 @@ export class ReorderOutlineUseCase {
           operations.push(this.lessonsRepository.repositionOperation(lesson));
         }
 
-        lessons.push({
-          id: lessonId,
-          title: summary.title,
-          durationMinutes: summary.durationMinutes,
-          position: lessonPosition,
-        });
+        lessons.push(lesson);
       }
-
-      reordered.push({ id: entry.id, title: stored.title, position, lessons });
     }
 
     for (const { id } of order) {
@@ -141,12 +145,12 @@ export class ReorderOutlineUseCase {
       await unit.commit();
     }
 
-    return { modules: reordered };
+    return CourseOutline.from(modules, lessons);
   }
 
   // The outline only reorders: every module and lesson, each once (Q229).
   private static requireSameItems(
-    current: CourseOutlineQuery.Outline,
+    current: CourseOutline,
     order: ReorderOutlineUseCase.Input['modules'],
   ): void {
     const sameSet = (stored: string[], sent: string[]) =>

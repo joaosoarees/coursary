@@ -80,4 +80,10 @@ export namespace Lesson {
     body?: string;
     durationMinutes?: number;
   }
+
+  // A lesson without its body, as the outline reads it (Q72, Q337).
+  export type Summary = Pick<
+    Lesson,
+    'id' | 'moduleId' | 'title' | 'durationMinutes' | 'position'
+  >;
 }

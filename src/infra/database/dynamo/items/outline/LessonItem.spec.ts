@@ -28,5 +28,12 @@ describe('LessonItem', () => {
       type: 'Lesson',
     });
     expect(item).not.toHaveProperty('body');
+    expect(LessonItem.toSummary(item)).toEqual({
+      id: lesson.id,
+      moduleId,
+      title: 'Keys',
+      durationMinutes: 10,
+      position: 0,
+    });
   });
 });

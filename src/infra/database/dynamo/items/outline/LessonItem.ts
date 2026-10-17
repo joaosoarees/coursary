@@ -31,6 +31,17 @@ export class LessonItem {
     });
   }
 
+  // The item has no body, so it reads back as a summary, not a Lesson (Q337).
+  static toSummary(item: LessonItem.ItemType): Lesson.Summary {
+    return {
+      id: item.id,
+      moduleId: item.moduleId,
+      title: item.title,
+      durationMinutes: item.durationMinutes,
+      position: item.position,
+    };
+  }
+
   static getPK(courseId: Course.Id): LessonItem.Keys['PK'] {
     return CourseItem.getPK(courseId);
   }

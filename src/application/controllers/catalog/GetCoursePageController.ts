@@ -2,13 +2,10 @@ import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
 import { courseIdParamsSchema } from '@application/controllers/shared/schemas';
-import type { CoursePageQuery } from '@application/queries/catalog/CoursePageQuery';
+import type { CoursePage } from '@application/queries/catalog/CoursePage';
 import type { GetCoursePageUseCase } from '@application/usecases/catalog/GetCoursePageUseCase';
 
-export class GetCoursePageController extends Controller<
-  'public',
-  CoursePageQuery.Page
-> {
+export class GetCoursePageController extends Controller<'public', CoursePage> {
   protected override readonly paramsSchema = courseIdParamsSchema;
 
   constructor(private readonly getCoursePage: GetCoursePageUseCase) {
@@ -21,7 +18,7 @@ export class GetCoursePageController extends Controller<
     'public',
     Record<string, unknown>,
     GetCoursePageController.Params
-  >): Promise<Controller.Response<CoursePageQuery.Page>> {
+  >): Promise<Controller.Response<CoursePage>> {
     const page = await this.getCoursePage.execute({
       courseId: params.courseId,
     });

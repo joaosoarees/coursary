@@ -1,22 +1,7 @@
 import type { Course } from '@application/entities/course/Course';
-import type { CourseOutlineQuery } from '@application/queries/outline/CourseOutlineQuery';
+import type { CoursePage } from '@application/queries/catalog/CoursePage';
 
 export interface CoursePageQuery {
   // A published course with its outline, or null for anything else (Q235).
-  execute: (courseId: Course.Id) => Promise<CoursePageQuery.Page | null>;
-}
-
-export namespace CoursePageQuery {
-  export interface Page extends CourseOutlineQuery.Outline {
-    id: string;
-    title: string;
-    description: string;
-    instructorName: string;
-    lessonCount: number;
-    enrollmentCount: number;
-    ratingCount: number;
-    // Computed on read; null before the first review (Q83, Q283).
-    ratingAverage: number | null;
-    publishedAt: string;
-  }
+  execute: (courseId: Course.Id) => Promise<CoursePage | null>;
 }
