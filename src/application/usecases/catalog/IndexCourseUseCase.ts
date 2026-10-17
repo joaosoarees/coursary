@@ -19,6 +19,11 @@ export class IndexCourseUseCase {
       this.coursesRepository.findDescription(courseId, strong),
     ]);
 
+    // A draft was never published, so it has no record to remove.
+    if (course?.status === courseStatuses.Draft) {
+      return;
+    }
+
     if (course?.status !== courseStatuses.Published || !course.publishedAt) {
       await this.catalogIndex.remove(courseId);
 

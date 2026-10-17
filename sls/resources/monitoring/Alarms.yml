@@ -31,6 +31,8 @@ Resources:
       TreatMissingData: notBreaching
       AlarmActions:
         - !Ref AlarmsTopic
+      OKActions:
+        - !Ref AlarmsTopic
 
   CatalogIndexDLQAlarm:
     Type: AWS::CloudWatch::Alarm
@@ -49,4 +51,6 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
       AlarmActions:
+        - !Ref AlarmsTopic
+      OKActions:
         - !Ref AlarmsTopic

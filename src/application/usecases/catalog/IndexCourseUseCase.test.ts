@@ -35,16 +35,20 @@ describe('IndexCourseUseCase', () => {
     });
   });
 
-  it.each(['DRAFT', 'ARCHIVED'] as const)(
-    'should remove a %s course from the index',
-    async (status) => {
-      await world.setCourse({ status });
+  it('should remove an archived course from the index', async () => {
+    await world.setCourse({ status: 'ARCHIVED' });
 
-      await indexCourse.execute({ courseId: world.course.id });
+    await indexCourse.execute({ courseId: world.course.id });
 
-      expect(catalogIndex.removed).toEqual([world.course.id]);
-    },
-  );
+    expect(catalogIndex.removed).toEqual([world.course.id]);
+  });
+
+  it('should leave the index alone for a draft, which was never in it', async () => {
+    await indexCourse.execute({ courseId: world.course.id });
+
+    expect(catalogIndex.removed).toEqual([]);
+    expect(catalogIndex.records.size).toBe(0);
+  });
 
   it('should remove a course that no longer exists', async () => {
     const gone = Course.create({ instructor: world.owner, title: 'Gone' });

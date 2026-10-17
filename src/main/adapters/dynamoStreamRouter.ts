@@ -9,9 +9,17 @@ export function dynamoStreamRouter(catalogIndexQueue: CatalogIndexQueue) {
     const requests = event.Records.flatMap((record) => {
       const courseId = courseToIndex(record);
 
-      return courseId && record.eventID
-        ? [{ courseId, deduplicationId: record.eventID }]
-        : [];
+      if (!courseId) {
+        return [];
+      }
+
+      const deduplicationId = record.eventID ?? record.dynamodb?.SequenceNumber;
+
+      if (!deduplicationId) {
+        throw new Error(`A change of course ${courseId} has no event id.`);
+      }
+
+      return [{ courseId, deduplicationId }];
     });
 
     await catalogIndexQueue.enqueue(requests);

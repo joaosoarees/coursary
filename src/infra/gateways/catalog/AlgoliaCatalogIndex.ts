@@ -6,7 +6,7 @@ import { SecureParameter } from '@infra/clients/SecureParameter';
 import type { AppConfig } from '@shared/config/AppConfig';
 
 export class AlgoliaCatalogIndex implements CatalogIndex {
-  private client: Promise<Algoliasearch> | undefined;
+  private client: Algoliasearch | undefined;
 
   constructor(
     private readonly config: AppConfig,
@@ -36,26 +36,17 @@ export class AlgoliaCatalogIndex implements CatalogIndex {
     });
   }
 
-  private connect(): Promise<Algoliasearch> {
-    this.client ??= this.createClient();
-
-    return this.client;
-  }
-
-  private async createClient(): Promise<Algoliasearch> {
-    const path = this.config.algoliaParametersPath;
-
-    try {
+  // Kept only once the keys were read, so a failure is retried by the next message.
+  private async connect(): Promise<Algoliasearch> {
+    if (!this.client) {
+      const path = this.config.algoliaParametersPath;
       const [appId, writeKey] = await Promise.all([
         new SecureParameter(`${path}/app-id`).get(),
         new SecureParameter(`${path}/write-key`).get(),
       ]);
-
-      return algoliasearch(appId, writeKey, this.options);
-    } catch (error) {
-      // The next message reads the keys again.
-      this.client = undefined;
-      throw error;
+      this.client = algoliasearch(appId, writeKey, this.options);
     }
+
+    return this.client;
   }
 }
