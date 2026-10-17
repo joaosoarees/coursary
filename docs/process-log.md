@@ -190,6 +190,7 @@ Atualizado ao fim de cada história (no Épico 0 e na implementação).
   - **Refatoração "sem mudança de comportamento" ainda pode quebrar o deploy** (Q277): renomear parâmetros de rota passou em todos os testes locais e falhou só no API Gateway. Mudanças em nomes que viram id lógico na IaC precisam de um plano de deploy, não só de testes.
   - **Uma branch anterior à refatoração não é rebaseada; é refeita** (2.1): nova branch da `develop`, os commits de documentação trazidos por cherry-pick e o código portado reescrevendo os caminhos por um mapa, com o commit antigo como referência.
   - **Uma ambiguidade na pergunta aparece na execução** (a Q250 falava dos use cases com transação; o resumo, de "fakes só para o Cognito"): fazer o escopo sem dúvida e perguntar o resto, em vez de escolher em silêncio.
+  - **Decisão que cita um recurso da conta confere o teto de permissões antes** (Q303 → Q313): o caminho das chaves no SSM foi decidido sem ler o boundary do `aws/bootstrap.yml`, que só liberava `parameter/coursary-api/*` e não tinha `kms:Decrypt`; só apareceu ao começar a 3.2, depois de as chaves estarem gravadas. Toda decisão que cria nome de recurso (parâmetro, fila, tópico, bucket) passa pelo prefixo e pelas ações do boundary e da role de deploy.
 
 ## Etapas seguintes (ainda não percorridas)
 
