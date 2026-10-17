@@ -54,10 +54,14 @@ export class DynamoCourseRepository implements CourseRepository {
     }
   }
 
-  async findById(id: Course.Id): Promise<Course | null> {
+  async findById(
+    id: Course.Id,
+    { consistent = false }: CourseRepository.ReadOptions = {},
+  ): Promise<Course | null> {
     const command = new GetCommand({
       TableName: this.config.mainTableName,
       Key: { PK: CourseItem.getPK(id), SK: CourseItem.getSK(id) },
+      ConsistentRead: consistent,
     });
 
     const { Item } = await dynamoClient.send(command);
@@ -65,13 +69,17 @@ export class DynamoCourseRepository implements CourseRepository {
     return Item ? CourseItem.toEntity(Item as CourseItem.ItemType) : null;
   }
 
-  async findDescription(id: Course.Id): Promise<string> {
+  async findDescription(
+    id: Course.Id,
+    { consistent = false }: CourseRepository.ReadOptions = {},
+  ): Promise<string> {
     const command = new GetCommand({
       TableName: this.config.mainTableName,
       Key: {
         PK: CourseDescriptionItem.getPK(id),
         SK: CourseDescriptionItem.getSK(),
       },
+      ConsistentRead: consistent,
     });
 
     const { Item } = await dynamoClient.send(command);

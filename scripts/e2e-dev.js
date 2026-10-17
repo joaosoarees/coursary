@@ -47,6 +47,48 @@ async function call(method, path, { token, body } = {}) {
   return { status: response.status, body: text ? JSON.parse(text) : undefined };
 }
 
+// The search index is read with the search-only key, as the search route will (Q303, Q319).
+const algoliaKey = (name) =>
+  aws(
+    'ssm',
+    'get-parameter',
+    '--with-decryption',
+    '--name',
+    `/coursary-api/${stage}/algolia/${name}`,
+  ).Parameter.Value;
+const algolia = {
+  appId: algoliaKey('app-id'),
+  searchKey: algoliaKey('search-key'),
+  index: `${stage}_courses`,
+};
+
+async function indexRecord(courseId) {
+  const response = await fetch(
+    `https://${algolia.appId}-dsn.algolia.net/1/indexes/${algolia.index}/${courseId}`,
+    {
+      headers: {
+        'x-algolia-application-id': algolia.appId,
+        'x-algolia-api-key': algolia.searchKey,
+      },
+    },
+  );
+
+  return { status: response.status, body: await response.json() };
+}
+
+// The index follows the table through the stream and a queue, seconds behind.
+async function waitForIndex(courseId, status) {
+  const deadline = Date.now() + 60_000;
+  let record = await indexRecord(courseId);
+
+  while (record.status !== status && Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    record = await indexRecord(courseId);
+  }
+
+  return record;
+}
+
 let failures = 0;
 
 function check(name, response, status, code) {
@@ -664,6 +706,27 @@ try {
   );
   const publicPage = await call('GET', `/courses/${courseId}`);
   check('anyone opens the published course page', publicPage, 200);
+  const indexed = await waitForIndex(courseId, 200);
+  check(
+    'the published course reaches the search index through the stream',
+    indexed,
+    200,
+  );
+  const { objectID, ...searched } = indexed.body;
+  check(
+    'the search record holds the searched fields of the current course only',
+    {
+      status:
+        objectID === courseId &&
+        Object.keys(searched).sort().join() ===
+          'description,instructorName,publishedAt,title' &&
+        searched.title === publicPage.body.title &&
+        searched.description === publicPage.body.description
+          ? 200
+          : 500,
+    },
+    200,
+  );
   check(
     'the public page lists the outline without lesson bodies',
     {
@@ -1052,6 +1115,11 @@ try {
     'the archived course leaves the catalog',
     { status: (await inCatalog(courseId)) ? 500 : 200 },
     200,
+  );
+  check(
+    'the archived course leaves the search index',
+    await waitForIndex(courseId, 404),
+    404,
   );
   check(
     'the archived course has no public page',

@@ -35,6 +35,7 @@ const account = (name: string, role: Account.Role) => {
 interface CourseFields {
   status?: Course.Status;
   lessonCount?: number;
+  publishedAt?: string;
 }
 
 // Writes the fields straight to the stored course, past the repository's rules.
