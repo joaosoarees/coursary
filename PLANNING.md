@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-17. Estado: **fases 1 e 2, R.1 a R.5 e 3.1 na `develop` e em `dev` (Q291, Q306 a Q312); 3.2 (catálogo no Algolia) em andamento na `feat/3.2-algolia-catalog` (Q313 a Q319); chaves do Algolia de `dev` no SSM em `/coursary-api/dev/algolia/*`**.
+Última atualização: 2026-10-17. Estado: **fases 1 e 2, R.1 a R.5, 3.1 e 3.2 na `develop` e em `dev` (catálogo no Algolia conferido pelo `e2e:dev`); R.6 (variáveis do Cognito só nas funções de auth, Q325) na `refactor/r6-function-env`; próxima: 3.3 (`GET /search`)**.
 
 ## Como retomar
 
@@ -229,7 +229,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q173 | O que a promoção grava | Numa transação: a conta com `role = admin` e `GSI1PK = ROLE#admin`, só se `ACTIVE`; e um `RoleChange` (`ACCOUNT#a` / `ROLE_CHANGE#<id>`) com de/para, quando e `changedBy = bootstrap`. Já admin: nada é gravado. |
 | Q174 | Primeiro admin de `dev` | A conta de teste do autor; o papel chega ao token no próximo sign-in ou refresh (até 1 h, Q20). Comando no README para a `prod`. |
 | Q175 | Estilo do código | Tudo o que é construído vai para uma `const` antes de ser passado (entidades, itens, comandos do SDK, resultados de `await`, o controller do handler). Auxiliares são métodos estáticos da classe que servem, não funções soltas ao lado dela. Regra da entidade fica na entidade: `Account.requireActive(account \| null)` e `Account.normalizeEmail`. `AccountProfile` é classe com `fromAccount` (namespaces só com tipos, Q128). |
-| Q176 | Variáveis num arquivo só (revê a Q97 nas variáveis) | `provider.environment: ${file(./sls/config/env.yml)}` com `MAIN_TABLE_NAME`, `COGNITO_POOL_ID`, `COGNITO_CLIENT_ID` e `COGNITO_CLIENT_SECRET` para todas as funções. Para não fechar o ciclo pool → trigger → pool, o pool aponta para os triggers por ARN montado com o nome da função (`!Sub …:function:coursary-api-${sls:stage}-<trigger>`). Provado num stage descartável criado do zero (`envtest`): os dois triggers foram chamados; o stage foi removido. |
+| Q176 | Variáveis num arquivo só (revê a Q97 nas variáveis; revista pela Q325) | `provider.environment: ${file(./sls/config/env.yml)}` com `MAIN_TABLE_NAME`, `COGNITO_POOL_ID`, `COGNITO_CLIENT_ID` e `COGNITO_CLIENT_SECRET` para todas as funções. Para não fechar o ciclo pool → trigger → pool, o pool aponta para os triggers por ARN montado com o nome da função (`!Sub …:function:coursary-api-${sls:stage}-<trigger>`). Provado num stage descartável criado do zero (`envtest`): os dois triggers foram chamados; o stage foi removido. |
 | Q177 | Client secret em todas as funções (revê a Q129) | Aceito junto com a Q176, para ter um arquivo só: o secret só serve para chamar o Cognito em nome do client, e só quem já executa código numa das funções o lê. |
 | Q178 | Escopo da 1.10 | Troca de papel, lista por papel, busca por e-mail e histórico de papéis. Desativar e reativar (`AdminDisableUser`/`AdminEnableUser`, compensação, regras) viram a 1.11; as histórias seguintes andam uma casa. |
 | Q179 | Busca por e-mail do admin | Pela reserva, com o `findByEmail` existente (Q137). O `GSI2` continua para o catálogo (Q112); a Q78 previa o índice para isso (achado). |
@@ -378,6 +378,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q322 | Números das filas e do stream | Roteador: `batchSize: 100`, `maximumRetryAttempts: 2`, `bisectBatchOnFunctionError`, `onFailure` em `coursary-api-<stage>-stream-failures` (14 dias). Fila `coursary-api-<stage>-index.fifo`: visibilidade 180 s (6 × 30 s), `maxReceiveCount: 5`, DLQ FIFO de 14 dias. Indexador: `batchSize: 10`, `ReportBatchItemFailures`, 512 MB. |
 | Q323 | Porta e chave | `CatalogIndex` (`save`, `remove`) na aplicação, `AlgoliaCatalogIndex` na infraestrutura; `SecureParameter` em `src/infra/clients` lê com decifragem na primeira chamada e guarda a promessa, refeita se falhar; `ALGOLIA_PARAMETERS_PATH` só no indexador, com `ssm:GetParameter` em `app-id` e `write-key`. |
 | Q324 | Sub-imp da 3.2 | a. stream, filas e roteador; b. porta, adapter, `SecureParameter` e indexador; c. SNS, alarmes e e-mail; d. `reindexCatalog`; e. prova em `dev`, documentação, quadro, `/code-review`, PR. A prova entrou no `e2e:dev` em vez de um script à parte: a role de deploy decifra a search key (política da chave `aws/ssm`), e todo `e2e` passa a conferir que o curso publicado chega ao índice e o arquivado sai. |
+| Q325 | Variáveis por função (revê a Q176, cumpre a Q295) | O provider fica só com `MAIN_TABLE_NAME`; `COGNITO_POOL_ID`, `COGNITO_CLIENT_ID` e `COGNITO_CLIENT_SECRET` vão em `sls/config/cognitoEnv.yml`, só para as 7 funções que usam o `AuthGateway`. Consumidores, triggers e as demais rotas deixam de receber o secret do app client. Refatoração R.6. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
@@ -488,7 +489,7 @@ Projeto de referência: o foodiary, uma API anterior do autor no mesmo estilo (l
 - `application` importa classes concretas de `infra`; as queries falam direto com o `dynamoClient`.
 - Unicidade de e-mail é "consulta o GSI, depois grava"; o erro do Cognito vira 500.
 - Catches genéricos transformam qualquer erro do Cognito em 401 ou 400.
-- `COGNITO_CLIENT_SECRET` exposto a todas as funções; `env.ts` exige todas as variáveis em toda função.
+- `COGNITO_CLIENT_SECRET` exposto a todas as funções; `env.ts` exige todas as variáveis em toda função. *Aqui também ficou exposto até a Q325 (R.6): agora só as funções que chamam o Cognito o recebem, e um teste confere.*
 - Uma role IAM única para todas as funções.
 - Sem testes, sem scripts de `lint`, `build` ou `deploy`; versão do Serverless Framework não fixada.
 - Renomear a função do trigger de pre token generation quebra a ligação manual no `UserPool.yml`.
