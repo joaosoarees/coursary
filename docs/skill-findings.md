@@ -502,6 +502,11 @@ Cada achado:
 - **O que aconteceu**: com a rota pública e o plano gratuito, nada impedia um script de esgotar a cota. O limite entrou no próprio API Gateway, só para a rota (`RouteSettings` do stage `$default`, 5 por segundo e rajada de 10), por `resources.extensions` sobre o `HttpApiStage` do framework, com `DependsOn` na rota para o stage não ser criado antes dela.
 - **Sugestão**: uma seção sobre proteger a cota de uma rota pública de busca, com o throttling por rota do HTTP API.
 
+#### 2026-10-17 · 3.3 · lacuna (`serverless-lambda-functions`, `algolia-search-api`)
+- **A skill diz**: nada sobre o teto de execuções simultâneas da conta.
+- **O que aconteceu**: a conta tinha 10 execuções simultâneas em `sa-east-1` (padrão de conta nova, contra 1.000 no padrão antigo). Uma rajada de 30 chamadas a `GET /search` deu 10 respostas 200, 10 respostas 429 do throttling da rota e 10 respostas 503 da Lambda sem concorrência. O teto é da conta: a rajada de uma rota deixa as outras rotas, o roteador do stream e o indexador sem execução no mesmo instante. Concorrência reservada não resolve, porque a AWS exige 10 sem reserva. O aumento foi pedido no Service Quotas, e a rajada da busca caiu para 3 até lá.
+- **Sugestão**: no setup, conferir `aws lambda get-account-settings` e pedir o aumento antes do primeiro deploy; explicar 503 (Lambda) contra 429 (gateway).
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |

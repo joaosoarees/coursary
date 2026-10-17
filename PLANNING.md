@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-17. Estado: **fases 1 e 2, R.1 a R.6, 3.1 e 3.2 na `develop` e em `dev`; 3.3 (`GET /search`) em andamento na `feat/3.3-search` (Q326 a Q332)**.
+Última atualização: 2026-10-17. Estado: **fases 1 e 2, R.1 a R.6 e 3.1 a 3.3 na `develop` e em `dev`; teto de concorrência da conta em 10 (pedido de 1.000 aberto, Q339); próximas: R.7 (classes de resposta, Q336 a Q338) e 3.4**.
 
 ## Como retomar
 
@@ -392,6 +392,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q336 | Página pública com classe | `CoursePageQuery.Page` vira `CoursePage.fromCourse(course, description, outline)`, reaproveitando `CatalogItem.fromCourse` nos campos comuns. Refatoração R.7. |
 | Q337 | Outline com classes | `CourseOutline.from(modules, lessons)` (agrupa e ordena na aplicação), `OutlineModule.fromModule(module, lessons)`, `OutlineLesson.fromSummary(summary)`; o `LessonItem` ganha `toSummary`, já que o sumário não tem corpo. Refatoração R.7. |
 | Q338 | Quando entra a R.7 | PR à parte, depois do merge da 3.3, com `/code-review` próprio e a regra no `CLAUDE.md`: toda resposta montada a partir de entidade ou item é uma classe com `static from…` em `queries/` ou `usecases/`. |
+| Q339 | Teto de concorrência da conta | A conta tem 10 execuções simultâneas de Lambda em `sa-east-1` (padrão de conta nova); uma rajada de 30 buscas deu 10 × 200, 10 × 429 (gateway) e 10 × 503 (Lambda sem concorrência), e o teto é compartilhado por todas as funções. Pedido de aumento para 1.000 aberto no Service Quotas em 2026-10-17 (`L-B99A9384`, pelo perfil admin). Enquanto isso, a rajada da busca cai de 10 para 3 (ritmo 5/s); volta a 10 quando o teto subir. Concorrência reservada não serve: a AWS exige 10 sem reserva. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
