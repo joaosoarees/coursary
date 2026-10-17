@@ -427,6 +427,18 @@ Cada achado:
 - **O que aconteceu**: medido em `dev` com o `e2e:dev` (linhas `REPORT` no Logs Insights, por função). 512 MB deu as mesmas durações que 1024 MB. 256 MB deixou 34 de 37 funções de 1,5 a 3,2 vezes mais lentas (as 3 que esperam o Cognito, de 14% a 17%), porque a CPU acompanha a memória e o trabalho é CPU (SDK, JSON, Zod). Com o dobro do tempo e metade da memória, o custo empata e a latência dobra. Ficou 512 MB, com metade do custo de 1024 MB. O pico de memória usada (cerca de 156 MB) não decide o valor; quem decide é a CPU.
 - **Sugestão**: dizer que o passo é julgado por função, e não no agregado; e que, abaixo do ponto em que a duração dobra, a economia some.
 
+### `transactional-email-resend`, `sqs-queue-settings` (quebra da fase 3)
+
+#### 2026-10-16 · Q294 · ambíguo (`transactional-email-resend`)
+- **A skill diz**: o Resend com a chave no SSM, lida em execução; uma seção curta cobre "Amazon SES instead".
+- **O que aconteceu**: o pool já envia tudo pelo SES (`EmailSendingAccount: DEVELOPER`, Q161), sem chave de terceiros. A fase 3 ficou com o SES atrás de uma porta `MailGateway`, e a skill não vai ser exercitada. As regras dela que valem para qualquer provedor (checar o resultado, timeout, log só com ids, link para uma página) entram mesmo assim.
+- **Sugestão**: uma skill de e-mail pelo SES em Lambda (`sesv2`, sandbox, configuration set, bounce e complaint) já está na tabela de skills que faltam.
+
+#### 2026-10-16 · Q302 · lacuna (`sqs-queue-settings`)
+- **A skill diz**: o fan-out de um evento para várias filas está fora do escopo dela.
+- **O que aconteceu**: o stream tem quatro interessados, e a AWS recomenda no máximo dois leitores por shard. A fase 3 terá uma Lambda roteadora, leitora única do stream, que envia para uma fila por consumidor.
+- **Sugestão**: a skill de fan-out de stream (Lambda roteadora ou EventBridge Pipes) já está na tabela de skills que faltam.
+
 ## Skills que faltam
 
 | Tema | Onde apareceu |
