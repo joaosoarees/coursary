@@ -36,20 +36,10 @@ export class ReorderOutlineUseCase {
     ReorderOutlineUseCase.requireSameItems(current, order);
 
     const modulesById = new Map(current.modules.map((m) => [m.id, m]));
+    // Each stored lesson with the module it is in now.
     const lessonsById = new Map(
       current.modules.flatMap((m) =>
-        m.lessons.map(
-          (l) =>
-            [
-              l.id,
-              {
-                moduleId: m.id,
-                title: l.title,
-                durationMinutes: l.durationMinutes,
-                position: l.position,
-              },
-            ] as const,
-        ),
+        m.lessons.map((l) => [l.id, { lesson: l, moduleId: m.id }] as const),
       ),
     );
     const operations: UnitOfWork.Operation[] = [];
@@ -83,9 +73,9 @@ export class ReorderOutlineUseCase {
       }
 
       for (const [lessonPosition, lessonId] of entry.lessonIds.entries()) {
-        const summary = lessonsById.get(lessonId);
+        const storedLesson = lessonsById.get(lessonId);
 
-        if (!summary) {
+        if (!storedLesson) {
           throw new OutlineMismatch();
         }
 
@@ -94,22 +84,22 @@ export class ReorderOutlineUseCase {
           id: lessonId,
           courseId,
           moduleId: entry.id,
-          title: summary.title,
+          title: storedLesson.lesson.title,
           body: '',
-          durationMinutes: summary.durationMinutes,
+          durationMinutes: storedLesson.lesson.durationMinutes,
           position: lessonPosition,
         });
 
-        if (summary.moduleId !== entry.id) {
-          shift(summary.moduleId, -1);
+        if (storedLesson.moduleId !== entry.id) {
+          shift(storedLesson.moduleId, -1);
           shift(entry.id, 1);
           operations.push(
             ...this.lessonsRepository.moveOperations(
               lesson,
-              Module.toId(summary.moduleId),
+              Module.toId(storedLesson.moduleId),
             ),
           );
-        } else if (summary.position !== lessonPosition) {
+        } else if (storedLesson.lesson.position !== lessonPosition) {
           operations.push(this.lessonsRepository.repositionOperation(lesson));
         }
 

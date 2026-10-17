@@ -21,12 +21,20 @@ export class CourseOutline {
     const byPosition = (a: Positioned, b: Positioned) =>
       a.position - b.position || a.id.localeCompare(b.id);
 
+    const lessonsByModule = new Map<string, Lesson.Summary[]>();
+
+    for (const lesson of lessons) {
+      const group = lessonsByModule.get(lesson.moduleId) ?? [];
+      group.push(lesson);
+      lessonsByModule.set(lesson.moduleId, group);
+    }
+
+    // A lesson whose module is not there is left out.
     return new CourseOutline({
       modules: [...modules].sort(byPosition).map((module) =>
         OutlineModule.fromModule(
           module,
-          lessons
-            .filter((lesson) => lesson.moduleId === module.id)
+          (lessonsByModule.get(module.id) ?? [])
             .sort(byPosition)
             .map((lesson) => OutlineLesson.fromSummary(lesson)),
         ),
