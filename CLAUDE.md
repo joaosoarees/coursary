@@ -18,6 +18,7 @@ API serverless de uma plataforma de cursos (Lambda + DynamoDB single-table). O p
 - **Necessidade → implementação** (Q112): nenhuma abstração, operação, índice ou permissão antes da história que a usa.
 - **A aplicação é a fonte da verdade** (Q38): serviços externos ficam atrás de portas.
 - **Comentários só quando muito úteis.**
+- **Toda resposta que expõe uma entidade ou item (uma visão: item de lista, página, detalhe) é uma classe com `static from…`** (Q334, Q338), em `queries/` (leituras) ou `usecases/` (escritas), como `CourseSummary.fromCourse`. Nada de função solta nem de mapeamento campo a campo dentro de query, use case ou entidade. Resultado curto de operação (`{ id, role }`, `{ accountId, changed }`) fica literal no próprio use case.
 - **Configuração repetida entre funções vai para `sls/config/<tema>.yml`** (Q333): variáveis em `environment`, statements de IAM em `statements.<nome>`, referenciados com `${file(./sls/config/<tema>.yml):…}`. Uma função cita o que usa; nenhum ARN ou bloco igual escrito duas vezes em `sls/functions`.
 - Toda rota nova entra em `docs/api/coursary-api.postman_collection.json` (importável no Yaak) no mesmo PR.
 - Ao fechar uma sub-imp: registrar os achados no quadro e em `docs/skill-findings.md`; atualizar `docs/data-model.md` se alguma chave ou item mudou.

@@ -2,13 +2,13 @@ import type { z } from 'zod';
 
 import { Controller } from '@application/contracts/Controller';
 import { courseIdParamsSchema } from '@application/controllers/shared/schemas';
-import type { CourseOutlineQuery } from '@application/queries/outline/CourseOutlineQuery';
+import type { CourseOutline } from '@application/queries/outline/CourseOutline';
 import { permissions } from '@application/security/permissions';
 import type { GetCourseOutlineUseCase } from '@application/usecases/outline/GetCourseOutlineUseCase';
 
 export class GetCourseOutlineController extends Controller<
   'private',
-  CourseOutlineQuery.Outline
+  CourseOutline
 > {
   protected override readonly permission = permissions.CoursesLearn;
 
@@ -26,7 +26,7 @@ export class GetCourseOutlineController extends Controller<
     'private',
     Record<string, unknown>,
     GetCourseOutlineController.Params
-  >): Promise<Controller.Response<CourseOutlineQuery.Outline>> {
+  >): Promise<Controller.Response<CourseOutline>> {
     const result = await this.getCourseOutline.execute({
       callerId: accountId,
       callerRole: role,

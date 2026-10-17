@@ -1,4 +1,5 @@
 import { Course } from '@application/entities/course/Course';
+import type { CourseOutline } from '@application/queries/outline/CourseOutline';
 import type { CourseOutlineQuery } from '@application/queries/outline/CourseOutlineQuery';
 import type { CourseRepository } from '@application/repositories/course/CourseRepository';
 import type { EnrollmentRepository } from '@application/repositories/enrollment/EnrollmentRepository';
@@ -16,7 +17,7 @@ export class GetCourseOutlineUseCase {
     callerId,
     callerRole,
     courseId,
-  }: GetCourseOutlineUseCase.Input): Promise<CourseOutlineQuery.Outline> {
+  }: GetCourseOutlineUseCase.Input): Promise<CourseOutline> {
     const [found, enrollment] = await Promise.all([
       this.coursesRepository.findById(courseId),
       this.enrollmentsRepository.find(callerId, courseId),

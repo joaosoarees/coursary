@@ -3,13 +3,13 @@ import type { z } from 'zod';
 import { Controller } from '@application/contracts/Controller';
 import { outlineBodySchema } from '@application/controllers/outline/schemas';
 import { courseIdParamsSchema } from '@application/controllers/shared/schemas';
-import type { CourseOutlineQuery } from '@application/queries/outline/CourseOutlineQuery';
+import type { CourseOutline } from '@application/queries/outline/CourseOutline';
 import { permissions } from '@application/security/permissions';
 import type { ReorderOutlineUseCase } from '@application/usecases/outline/ReorderOutlineUseCase';
 
 export class ReorderOutlineController extends Controller<
   'private',
-  CourseOutlineQuery.Outline
+  CourseOutline
 > {
   protected override readonly permission = permissions.CoursesUpdate;
 
@@ -30,7 +30,7 @@ export class ReorderOutlineController extends Controller<
     'private',
     ReorderOutlineController.Body,
     ReorderOutlineController.Params
-  >): Promise<Controller.Response<CourseOutlineQuery.Outline>> {
+  >): Promise<Controller.Response<CourseOutline>> {
     const result = await this.reorderOutline.execute({
       callerId: accountId,
       callerRole: role,
