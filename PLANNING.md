@@ -1,6 +1,6 @@
 # Coursary: planejamento (sessão de grilling em andamento)
 
-Última atualização: 2026-10-16. Estado: **fases 1 e 2, R.1 a R.3 na `develop` e em `dev`, `pnpm e2e:dev` 91 de 91; R.4 (correções da revisão, Q287 a Q292) na `refactor/r4-review-fixes`, em PR; depois, 256 MB se a medida de 512 MB permitir (Q291) e quebrar a fase 3**.
+Última atualização: 2026-10-16. Estado: **fases 1 e 2 e R.1 a R.4 na `develop` e em `dev`, `pnpm e2e:dev` 91 de 91, funções com 512 MB (Q291); fase 3 quebrada em R.5 e 3.1 a 3.7 (Q293 a Q305); próxima: R.5 (escopo no JWT)**.
 
 ## Como retomar
 
@@ -11,7 +11,7 @@ Abra o Claude Code e diga:
 Ao retomar, o assistente deve:
 
 1. Ver no estado acima e na tabela "Fase 1: histórias" qual história é a próxima.
-2. A fase 2 fechou e a revisão de 2026-10-16 (`docs/reviews/2026-10-16.md`) virou a R.4. Falta medir 512 MB contra a linha de base e decidir 256 MB (Q291). Depois, quebrar a fase 3 (stream → SQS → Algolia e e-mails do domínio; etapa 12 do `process-log`), começando pelas decisões a rever listadas na revisão (Q90, Q170/Q176, Q89, Q37, Q86, Q169) e pelos itens que ficaram para ela (descrição do curso em item à parte, limpeza do Cognito pelo `sub`).
+2. A fase 3 está quebrada (Q304): R.5 (escopo no JWT, Q301), 3.1 descrição em item à parte (Q298), 3.2 catálogo no Algolia (stream, roteador Q302, chaves no SSM lidas no cold start Q303/Q305), 3.3 `GET /search` (Q297), 3.4 limpeza do Cognito (Q300), 3.5 e 3.6 e-mails pelo SES (Q293/Q294), 3.7 apagar rascunho (Q299). Antes da 3.2, o autor cria a aplicação no Algolia e grava as chaves no SSM. Seguir o "Começar tarefa" do `CLAUDE.md` e o `/code-review` antes de cada PR.
 3. Seguir o "Começar tarefa X.X" do `CLAUDE.md`: branch a partir da `develop`, sub-imp propostas e discutidas antes de codar.
 4. Não refazer perguntas já fechadas.
 
@@ -358,6 +358,7 @@ Entidades que saem daí: Account, Course, Module, Lesson, Enrollment, LessonProg
 | Q302 | Topologia do stream (revê a Q90) | Um leitor: Lambda roteadora com filtro dos tipos de interesse, que envia cada evento para a fila do consumidor (`index`, `cognito-cleanup`, `mail`); cada consumidor com DLQ, redrive e idempotência. |
 | Q303 | Chaves do Algolia | O autor cria a aplicação (plano gratuito) e grava `/coursary/<stage>/algolia/app-id`, `write-key` e `search-key` no SSM Parameter Store como `SecureString`; as chaves não passam pela conversa nem pelo repositório. Cada função recebe só a sua (escrita no indexador, busca no `GET /search`). |
 | Q304 | Histórias da fase 3 | R.5 escopo no JWT; 3.1 descrição em item à parte; 3.2 catálogo no Algolia (stream, roteador, falhas, fila `index`, indexador, reindexação, chaves); 3.3 `GET /search`; 3.4 limpeza do Cognito; 3.5 boas-vindas (`MailGateway` SES, fila `mail`); 3.6 aviso de arquivamento (fan-out); 3.7 apagar rascunho. O stream nasce na 3.2 (Q112). |
+| Q305 | Leitura das chaves do Algolia | A função lê o seu parâmetro do SSM no cold start (`GetParameter` com decifragem) e guarda em memória; role da função com `ssm:GetParameter` no caminho dela e `kms:Decrypt`. A chave não entra no template nem nas variáveis de ambiente (o `${ssm:…}` do deploy a deixaria em texto puro). Nasce na 3.2. |
 | Q112 | **Princípio: necessidade → implementação** | Nenhuma abstração, operação, índice ou permissão entra antes da história que a usa. `UnitOfWork` e `Saga` nascem no sign-up; `GSI2` com a primeira leitura por e-mail; `GSI1` com a lista do admin; container com o primeiro use case com porta; DynamoDB Local no CI com o primeiro teste de integração. |
 
 #### Fases (Q27)
