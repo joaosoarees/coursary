@@ -6,9 +6,15 @@ export interface CourseRepository {
   // Without a description, nothing is stored for it (Q307).
   create: (course: Course, description?: string) => Promise<void>;
 
-  findById: (id: Course.Id) => Promise<Course | null>;
+  findById: (
+    id: Course.Id,
+    options?: CourseRepository.ReadOptions,
+  ) => Promise<Course | null>;
 
-  findDescription: (id: Course.Id) => Promise<string>;
+  findDescription: (
+    id: Course.Id,
+    options?: CourseRepository.ReadOptions,
+  ) => Promise<string>;
 
   update: (course: Course, changes: Course.Changes) => Promise<void>;
 
@@ -40,6 +46,10 @@ export interface CourseRepository {
 }
 
 export namespace CourseRepository {
+  export interface ReadOptions {
+    consistent?: boolean;
+  }
+
   // Named, so a sum and a count cannot trade places.
   export interface RatingDeltas {
     sumDelta: number;

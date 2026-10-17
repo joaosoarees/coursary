@@ -11,3 +11,36 @@ getCoursePage:
     - httpApi:
         method: GET
         path: /courses/{courseId}
+
+indexCourse:
+  handler: src/main/functions/catalog/indexCourse.handler
+  timeout: 30
+  environment:
+    ALGOLIA_PARAMETERS_PATH: /coursary-api/${sls:stage}/algolia
+    CATALOG_INDEX_NAME: ${sls:stage}_courses
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+          Resource: !GetAtt MainTable.Arn
+        # Only this function holds the write key (Q295, Q303).
+        - Effect: Allow
+          Action:
+            - ssm:GetParameter
+          Resource:
+            - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/coursary-api/${sls:stage}/algolia/app-id
+            - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/coursary-api/${sls:stage}/algolia/write-key
+        - Effect: Allow
+          Action:
+            - kms:Decrypt
+          Resource: '*'
+          Condition:
+            StringEquals:
+              kms:ViaService: !Sub ssm.${AWS::Region}.amazonaws.com
+  events:
+    - sqs:
+        arn: !GetAtt CatalogIndexQueue.Arn
+        batchSize: 10
+        functionResponseType: ReportBatchItemFailures
